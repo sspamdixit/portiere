@@ -31,6 +31,7 @@ class ExecutionEvent(BaseModel):
 
 
 class SettingsModel(BaseModel):
+    first_launch: bool = True
     brain_provider: str = "ollama"
     brain_model: str = "llama3.2"
     brain_api_key: Optional[str] = None

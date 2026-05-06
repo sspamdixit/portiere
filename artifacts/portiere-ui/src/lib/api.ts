@@ -29,6 +29,16 @@ export async function fetchWorkers() {
   return r.json();
 }
 
+export async function probeOllama(): Promise<{ ok: boolean; models?: string[]; error?: string }> {
+  const r = await fetch(`${API}/probe/ollama`);
+  return r.json();
+}
+
+export async function probeLMStudio(): Promise<{ ok: boolean; models?: string[]; error?: string }> {
+  const r = await fetch(`${API}/probe/lmstudio`);
+  return r.json();
+}
+
 export function streamOrchestrate(
   message: string,
   filePath: string | null,

@@ -1,5 +1,6 @@
 import json
 import os
+import httpx
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -54,6 +55,36 @@ async def save_settings(request: Request):
 @app.get("/api/models")
 async def get_models():
     return await _orchestrator.list_models()
+
+
+@app.get("/api/probe/ollama")
+async def probe_ollama():
+    settings = _settings_store.get_raw()
+    base = settings.ollama_base_url.rstrip("/")
+    try:
+        async with httpx.AsyncClient(timeout=4.0) as client:
+            r = await client.get(f"{base}/api/tags")
+            if r.status_code == 200:
+                models = [m["name"] for m in r.json().get("models", [])]
+                return {"ok": True, "models": models}
+            return {"ok": False, "error": f"HTTP {r.status_code}"}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+
+@app.get("/api/probe/lmstudio")
+async def probe_lmstudio():
+    settings = _settings_store.get_raw()
+    base = settings.lmstudio_base_url.rstrip("/")
+    try:
+        async with httpx.AsyncClient(timeout=4.0) as client:
+            r = await client.get(f"{base}/models")
+            if r.status_code == 200:
+                models = [m["id"] for m in r.json().get("data", [])]
+                return {"ok": True, "models": models}
+            return {"ok": False, "error": f"HTTP {r.status_code}"}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
 
 
 @app.get("/api/workers")

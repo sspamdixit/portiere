@@ -32,6 +32,7 @@ class SettingsStore:
         for key in ["brain_api_key", "claude_api_key", "openai_api_key", "fal_api_key", "seedance_api_key"]:
             if out.get(key):
                 out[key] = "••••••••" + out[key][-4:] if len(out.get(key, "")) > 4 else "••••"
+        out["first_launch"] = data.get("first_launch", True)
         return out
 
     def get_raw(self) -> SettingsModel:
