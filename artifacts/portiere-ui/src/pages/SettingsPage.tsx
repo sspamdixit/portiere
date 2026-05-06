@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
-import { Save, Eye, EyeOff, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
+import { Save, Eye, EyeOff, CheckCircle, AlertCircle, Loader2, ChevronRight } from "lucide-react";
 import { fetchSettings, saveSettings } from "@/lib/api";
+
+const dim = "hsl(242 17% 36%)";
+const muted = "hsl(242 18% 61%)";
 
 interface FieldProps {
   label: string;
@@ -15,18 +18,28 @@ interface FieldProps {
 
 function Field({ label, description, secret, value, onChange, placeholder, type, options }: FieldProps) {
   const [show, setShow] = useState(false);
+  const inputStyle = {
+    backgroundColor: "hsl(240 18% 9%)",
+    border: "1px solid hsl(240 24% 14%)",
+    borderRadius: "0.5rem",
+    color: "hsl(244 100% 97%)",
+    fontSize: "14px",
+    padding: "8px 12px",
+    outline: "none",
+    width: "100%",
+  };
 
   return (
     <div className="space-y-1.5">
       <div className="flex items-baseline justify-between">
-        <label className="font-mono text-xs font-medium text-foreground/90 uppercase tracking-wider">{label}</label>
-        {description && <span className="text-[10px] text-muted-foreground">{description}</span>}
+        <label className="text-[13px] font-medium text-foreground">{label}</label>
+        {description && <span className="text-[11px]" style={{ color: dim }}>{description}</span>}
       </div>
       {options ? (
         <select
           value={value}
           onChange={e => onChange(e.target.value)}
-          className="w-full bg-input border border-border rounded px-3 py-2 font-mono text-sm text-foreground outline-none focus:border-primary/60 focus:ring-1 focus:ring-primary/20 transition-all"
+          style={{ ...inputStyle, appearance: "auto" }}
         >
           {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
         </select>
@@ -37,15 +50,16 @@ function Field({ label, description, secret, value, onChange, placeholder, type,
             value={value}
             onChange={e => onChange(e.target.value)}
             placeholder={placeholder}
-            className="w-full bg-input border border-border rounded px-3 py-2 font-mono text-sm text-foreground placeholder-muted-foreground/40 outline-none focus:border-primary/60 focus:ring-1 focus:ring-primary/20 transition-all pr-9"
+            style={{ ...inputStyle, paddingRight: secret ? "2.5rem" : "12px" }}
           />
           {secret && (
             <button
               type="button"
               onClick={() => setShow(v => !v)}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
+              style={{ color: dim }}
             >
-              {show ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+              {show ? <EyeOff size={14} /> : <Eye size={14} />}
             </button>
           )}
         </div>
@@ -56,11 +70,14 @@ function Field({ label, description, secret, value, onChange, placeholder, type,
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="bg-card border border-card-border rounded-lg overflow-hidden">
-      <div className="px-4 py-3 border-b border-border bg-muted/30">
-        <h3 className="font-mono text-xs font-bold uppercase tracking-widest text-foreground/80">{title}</h3>
+    <div
+      className="rounded-xl overflow-hidden"
+      style={{ backgroundColor: "hsl(240 18% 9%)", border: "1px solid hsl(240 24% 14%)" }}
+    >
+      <div className="px-5 py-3" style={{ borderBottom: "1px solid hsl(240 24% 14%)" }}>
+        <h3 className="text-[13px] font-semibold text-foreground">{title}</h3>
       </div>
-      <div className="p-4 space-y-4">{children}</div>
+      <div className="p-5 space-y-5">{children}</div>
     </div>
   );
 }
@@ -128,7 +145,7 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+        <Loader2 size={18} className="animate-spin" style={{ color: muted }} />
       </div>
     );
   }
@@ -137,38 +154,48 @@ export default function SettingsPage() {
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden">
-      <div className="flex items-center justify-between px-5 py-3 border-b border-border bg-card/40 flex-shrink-0">
-        <div>
-          <h1 className="font-mono text-sm font-bold text-foreground">VAULT</h1>
-          <p className="font-mono text-[10px] text-muted-foreground mt-0.5">API keys and infrastructure configuration</p>
+      {/* Header */}
+      <div
+        className="flex items-center justify-between px-6 flex-shrink-0"
+        style={{ height: "48px", borderBottom: "1px solid hsl(240 24% 14%)" }}
+      >
+        <div className="flex items-center gap-2 text-[14px]">
+          <span className="text-foreground">Settings</span>
+          <ChevronRight size={14} style={{ color: dim }} />
+          <span style={{ color: muted }}>API Keys & Config</span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           {status === "success" && (
-            <div className="flex items-center gap-1.5 text-accent text-xs font-mono">
-              <CheckCircle className="w-3.5 h-3.5" /> Saved
+            <div className="flex items-center gap-1.5 text-[13px]" style={{ color: "hsl(142 71% 45%)" }}>
+              <CheckCircle size={13} /> Saved
             </div>
           )}
           {status === "error" && (
-            <div className="flex items-center gap-1.5 text-destructive text-xs font-mono" title={errorMsg}>
-              <AlertCircle className="w-3.5 h-3.5" /> Error
+            <div className="flex items-center gap-1.5 text-[13px] text-destructive" title={errorMsg}>
+              <AlertCircle size={13} /> Error
             </div>
           )}
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 hover:bg-primary/20 border border-primary/30 rounded font-mono text-xs text-primary transition-all disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] transition-all disabled:opacity-50"
+            style={{
+              backgroundColor: "hsl(246 89% 70% / 0.12)",
+              border: "1px solid hsl(246 89% 70% / 0.25)",
+              color: "hsl(246 89% 70%)",
+            }}
           >
-            {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+            {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
             Save
           </button>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto feed-scroll px-5 py-5 space-y-4">
+      <div className="flex-1 overflow-y-auto feed-scroll px-6 py-6 space-y-4">
         <Section title="Brain — Central LLM">
           <Field
             label="Provider"
-            description="LLM backend for routing decisions"
+            description="Routes all orchestration decisions"
             value={String(form.brain_provider)}
             onChange={set("brain_provider")}
             options={[
@@ -203,7 +230,7 @@ export default function SettingsPage() {
           )}
         </Section>
 
-        <Section title="Claude Worker — Anthropic">
+        <Section title="Claude Worker">
           <Field
             label="API Key"
             secret
@@ -223,7 +250,7 @@ export default function SettingsPage() {
           />
         </Section>
 
-        <Section title="Video Worker — FAL.ai / Seedance">
+        <Section title="Video Worker">
           <Field
             label="FAL API Key"
             secret
@@ -243,7 +270,7 @@ export default function SettingsPage() {
         <Section title="Local Worker — Shell">
           <Field
             label="Allow Shell Commands"
-            description="Execute system commands from the console"
+            description="Execute system commands"
             value={String(form.allow_shell_commands)}
             onChange={set("allow_shell_commands")}
             options={[
@@ -277,11 +304,9 @@ export default function SettingsPage() {
           />
         </Section>
 
-        <div className="pb-4">
-          <p className="font-mono text-[10px] text-muted-foreground/60 text-center">
-            Settings are stored locally at ~/.portiere/settings.json — never transmitted to third parties
-          </p>
-        </div>
+        <p className="text-[11px] text-center pb-4" style={{ color: dim }}>
+          Settings stored locally at ~/.portiere/settings.json — never transmitted to third parties
+        </p>
       </div>
     </div>
   );

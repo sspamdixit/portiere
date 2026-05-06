@@ -47,7 +47,9 @@ A local-first AI orchestration platform with a Master-Worker architecture. Users
 
 ## User preferences
 
-- High-contrast industrial dark-mode interface (deep near-black + cyan accents)
+- Consumer-grade dark UI: violet-black palette (#09090e bg, #7c6ff7 violet primary, #f1f0ff text), system-ui font
+- Clean, readable feed: user messages right-aligned, brain trace stays dim/minimal, worker outputs in clean cards (not raw pre blocks)
+- Suggestion chips in empty state + after run completes; disclaimer text below input bar
 - Local-first philosophy — no mandatory cloud dependencies
 - PyInstaller packaging support via PYTHONPATH=artifacts/api-server entrypoint
 

@@ -1,23 +1,92 @@
 import { useState } from "react";
-import { RefreshCw, Cpu, HardDrive, Loader2, AlertCircle, Box } from "lucide-react";
+import { RefreshCw, Cpu, HardDrive, Loader2, AlertCircle, Box, ChevronRight } from "lucide-react";
 import { fetchModels } from "@/lib/api";
 
-interface OllamaModel {
-  name: string;
-  size_gb: number;
-  modified: string;
-}
+const dim = "hsl(242 17% 36%)";
+const muted = "hsl(242 18% 61%)";
 
-interface LMStudioModel {
-  name: string;
-  object: string;
-}
-
+interface OllamaModel { name: string; size_gb: number; modified: string; }
+interface LMStudioModel { name: string; object: string; }
 interface ModelsData {
   ollama: OllamaModel[];
   lmstudio: LMStudioModel[];
   ollama_error?: string;
   lmstudio_error?: string;
+}
+
+function ProviderCard({
+  title,
+  icon,
+  accentColor,
+  count,
+  error,
+  empty,
+  children,
+}: {
+  title: string;
+  icon: React.ReactNode;
+  accentColor: string;
+  count?: number;
+  error?: string;
+  empty?: string;
+  children?: React.ReactNode;
+}) {
+  return (
+    <div
+      className="rounded-xl overflow-hidden"
+      style={{ backgroundColor: "hsl(240 18% 9%)", border: "1px solid hsl(240 24% 14%)" }}
+    >
+      <div
+        className="flex items-center justify-between px-5 py-3"
+        style={{ borderBottom: "1px solid hsl(240 24% 14%)" }}
+      >
+        <div className="flex items-center gap-2.5">
+          <span style={{ color: accentColor }}>{icon}</span>
+          <span className="text-[13px] font-semibold text-foreground">{title}</span>
+        </div>
+        {count !== undefined && !error && (
+          <span
+            className="text-[11px] px-2 py-0.5 rounded-full"
+            style={{
+              backgroundColor: `${accentColor}14`,
+              color: accentColor,
+              border: `1px solid ${accentColor}30`,
+            }}
+          >
+            {count} model{count !== 1 ? "s" : ""}
+          </span>
+        )}
+        {error && (
+          <span className="text-[11px] px-2 py-0.5 rounded-full text-destructive"
+            style={{ backgroundColor: "hsl(347 87% 60% / 0.08)", border: "1px solid hsl(347 87% 60% / 0.2)" }}>
+            Unreachable
+          </span>
+        )}
+      </div>
+      {error ? (
+        <div className="px-5 py-4 text-[13px]" style={{ color: muted }}>
+          <div className="flex items-start gap-2">
+            <AlertCircle size={13} className="text-destructive mt-0.5 flex-shrink-0" />
+            <div>
+              <p>{error}</p>
+              {title === "Ollama" && (
+                <p className="mt-1.5" style={{ color: dim }}>
+                  Run <code className="text-foreground/80 bg-white/5 px-1.5 py-0.5 rounded text-[12px]">ollama serve</code> to start.
+                </p>
+              )}
+              {title === "LM Studio" && (
+                <p className="mt-1.5" style={{ color: dim }}>Start the LM Studio local server on port 1234.</p>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : children ? (
+        <div className="divide-y" style={{ borderColor: "hsl(240 24% 14%)" }}>{children}</div>
+      ) : (
+        <div className="px-5 py-4 text-[13px]" style={{ color: muted }}>{empty}</div>
+      )}
+    </div>
+  );
 }
 
 export default function ModelsPage() {
@@ -42,149 +111,116 @@ export default function ModelsPage() {
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden">
-      <div className="flex items-center justify-between px-5 py-3 border-b border-border bg-card/40 flex-shrink-0">
-        <div>
-          <h1 className="font-mono text-sm font-bold text-foreground">MODEL MANAGER</h1>
-          <p className="font-mono text-[10px] text-muted-foreground mt-0.5">
-            Locally installed AI models · {lastRefresh ? `Last refresh: ${lastRefresh}` : "Not yet fetched"}
-          </p>
+      {/* Header */}
+      <div
+        className="flex items-center justify-between px-6 flex-shrink-0"
+        style={{ height: "48px", borderBottom: "1px solid hsl(240 24% 14%)" }}
+      >
+        <div className="flex items-center gap-2 text-[14px]">
+          <span className="text-foreground">Workers</span>
+          <ChevronRight size={14} style={{ color: dim }} />
+          <span style={{ color: muted }}>
+            {lastRefresh ? `Refreshed ${lastRefresh}` : "Local AI Models"}
+          </span>
         </div>
         <button
           onClick={refresh}
           disabled={loading}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 hover:bg-primary/20 border border-primary/30 rounded font-mono text-xs text-primary transition-all disabled:opacity-50"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] transition-all disabled:opacity-50"
+          style={{
+            backgroundColor: "hsl(246 89% 70% / 0.12)",
+            border: "1px solid hsl(246 89% 70% / 0.25)",
+            color: "hsl(246 89% 70%)",
+          }}
         >
-          {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+          {loading ? <Loader2 size={13} className="animate-spin" /> : <RefreshCw size={13} />}
           Refresh
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto feed-scroll px-5 py-5 space-y-5">
+      <div className="flex-1 overflow-y-auto feed-scroll px-6 py-6 space-y-4">
         {error && (
-          <div className="flex items-center gap-2 p-3 bg-destructive/5 border border-destructive/20 rounded text-destructive text-xs font-mono">
-            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+          <div
+            className="flex items-center gap-2 p-4 rounded-xl text-destructive text-[13px]"
+            style={{ backgroundColor: "hsl(347 87% 60% / 0.06)", border: "1px solid hsl(347 87% 60% / 0.2)" }}
+          >
+            <AlertCircle size={14} className="flex-shrink-0" />
             {error}
           </div>
         )}
 
         {!data && !loading && (
-          <div className="flex flex-col items-center justify-center py-20 gap-4 opacity-50">
-            <Cpu className="w-8 h-8 text-muted-foreground" />
-            <p className="font-mono text-sm text-muted-foreground">Click Refresh to scan for local models</p>
-            <p className="font-mono text-xs text-muted-foreground/60">Checks Ollama and LM Studio endpoints</p>
+          <div className="flex flex-col items-center justify-center py-24 gap-4" style={{ opacity: 0.5 }}>
+            <Cpu size={32} style={{ color: muted }} />
+            <p className="text-[14px]" style={{ color: muted }}>Click Refresh to scan for local models</p>
+            <p className="text-[13px]" style={{ color: dim }}>Checks Ollama and LM Studio endpoints</p>
           </div>
         )}
 
         {loading && (
-          <div className="flex flex-col items-center justify-center py-20 gap-3">
-            <Loader2 className="w-6 h-6 animate-spin text-primary" />
-            <p className="font-mono text-xs text-muted-foreground">Probing local AI endpoints...</p>
+          <div className="flex flex-col items-center justify-center py-24 gap-3">
+            <Loader2 size={22} className="animate-spin text-primary" />
+            <p className="text-[13px]" style={{ color: muted }}>Probing local AI endpoints…</p>
           </div>
         )}
 
         {data && !loading && (
           <>
-            {/* Ollama */}
-            <div className="bg-card border border-card-border rounded-lg overflow-hidden">
-              <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30">
-                <div className="flex items-center gap-2">
-                  <Box className="w-3.5 h-3.5 text-primary" />
-                  <h3 className="font-mono text-xs font-bold uppercase tracking-widest text-foreground/80">Ollama</h3>
-                  <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${
-                    data.ollama_error
-                      ? "text-destructive border-destructive/30 bg-destructive/5"
-                      : "text-accent border-accent/30 bg-accent/5"
-                  }`}>
-                    {data.ollama_error ? "UNREACHABLE" : `${data.ollama.length} MODEL${data.ollama.length !== 1 ? "S" : ""}`}
-                  </span>
-                </div>
-              </div>
-
-              {data.ollama_error ? (
-                <div className="p-4 text-xs font-mono text-muted-foreground">
-                  <AlertCircle className="w-3.5 h-3.5 inline mr-1.5 text-destructive" />
-                  {data.ollama_error}
-                  <br />
-                  <span className="text-muted-foreground/60 mt-1 block">Ensure Ollama is running: <code className="text-foreground/70">ollama serve</code></span>
-                </div>
-              ) : data.ollama.length === 0 ? (
-                <div className="p-4 text-xs font-mono text-muted-foreground">
-                  No models installed. Pull one with: <code className="text-foreground/70 bg-muted px-1.5 py-0.5 rounded">ollama pull llama3.2</code>
-                </div>
-              ) : (
-                <div className="divide-y divide-border/50">
-                  {data.ollama.map(m => (
-                    <div key={m.name} className="flex items-center justify-between px-4 py-3 hover:bg-white/[0.02] transition-colors">
-                      <div className="flex items-center gap-3">
-                        <span className="w-1.5 h-1.5 rounded-full bg-accent flex-shrink-0" />
-                        <span className="font-mono text-sm text-foreground">{m.name}</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="font-mono text-xs text-muted-foreground flex items-center gap-1">
-                          <HardDrive className="w-3 h-3" />
-                          {m.size_gb} GB
-                        </span>
-                        {m.modified && (
-                          <span className="font-mono text-[10px] text-muted-foreground/60">
-                            {new Date(m.modified).toLocaleDateString()}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* LM Studio */}
-            <div className="bg-card border border-card-border rounded-lg overflow-hidden">
-              <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30">
-                <div className="flex items-center gap-2">
-                  <Cpu className="w-3.5 h-3.5 text-[hsl(270_70%_70%)]" />
-                  <h3 className="font-mono text-xs font-bold uppercase tracking-widest text-foreground/80">LM Studio</h3>
-                  <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${
-                    data.lmstudio_error
-                      ? "text-destructive border-destructive/30 bg-destructive/5"
-                      : "text-[hsl(270_70%_70%)] border-[hsl(270_70%_70%)/0.3] bg-[hsl(270_70%_70%)/0.05]"
-                  }`}>
-                    {data.lmstudio_error ? "UNREACHABLE" : `${data.lmstudio.length} MODEL${data.lmstudio.length !== 1 ? "S" : ""}`}
-                  </span>
-                </div>
-              </div>
-
-              {data.lmstudio_error ? (
-                <div className="p-4 text-xs font-mono text-muted-foreground">
-                  <AlertCircle className="w-3.5 h-3.5 inline mr-1.5 text-destructive" />
-                  {data.lmstudio_error}
-                  <br />
-                  <span className="text-muted-foreground/60 mt-1 block">Start the LM Studio local server on port 1234.</span>
-                </div>
-              ) : data.lmstudio.length === 0 ? (
-                <div className="p-4 text-xs font-mono text-muted-foreground">
-                  No loaded models. Load a model in LM Studio and enable the local server.
-                </div>
-              ) : (
-                <div className="divide-y divide-border/50">
-                  {data.lmstudio.map(m => (
-                    <div key={m.name} className="flex items-center justify-between px-4 py-3 hover:bg-white/[0.02] transition-colors">
-                      <div className="flex items-center gap-3">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[hsl(270_70%_70%)] flex-shrink-0" />
-                        <span className="font-mono text-sm text-foreground">{m.name}</span>
-                      </div>
-                      <span className="font-mono text-[10px] text-muted-foreground/60 bg-muted/50 px-1.5 py-0.5 rounded">
-                        {m.object}
+            <ProviderCard
+              title="Ollama"
+              icon={<Box size={15} />}
+              accentColor="hsl(246 89% 70%)"
+              count={data.ollama_error ? undefined : data.ollama.length}
+              error={data.ollama_error}
+              empty="No models installed. Pull one with: ollama pull llama3.2"
+            >
+              {data.ollama.map(m => (
+                <div key={m.name} className="flex items-center justify-between px-5 py-3">
+                  <div className="flex items-center gap-3">
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
+                    <span className="text-[14px] text-foreground">{m.name}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[12px] flex items-center gap-1" style={{ color: muted }}>
+                      <HardDrive size={11} /> {m.size_gb} GB
+                    </span>
+                    {m.modified && (
+                      <span className="text-[11px]" style={{ color: dim }}>
+                        {new Date(m.modified).toLocaleDateString()}
                       </span>
-                    </div>
-                  ))}
+                    )}
+                  </div>
                 </div>
-              )}
-            </div>
+              ))}
+            </ProviderCard>
 
-            <div className="pb-4">
-              <p className="font-mono text-[10px] text-muted-foreground/60 text-center">
-                Local models are not transmitted externally. Configure endpoints in Vault → Settings.
-              </p>
-            </div>
+            <ProviderCard
+              title="LM Studio"
+              icon={<Cpu size={15} />}
+              accentColor="hsl(270 70% 72%)"
+              count={data.lmstudio_error ? undefined : data.lmstudio.length}
+              error={data.lmstudio_error}
+              empty="No loaded models. Load a model in LM Studio and enable the local server."
+            >
+              {data.lmstudio.map(m => (
+                <div key={m.name} className="flex items-center justify-between px-5 py-3">
+                  <div className="flex items-center gap-3">
+                    <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: "hsl(270 70% 72%)" }} />
+                    <span className="text-[14px] text-foreground">{m.name}</span>
+                  </div>
+                  <span
+                    className="text-[11px] px-2 py-0.5 rounded"
+                    style={{ color: dim, backgroundColor: "hsl(240 17% 10%)" }}
+                  >
+                    {m.object}
+                  </span>
+                </div>
+              ))}
+            </ProviderCard>
+
+            <p className="text-[11px] text-center pb-4" style={{ color: dim }}>
+              Local models are not transmitted externally · Configure endpoints in Settings
+            </p>
           </>
         )}
       </div>
