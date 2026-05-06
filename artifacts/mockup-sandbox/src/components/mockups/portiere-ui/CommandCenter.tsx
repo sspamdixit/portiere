@@ -1,22 +1,24 @@
-import React from "react";
+import React, { useState } from "react";
 import { 
-  Terminal, Zap, Globe, HardDrive, Brain, Film, Send, Settings, Cpu, Activity, 
-  ChevronRight, Square, Sparkles 
+  MessageSquare, Clock, Cpu, Settings, Brain, ArrowUp, Paperclip, ChevronRight
 } from "lucide-react";
 
 export function CommandCenter() {
+  const [traceExpanded, setTraceExpanded] = useState(false);
+
   return (
     <div 
-      className="flex flex-row overflow-hidden antialiased text-[#d4daf0]"
+      className="flex flex-row overflow-hidden antialiased"
       style={{ 
         width: "1280px", 
         height: "800px", 
-        backgroundColor: "#0d0f16",
-        fontFamily: "'Inter', sans-serif" 
+        backgroundColor: "#09090e",
+        color: "#f1f0ff",
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
       }}
     >
       <style dangerouslySetInnerHTML={{ __html: `
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
         
         .custom-scrollbar::-webkit-scrollbar {
           width: 8px;
@@ -25,7 +27,7 @@ export function CommandCenter() {
           background: transparent;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background-color: #1e2235;
+          background-color: #252540;
           border-radius: 4px;
         }
         .code-block {
@@ -35,25 +37,34 @@ export function CommandCenter() {
 
       {/* Sidebar */}
       <div 
-        className="flex flex-col border-r flex-shrink-0"
-        style={{ width: "160px", backgroundColor: "#0a0c12", borderColor: "#1e2235" }}
+        className="flex flex-col flex-shrink-0"
+        style={{ width: "220px", backgroundColor: "#0d0d14" }}
       >
         {/* Brand */}
-        <div className="p-4 border-b flex flex-col gap-1" style={{ borderColor: "#1e2235" }}>
-          <div className="flex items-center gap-2 font-semibold text-[15px]">
-            <Sparkles size={16} className="text-[#818cf8]" />
+        <div className="p-6 flex flex-col gap-1">
+          <div className="flex items-center gap-2 font-semibold text-[16px] text-[#f1f0ff]">
+            <span style={{ color: "#7c6ff7" }}>◈</span>
             <span>Portiere</span>
           </div>
-          <span className="text-[11px] text-[#818cf8]/70 font-medium tracking-wide uppercase">AI Orchestrator</span>
+          <span className="text-[12px]" style={{ color: "#4d4c6a" }}>AI Orchestrator</span>
         </div>
 
         {/* Nav Items */}
-        <div className="flex flex-col py-3 gap-1 px-2">
-          <NavItem icon={<Terminal size={16} />} label="Console" active />
-          <NavItem icon={<Activity size={16} />} label="Runs" />
-          <NavItem icon={<Cpu size={16} />} label="Workers" />
-          <NavItem icon={<HardDrive size={16} />} label="Storage" />
-          <NavItem icon={<Settings size={16} />} label="Settings" />
+        <div className="flex flex-col gap-1 mt-4">
+          <NavItem icon={<MessageSquare size={20} />} label="Chat" active />
+          <NavItem icon={<Clock size={20} />} label="History" />
+          <NavItem icon={<Cpu size={20} />} label="Workers" />
+          <NavItem icon={<Settings size={20} />} label="Settings" />
+        </div>
+
+        <div className="mt-auto p-6">
+          <div className="flex items-center gap-2">
+            <div className="relative flex h-2 w-2 items-center justify-center">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: "#22c55e" }}></span>
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5" style={{ backgroundColor: "#22c55e" }}></span>
+            </div>
+            <span className="text-[11px]" style={{ color: "#4d4c6a" }}>4 workers online</span>
+          </div>
         </div>
       </div>
 
@@ -61,160 +72,161 @@ export function CommandCenter() {
       <div className="flex flex-col flex-1 relative overflow-hidden">
         {/* Header */}
         <div 
-          className="h-14 flex items-center justify-between px-6 border-b flex-shrink-0"
-          style={{ borderColor: "#1e2235", backgroundColor: "rgba(13, 15, 22, 0.8)", backdropFilter: "blur(8px)" }}
+          className="h-[48px] flex items-center justify-between px-6 flex-shrink-0"
+          style={{ borderBottom: "1px solid #252540" }}
         >
-          <div className="flex items-center gap-2 text-sm">
-            <span className="text-[#d4daf0]/50">Console</span>
-            <ChevronRight size={14} className="text-[#d4daf0]/30" />
-            <span className="font-medium text-[#d4daf0]">Run #12</span>
-            
-            <div className="ml-4 flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#34d399]/10 text-[#34d399] text-xs font-medium border border-[#34d399]/20">
-              <div className="w-1.5 h-1.5 rounded-full bg-[#34d399]"></div>
-              COMPLETE
-            </div>
+          <div className="flex items-center gap-2 text-[14px]">
+            <span style={{ color: "#f1f0ff" }}>Chat</span>
+            <ChevronRight size={14} style={{ color: "#4d4c6a" }} />
+            <span style={{ color: "#8b8aad" }}>github.com investigation</span>
           </div>
           
-          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#1e2235] hover:bg-[#1e2235]/80 transition-colors text-sm font-medium text-[#d4daf0]/70">
-            <Square size={12} fill="currentColor" />
-            Stop
-          </button>
+          <div className="flex items-center gap-3">
+            <div className="px-2 py-0.5 rounded-md text-[12px]" style={{ backgroundColor: "#12121a", border: "1px solid #1c1c2e", color: "#f1f0ff" }}>
+              Run #12
+            </div>
+            <div className="flex items-center gap-1.5 text-[12px]" style={{ color: "#22c55e" }}>
+              ● Complete
+            </div>
+          </div>
         </div>
 
         {/* Feed area */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col items-center pb-32">
-          <div className="w-full max-w-3xl flex flex-col gap-6 py-8 px-6">
+        <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col pb-48">
+          <div className="w-full max-w-4xl mx-auto flex flex-col px-8 py-8 gap-8">
             
-            {/* Timestamp divider */}
-            <div className="flex items-center justify-center gap-4 text-xs text-[#d4daf0]/40 font-medium">
-              <div className="h-px w-8 bg-[#1e2235]"></div>
-              <span>Session started at 10:42 PM</span>
-              <div className="h-px w-8 bg-[#1e2235]"></div>
-            </div>
-
-            {/* User message bubble */}
-            <div className="flex justify-end w-full">
-              <div className="bg-[#1e2235] px-4 py-3 rounded-2xl rounded-tr-sm max-w-lg text-[15px] shadow-sm border border-[#1e2235]">
-                Write a Python merge sort function
+            {/* User message */}
+            <div className="flex flex-col items-end w-full gap-1">
+              <span className="text-[12px]" style={{ color: "#4d4c6a" }}>You</span>
+              <div className="text-[15px] max-w-[60%] text-right leading-relaxed" style={{ color: "#f1f0ff" }}>
+                Investigate github.com
               </div>
             </div>
 
-            {/* Worker Outputs Container */}
-            <div className="flex flex-col gap-4 pl-4 border-l-2" style={{ borderColor: "#1e2235" }}>
-              
-              {/* Brain Worker Card */}
-              <div className="rounded-lg border shadow-sm flex flex-col overflow-hidden relative" style={{ backgroundColor: "#13161f", borderColor: "#1e2235" }}>
-                {/* Accent Top Line */}
-                <div className="h-[2px] w-full bg-[#f59e0b] absolute top-0 left-0"></div>
-                <div className="px-4 py-3 border-b flex items-center justify-between" style={{ borderColor: "#1e2235" }}>
-                  <div className="flex items-center gap-2">
-                    <div className="p-1 rounded bg-[#f59e0b]/10 text-[#f59e0b]">
-                      <Brain size={14} />
-                    </div>
-                    <span className="text-sm font-semibold tracking-wide text-[#f59e0b]">BRAIN</span>
-                  </div>
-                  <span className="text-xs text-[#d4daf0]/40 font-mono">finished in 0.4s</span>
-                </div>
-                <div className="p-4 text-sm text-[#d4daf0]/80 leading-relaxed">
-                  Routing request to code generation model. The user is asking for a standard algorithm implementation in Python. Claude is best suited for clear, well-documented Python code.
-                </div>
+            {/* Orchestration trace */}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <Brain size={14} style={{ color: "#4d4c6a" }} />
+                <span className="text-[13px]" style={{ color: "#4d4c6a" }}>Brain routed to OSINT — 2 steps planned</span>
+                <button 
+                  onClick={() => setTraceExpanded(!traceExpanded)}
+                  className="text-[13px] ml-1 hover:underline flex items-center" 
+                  style={{ color: "#7c6ff7" }}
+                >
+                  {traceExpanded ? '▾ Hide trace' : '▸ View trace'}
+                </button>
               </div>
-
-              {/* Claude Worker Card */}
-              <div className="rounded-lg border shadow-sm flex flex-col overflow-hidden relative" style={{ backgroundColor: "#13161f", borderColor: "#1e2235" }}>
-                {/* Accent Top Line */}
-                <div className="h-[2px] w-full bg-[#818cf8] absolute top-0 left-0"></div>
-                <div className="px-4 py-3 border-b flex items-center justify-between" style={{ borderColor: "#1e2235" }}>
-                  <div className="flex items-center gap-2">
-                    <div className="p-1 rounded bg-[#818cf8]/10 text-[#818cf8]">
-                      <Zap size={14} />
-                    </div>
-                    <span className="text-sm font-semibold tracking-wide text-[#818cf8]">CLAUDE</span>
-                  </div>
-                  <span className="text-xs text-[#d4daf0]/40 font-mono">finished in 3.0s</span>
+              {traceExpanded && (
+                <div className="text-[13px] pl-6 mt-1 border-l" style={{ color: "#8b8aad", borderColor: "#252540" }}>
+                  Step 1: DNS & Domain analysis<br/>
+                  Step 2: HTTP server fingerprinting
                 </div>
-                <div className="p-0">
-                  <pre className="code-block text-[13px] leading-relaxed p-4 m-0 overflow-x-auto text-[#d4daf0]/90">
-                    <span className="text-[#818cf8]">def</span> <span className="text-[#38bdf8]">merge_sort</span>(arr):<br/>
-                    {"    "}<span className="text-[#818cf8]">if</span> len(arr) &lt;= <span className="text-[#f59e0b]">1</span>:<br/>
-                    {"        "}<span className="text-[#818cf8]">return</span> arr<br/>
-                    <br/>
-                    {"    "}mid = len(arr) // <span className="text-[#f59e0b]">2</span><br/>
-                    {"    "}left = merge_sort(arr[:mid])<br/>
-                    {"    "}right = merge_sort(arr[mid:])<br/>
-                    <br/>
-                    {"    "}<span className="text-[#818cf8]">return</span> merge(left, right)<br/>
-                    <br/>
-                    <span className="text-[#818cf8]">def</span> <span className="text-[#38bdf8]">merge</span>(left, right):<br/>
-                    {"    "}result = []<br/>
-                    {"    "}i = j = <span className="text-[#f59e0b]">0</span><br/>
-                    <br/>
-                    {"    "}<span className="text-[#818cf8]">while</span> i &lt; len(left) <span className="text-[#818cf8]">and</span> j &lt; len(right):<br/>
-                    {"        "}<span className="text-[#818cf8]">if</span> left[i] &lt;= right[j]:<br/>
-                    {"            "}result.append(left[i])<br/>
-                    {"            "}i += <span className="text-[#f59e0b]">1</span><br/>
-                    {"        "}<span className="text-[#818cf8]">else</span>:<br/>
-                    {"            "}result.append(right[j])<br/>
-                    {"            "}j += <span className="text-[#f59e0b]">1</span><br/>
-                    <br/>
-                    {"    "}result.extend(left[i:])<br/>
-                    {"    "}result.extend(right[j:])<br/>
-                    {"    "}<span className="text-[#818cf8]">return</span> result
-                  </pre>
-                </div>
-              </div>
-
+              )}
             </div>
 
-            {/* Run footer metadata */}
-            <div className="flex justify-end text-[11px] font-medium text-[#d4daf0]/30 mt-2 pr-2 uppercase tracking-wide">
-              Run #12 • 3.4s • 2 workers
+            {/* OSINT worker output */}
+            <div className="flex flex-col w-full">
+              <div className="flex justify-between items-center mb-3 px-1">
+                <div className="px-1.5 py-0.5 rounded text-[11px] font-medium tracking-wide" style={{ backgroundColor: "rgba(245, 158, 11, 0.15)", color: "#f59e0b" }}>
+                  OSINT
+                </div>
+                <div className="text-[12px]" style={{ color: "#4d4c6a" }}>
+                  finished in 2.1s
+                </div>
+              </div>
+
+              <div 
+                className="rounded-xl p-5 w-full flex flex-col gap-6"
+                style={{ backgroundColor: "#12121a", border: "1px solid rgba(28, 28, 46, 0.5)" }}
+              >
+                {/* Section 1 */}
+                <div className="grid grid-cols-[120px_1fr] gap-y-3 text-[14px]">
+                  <div style={{ color: "#8b8aad" }}>Domain</div>
+                  <div className="code-block" style={{ color: "#f1f0ff" }}>github.com</div>
+                  
+                  <div style={{ color: "#8b8aad" }}>Registered</div>
+                  <div className="code-block" style={{ color: "#f1f0ff" }}>2007-10-09 <span style={{ color: "#4d4c6a" }}>·</span> MarkMonitor Inc.</div>
+                </div>
+
+                {/* Section 2 */}
+                <div className="grid grid-cols-[120px_1fr] gap-y-3 text-[14px]">
+                  <div className="col-span-2 text-[12px] uppercase tracking-wider mb-1 font-medium" style={{ color: "#4d4c6a" }}>DNS Records</div>
+                  
+                  <div style={{ color: "#8b8aad" }}>A</div>
+                  <div className="code-block" style={{ color: "#f1f0ff" }}>140.82.113.3, 140.82.112.4</div>
+                  
+                  <div style={{ color: "#8b8aad" }}>MX</div>
+                  <div className="code-block" style={{ color: "#f1f0ff" }}>10 alt1.aspmx.l.google.com</div>
+                  
+                  <div style={{ color: "#8b8aad" }}>TXT</div>
+                  <div className="code-block" style={{ color: "#f1f0ff" }}>v=spf1 include:_spf.github.com ~all</div>
+                </div>
+
+                {/* Section 3 */}
+                <div className="grid grid-cols-[120px_1fr] gap-y-3 text-[14px]">
+                  <div style={{ color: "#8b8aad" }}>HTTP</div>
+                  <div className="code-block flex items-center gap-2" style={{ color: "#f1f0ff" }}>
+                    <span style={{ color: "#22c55e" }}>200 OK</span>
+                    <span style={{ color: "#4d4c6a" }}>·</span>
+                    <span>server: GitHub.com</span>
+                    <span style={{ color: "#4d4c6a" }}>·</span>
+                    <span>HSTS enabled</span>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            {/* Divider for next session */}
-            <div className="mt-8 flex flex-col gap-6">
-              <div className="flex items-center justify-center gap-4 text-xs text-[#d4daf0]/40 font-medium">
-                <div className="h-px w-full bg-[#1e2235]"></div>
-              </div>
-
-              {/* Empty State Welcome Card */}
-              <div className="rounded-xl border p-6 flex flex-col gap-6 mt-4" style={{ backgroundColor: "#13161f", borderColor: "#1e2235" }}>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-[#38bdf8]/10 text-[#38bdf8]">
-                    <Terminal size={20} />
-                  </div>
-                  <div>
-                    <h2 className="text-lg font-medium text-[#d4daf0]">Good evening.</h2>
-                    <p className="text-sm text-[#d4daf0]/60 mt-0.5">What should Portiere do?</p>
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  <SuggestionChip text="Scrape HackerNews frontpage" />
-                  <SuggestionChip text="Write an express server" />
-                  <SuggestionChip text="Summarize latest logs" />
-                </div>
-              </div>
+            {/* Run summary line */}
+            <div className="w-full text-center text-[12px] mt-4" style={{ color: "#4d4c6a" }}>
+              Run #12 · github.com investigation · 2.1s · 1 worker
             </div>
 
           </div>
         </div>
 
-        {/* Input Area */}
-        <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#0d0f16] via-[#0d0f16] to-transparent pt-12 pointer-events-none">
-          <div className="max-w-3xl mx-auto w-full pointer-events-auto">
-            <div className="relative flex items-center bg-[#13161f] border rounded-xl overflow-hidden shadow-lg transition-all focus-within:border-[#38bdf8]/50 focus-within:shadow-[0_0_0_1px_rgba(56,189,248,0.5)]" style={{ borderColor: "#1e2235" }}>
-              <input 
-                type="text" 
-                placeholder="Ask Portiere anything…" 
-                className="w-full bg-transparent border-none text-[15px] py-4 pl-4 pr-12 outline-none placeholder:text-[#d4daf0]/30 text-[#d4daf0]"
-              />
-              <button className="absolute right-2 p-2 rounded-lg bg-[#38bdf8] text-[#0d0f16] hover:bg-[#38bdf8]/90 transition-colors">
-                <Send size={16} />
-              </button>
-            </div>
-            <div className="text-center mt-3 text-[11px] text-[#d4daf0]/30 font-medium tracking-wide">
-              Press Enter to orchestrate • ⇧ ↵ for new line
+        {/* Empty state & Input Area Container (Sticky at bottom) */}
+        <div className="absolute bottom-0 left-0 right-0 flex flex-col bg-[#09090e]">
+          
+          {/* Suggestion Chips */}
+          <div className="flex justify-center gap-3 py-4 w-full">
+            <SuggestionChip text="Check system health" />
+            <SuggestionChip text="Scan a domain" />
+            <SuggestionChip text="Generate code" />
+          </div>
+
+          {/* Input Bar */}
+          <div className="w-full pb-6 px-8" style={{ borderTop: "1px solid #252540", paddingTop: "24px" }}>
+            <div className="max-w-3xl mx-auto w-full">
+              <div 
+                className="relative flex items-center rounded-2xl overflow-hidden group transition-colors" 
+                style={{ backgroundColor: "#12121a", border: "1px solid #1c1c2e" }}
+              >
+                <style dangerouslySetInnerHTML={{__html: `
+                  .portiere-input::placeholder { color: #4d4c6a; }
+                  .portiere-group:focus-within { border-color: #7c6ff7 !important; }
+                  .portiere-btn:hover { background-color: #6a5ff0 !important; }
+                  .chip:hover { border-color: #7c6ff7 !important; color: #f1f0ff !important; }
+                  .nav-item:hover:not(.nav-active) { color: #f1f0ff !important; }
+                `}} />
+                <div className="pl-4">
+                  <Paperclip size={16} style={{ color: "#4d4c6a" }} />
+                </div>
+                <input 
+                  type="text" 
+                  placeholder="What should Portiere do next?" 
+                  className="portiere-input w-full bg-transparent border-none text-[15px] py-3.5 pl-3 pr-14 outline-none"
+                  style={{ color: "#f1f0ff" }}
+                />
+                <button 
+                  className="portiere-btn absolute right-2 p-1.5 rounded-lg transition-colors flex items-center justify-center"
+                  style={{ backgroundColor: "#7c6ff7", color: "#ffffff", height: "32px", width: "32px" }}
+                >
+                  <ArrowUp size={16} />
+                </button>
+              </div>
+              <div className="text-center mt-3 text-[12px]" style={{ color: "#4d4c6a" }}>
+                Portiere uses AI — always verify important results
+              </div>
             </div>
           </div>
         </div>
@@ -226,25 +238,30 @@ export function CommandCenter() {
 
 function NavItem({ icon, label, active = false }: { icon: React.ReactNode, label: string, active?: boolean }) {
   return (
-    <div className={`
-      relative flex items-center gap-2.5 px-3 py-2 text-sm font-medium rounded-lg cursor-pointer transition-colors
-      ${active ? 'text-[#d4daf0] bg-white/[0.02]' : 'text-[#d4daf0]/50 hover:text-[#d4daf0]/80 hover:bg-white/[0.01]'}
-    `}>
+    <div 
+      className={`nav-item flex items-center gap-3 h-[40px] px-3 text-[14px] cursor-pointer transition-colors relative ${active ? 'nav-active' : ''}`}
+      style={{ 
+        color: active ? "#f1f0ff" : "#8b8aad",
+        backgroundColor: active ? "rgba(124, 111, 247, 0.15)" : "transparent"
+      }}
+    >
       {active && (
-        <div className="absolute left-0 top-1.5 bottom-1.5 w-[3px] bg-[#38bdf8] rounded-r-full shadow-[0_0_8px_rgba(56,189,248,0.4)]"></div>
+        <div className="absolute left-0 top-0 bottom-0 w-[2px]" style={{ backgroundColor: "#7c6ff7" }}></div>
       )}
-      <div className={active ? 'text-[#38bdf8]' : ''}>
+      <div>
         {icon}
       </div>
-      {label}
+      <span>{label}</span>
     </div>
   );
 }
 
 function SuggestionChip({ text }: { text: string }) {
   return (
-    <button className="px-3 py-1.5 rounded-full border text-xs font-medium text-[#d4daf0]/70 hover:text-[#d4daf0] hover:bg-[#1e2235]/50 transition-colors flex items-center gap-1.5" style={{ borderColor: "#1e2235", backgroundColor: "rgba(30, 34, 53, 0.3)" }}>
-      <Sparkles size={10} className="text-[#38bdf8]" />
+    <button 
+      className="chip px-4 py-1.5 rounded-full text-[13px] transition-colors border" 
+      style={{ backgroundColor: "#12121a", borderColor: "#1c1c2e", color: "#8b8aad" }}
+    >
       {text}
     </button>
   );
