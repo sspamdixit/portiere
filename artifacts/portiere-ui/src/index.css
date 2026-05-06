@@ -1,0 +1,179 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@plugin "@tailwindcss/typography";
+
+@variant dark (&.dark, .dark &);
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-card-border: hsl(var(--card-border));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-sidebar: hsl(var(--sidebar));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+
+  --font-sans: var(--app-font-sans);
+  --font-mono: var(--app-font-mono);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* === PORTIERE DARK INDUSTRIAL THEME === */
+:root {
+  --background:       225 12% 7%;
+  --foreground:       220 15% 88%;
+  --border:           225 10% 18%;
+  --card:             225 12% 10%;
+  --card-foreground:  220 15% 88%;
+  --card-border:      225 10% 15%;
+  --popover:          225 12% 9%;
+  --popover-foreground: 220 15% 88%;
+  --primary:          196 100% 66%;
+  --primary-foreground: 225 20% 8%;
+  --secondary:        225 10% 15%;
+  --secondary-foreground: 220 10% 72%;
+  --muted:            225 10% 12%;
+  --muted-foreground: 225 8% 48%;
+  --accent:           145 65% 52%;
+  --accent-foreground: 225 20% 8%;
+  --destructive:      0 72% 60%;
+  --destructive-foreground: 0 0% 98%;
+  --input:            225 10% 16%;
+  --ring:             196 100% 66%;
+  --sidebar:          225 14% 5%;
+  --sidebar-foreground: 220 10% 72%;
+  --sidebar-border:   225 12% 14%;
+  --sidebar-primary:  196 100% 66%;
+  --sidebar-primary-foreground: 225 20% 8%;
+  --sidebar-accent:   225 12% 12%;
+  --sidebar-accent-foreground: 220 12% 80%;
+  --app-font-sans: 'Inter', 'JetBrains Mono', system-ui, sans-serif;
+  --app-font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+  --radius: 0.375rem;
+
+  /* Custom brand colors */
+  --portiere-cyan:    120 200 255;
+  --portiere-green:   80 220 140;
+  --portiere-amber:   255 190 60;
+  --portiere-red:     255 80 80;
+  --portiere-purple:  170 120 255;
+  --portiere-surface: 22 22 28;
+  --portiere-panel:   28 28 36;
+  --portiere-grid:    rgba(255,255,255,0.03);
+}
+
+@layer base {
+  * { @apply border-border; box-sizing: border-box; }
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+}
+
+/* === EXECUTION FEED SCROLLBAR === */
+.feed-scroll::-webkit-scrollbar { width: 4px; }
+.feed-scroll::-webkit-scrollbar-track { background: transparent; }
+.feed-scroll::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 2px; }
+.feed-scroll::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground)); }
+
+/* === SCAN LINE OVERLAY === */
+.scanlines::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.03) 2px,
+    rgba(0,0,0,0.03) 4px
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* === GLOW EFFECTS === */
+.glow-cyan { text-shadow: 0 0 12px hsl(200 80% 70% / 0.6); }
+.glow-green { text-shadow: 0 0 12px hsl(150 70% 60% / 0.6); }
+.glow-amber { text-shadow: 0 0 12px hsl(40 90% 60% / 0.6); }
+
+.border-glow-cyan { box-shadow: 0 0 0 1px hsl(200 80% 70% / 0.25), inset 0 0 0 1px hsl(200 80% 70% / 0.1); }
+.border-glow-green { box-shadow: 0 0 0 1px hsl(150 70% 60% / 0.25), inset 0 0 0 1px hsl(150 70% 60% / 0.1); }
+
+/* === ANIMATED CURSOR BLINK === */
+.cursor-blink::after {
+  content: '_';
+  animation: blink 1.2s step-end infinite;
+  color: hsl(var(--primary));
+}
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+/* === WORKER BADGE COLORS === */
+.worker-brain   { color: hsl(200 80% 70%); border-color: hsl(200 80% 70% / 0.3); background: hsl(200 80% 70% / 0.08); }
+.worker-claude  { color: hsl(270 70% 70%); border-color: hsl(270 70% 70% / 0.3); background: hsl(270 70% 70% / 0.08); }
+.worker-video   { color: hsl(40 90% 60%);  border-color: hsl(40 90% 60% / 0.3);  background: hsl(40 90% 60% / 0.08); }
+.worker-local   { color: hsl(150 70% 60%); border-color: hsl(150 70% 60% / 0.3); background: hsl(150 70% 60% / 0.08); }
+.worker-osint   { color: hsl(0 70% 65%);   border-color: hsl(0 70% 65% / 0.3);   background: hsl(0 70% 65% / 0.08); }
+.worker-system  { color: hsl(220 15% 60%); border-color: hsl(220 15% 60% / 0.3); background: hsl(220 15% 60% / 0.08); }
+
+/* === INPUT COMMAND BAR === */
+.command-bar {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-lg);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.command-bar:focus-within {
+  border-color: hsl(var(--primary) / 0.6);
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.08), 0 0 20px hsl(var(--primary) / 0.05);
+}
+
+/* === ANIMATED PROGRESS DOT === */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.7); }
+}
+.pulse-dot { animation: pulse-dot 1s ease-in-out infinite; }
+
+/* === SIDEBAR ACTIVE === */
+.nav-active {
+  background: hsl(var(--primary) / 0.1);
+  border-left: 2px solid hsl(var(--primary));
+  color: hsl(var(--primary));
+}
+
+/* === MONOSPACE OUTPUT === */
+.mono-output {
+  font-family: var(--app-font-mono);
+  font-size: 0.8rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}

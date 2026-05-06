@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Portiere"
+version = "1.0.0"
+id = "artifacts/portiere-ui"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 20307
+
+[services.development]
+run = "pnpm --filter @workspace/portiere-ui run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/portiere-ui", "run", "build" ]
+publicDir = "artifacts/portiere-ui/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "20307"
+BASE_PATH = "/"
