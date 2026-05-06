@@ -42,30 +42,29 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-/* === PORTIERE — CONSUMER DARK THEME === */
+/* === PORTIERE THEME === */
 :root {
-  /* Page layers: #09090e → #0d0d14 → #12121a → #16161f */
-  --background:       240 22% 5%;     /* #09090e */
-  --foreground:       244 100% 97%;   /* #f1f0ff */
-  --border:           240 24% 14%;    /* #1c1c2e */
-  --card:             240 18% 9%;     /* #12121a */
+  --background:       240 22% 5%;
+  --foreground:       244 100% 97%;
+  --border:           240 24% 14%;
+  --card:             240 18% 9%;
   --card-foreground:  244 100% 97%;
   --card-border:      240 20% 12%;
   --popover:          240 18% 9%;
   --popover-foreground: 244 100% 97%;
-  --primary:          246 89% 70%;    /* #7c6ff7 violet */
+  --primary:          246 89% 70%;
   --primary-foreground: 240 22% 5%;
-  --secondary:        240 17% 10%;    /* #16161f */
+  --secondary:        240 17% 10%;
   --secondary-foreground: 242 18% 61%;
   --muted:            240 17% 10%;
-  --muted-foreground: 242 18% 61%;    /* #8b8aad */
-  --accent:           142 71% 45%;    /* #22c55e green */
+  --muted-foreground: 242 18% 61%;
+  --accent:           142 71% 45%;
   --accent-foreground: 240 22% 5%;
-  --destructive:      347 87% 60%;    /* #f43f5e rose */
+  --destructive:      347 87% 60%;
   --destructive-foreground: 0 0% 98%;
   --input:            240 24% 14%;
   --ring:             246 89% 70%;
-  --sidebar:          240 21% 6%;     /* #0d0d14 */
+  --sidebar:          240 21% 6%;
   --sidebar-foreground: 242 18% 61%;
   --sidebar-border:   240 24% 14%;
   --sidebar-primary:  246 89% 70%;
@@ -79,65 +78,82 @@
 
 @layer base {
   * { @apply border-border; box-sizing: border-box; }
-  body { @apply font-sans antialiased bg-background text-foreground; }
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    background-image: radial-gradient(ellipse 90% 50% at 50% -5%, rgba(124, 111, 247, 0.07) 0%, transparent 65%);
+  }
 }
 
 /* === SCROLLBAR === */
 .feed-scroll::-webkit-scrollbar { width: 4px; }
 .feed-scroll::-webkit-scrollbar-track { background: transparent; }
-.feed-scroll::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 2px; }
-.feed-scroll::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground)); }
+.feed-scroll::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 4px; }
+.feed-scroll::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground) / 0.5); }
 
-/* === ANIMATED CURSOR BLINK === */
+/* === ANIMATIONS === */
+@keyframes feed-in {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-feed-in { animation: feed-in 0.18s ease-out both; }
+
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 .cursor-blink::after {
   content: '▋';
   animation: blink 1s step-end infinite;
   color: hsl(var(--primary));
   font-size: 0.75em;
 }
-@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
-/* === WORKER BADGE COLORS === */
-.worker-brain   { color: hsl(246 89% 75%);  border-color: hsl(246 89% 75% / 0.25); background: hsl(246 89% 75% / 0.08); }
-.worker-claude  { color: hsl(270 70% 72%);  border-color: hsl(270 70% 72% / 0.25); background: hsl(270 70% 72% / 0.08); }
-.worker-video   { color: hsl(330 80% 68%);  border-color: hsl(330 80% 68% / 0.25); background: hsl(330 80% 68% / 0.08); }
-.worker-local   { color: hsl(142 60% 52%);  border-color: hsl(142 60% 52% / 0.25); background: hsl(142 60% 52% / 0.08); }
-.worker-osint   { color: hsl(38 90% 58%);   border-color: hsl(38 90% 58% / 0.25);  background: hsl(38 90% 58% / 0.08); }
-.worker-system  { color: hsl(242 10% 55%);  border-color: hsl(242 10% 55% / 0.25); background: hsl(242 10% 55% / 0.08); }
-
-/* === ANIMATED PROGRESS DOT === */
 @keyframes pulse-dot {
   0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.4; transform: scale(0.7); }
+  50%       { opacity: 0.4; transform: scale(0.7); }
 }
 .pulse-dot { animation: pulse-dot 1s ease-in-out infinite; }
+
+/* === WORKER BADGES === */
+.worker-brain   { color: hsl(246 89% 75%);  border-color: hsl(246 89% 75% / 0.2);  background: hsl(246 89% 75% / 0.08); }
+.worker-claude  { color: hsl(270 70% 75%);  border-color: hsl(270 70% 75% / 0.2);  background: hsl(270 70% 75% / 0.08); }
+.worker-video   { color: hsl(328 80% 72%);  border-color: hsl(328 80% 72% / 0.2);  background: hsl(328 80% 72% / 0.08); }
+.worker-local   { color: hsl(142 60% 55%);  border-color: hsl(142 60% 55% / 0.2);  background: hsl(142 60% 55% / 0.08); }
+.worker-osint   { color: hsl(38 90% 60%);   border-color: hsl(38 90% 60% / 0.2);   background: hsl(38 90% 60% / 0.08); }
+.worker-system  { color: hsl(242 10% 55%);  border-color: hsl(242 10% 55% / 0.2);  background: hsl(242 10% 55% / 0.08); }
+
+/* Worker left-border accent strips */
+.worker-strip-brain  { border-left: 2px solid hsl(246 89% 70% / 0.6); }
+.worker-strip-claude { border-left: 2px solid hsl(270 70% 72% / 0.6); }
+.worker-strip-video  { border-left: 2px solid hsl(328 80% 68% / 0.6); }
+.worker-strip-local  { border-left: 2px solid hsl(142 60% 52% / 0.6); }
+.worker-strip-osint  { border-left: 2px solid hsl(38 90% 58% / 0.6); }
+.worker-strip-system { border-left: 2px solid hsl(242 10% 50% / 0.4); }
 
 /* === COMMAND BAR === */
 .command-bar {
   background: hsl(var(--card));
   border: 1px solid hsl(var(--border));
-  border-radius: 1rem;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  border-radius: 14px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .command-bar:focus-within {
-  border-color: hsl(var(--primary) / 0.5);
-  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.08);
+  border-color: hsl(var(--primary) / 0.45);
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.09), 0 1px 24px hsl(var(--primary) / 0.07);
+}
+
+/* === SUGGESTION CHIPS === */
+.suggestion-chip {
+  transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+}
+.suggestion-chip:hover {
+  border-color: hsl(var(--primary) / 0.4) !important;
+  color: hsl(var(--foreground)) !important;
+  background-color: hsl(var(--primary) / 0.05) !important;
 }
 
 /* === MONOSPACE OUTPUT === */
 .mono-output {
   font-family: var(--app-font-mono);
   font-size: 0.8rem;
-  line-height: 1.7;
+  line-height: 1.75;
   white-space: pre-wrap;
   word-break: break-word;
-}
-
-/* === SUGGESTION CHIP === */
-.suggestion-chip {
-  transition: border-color 0.15s, color 0.15s;
-}
-.suggestion-chip:hover {
-  border-color: hsl(var(--primary) / 0.5) !important;
-  color: hsl(var(--foreground)) !important;
 }

@@ -1,9 +1,43 @@
 import { useState, useEffect } from "react";
-import { Save, Eye, EyeOff, CheckCircle, AlertCircle, Loader2, ChevronRight } from "lucide-react";
+import { Save, Eye, EyeOff, CheckCircle, AlertCircle, Loader2, ChevronRight, ChevronDown } from "lucide-react";
 import { fetchSettings, saveSettings } from "@/lib/api";
 
 const dim = "hsl(242 17% 36%)";
 const muted = "hsl(242 18% 61%)";
+const primary = "hsl(246 89% 70%)";
+
+function SelectField({ value, onChange, options }: {
+  value: string;
+  onChange: (v: string) => void;
+  options: { value: string; label: string }[];
+}) {
+  return (
+    <div className="relative">
+      <select
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        className="w-full appearance-none rounded-xl px-4 py-3 text-[14px] text-foreground outline-none transition-all pr-10"
+        style={{
+          backgroundColor: "hsl(240 20% 8%)",
+          border: "1px solid hsl(240 24% 14%)",
+          color: "hsl(244 100% 97%)",
+          cursor: "pointer",
+        }}
+        onFocus={e => {
+          e.currentTarget.style.borderColor = "hsl(246 89% 70% / 0.4)";
+          e.currentTarget.style.boxShadow = "0 0 0 3px rgba(124,111,247,0.07)";
+        }}
+        onBlur={e => {
+          e.currentTarget.style.borderColor = "hsl(240 24% 14%)";
+          e.currentTarget.style.boxShadow = "none";
+        }}
+      >
+        {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+      </select>
+      <ChevronDown size={13} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2" style={{ color: dim }} />
+    </div>
+  );
+}
 
 interface FieldProps {
   label: string;
@@ -18,31 +52,15 @@ interface FieldProps {
 
 function Field({ label, description, secret, value, onChange, placeholder, type, options }: FieldProps) {
   const [show, setShow] = useState(false);
-  const inputStyle = {
-    backgroundColor: "hsl(240 18% 9%)",
-    border: "1px solid hsl(240 24% 14%)",
-    borderRadius: "0.5rem",
-    color: "hsl(244 100% 97%)",
-    fontSize: "14px",
-    padding: "8px 12px",
-    outline: "none",
-    width: "100%",
-  };
 
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-2">
       <div className="flex items-baseline justify-between">
         <label className="text-[13px] font-medium text-foreground">{label}</label>
-        {description && <span className="text-[11px]" style={{ color: dim }}>{description}</span>}
+        {description && <span className="text-[11px] tracking-wide" style={{ color: dim }}>{description}</span>}
       </div>
       {options ? (
-        <select
-          value={value}
-          onChange={e => onChange(e.target.value)}
-          style={{ ...inputStyle, appearance: "auto" }}
-        >
-          {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-        </select>
+        <SelectField value={value} onChange={onChange} options={options} />
       ) : (
         <div className="relative">
           <input
@@ -50,14 +68,28 @@ function Field({ label, description, secret, value, onChange, placeholder, type,
             value={value}
             onChange={e => onChange(e.target.value)}
             placeholder={placeholder}
-            style={{ ...inputStyle, paddingRight: secret ? "2.5rem" : "12px" }}
+            className="w-full rounded-xl px-4 py-3 text-[14px] text-foreground outline-none transition-all"
+            style={{
+              backgroundColor: "hsl(240 20% 8%)",
+              border: "1px solid hsl(240 24% 14%)",
+              caretColor: primary,
+              paddingRight: secret ? "2.75rem" : undefined,
+            }}
+            onFocus={e => {
+              e.currentTarget.style.borderColor = "hsl(246 89% 70% / 0.4)";
+              e.currentTarget.style.boxShadow = "0 0 0 3px rgba(124,111,247,0.07)";
+            }}
+            onBlur={e => {
+              e.currentTarget.style.borderColor = "hsl(240 24% 14%)";
+              e.currentTarget.style.boxShadow = "none";
+            }}
           />
           {secret && (
             <button
               type="button"
               onClick={() => setShow(v => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
-              style={{ color: dim }}
+              className="absolute right-4 top-1/2 -translate-y-1/2 transition-opacity hover:opacity-70"
+              style={{ color: muted }}
             >
               {show ? <EyeOff size={14} /> : <Eye size={14} />}
             </button>
@@ -68,14 +100,36 @@ function Field({ label, description, secret, value, onChange, placeholder, type,
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({
+  title, icon, accentColor = primary, children,
+}: {
+  title: string;
+  icon?: React.ReactNode;
+  accentColor?: string;
+  children: React.ReactNode;
+}) {
   return (
     <div
-      className="rounded-xl overflow-hidden"
-      style={{ backgroundColor: "hsl(240 18% 9%)", border: "1px solid hsl(240 24% 14%)" }}
+      className="rounded-2xl overflow-hidden"
+      style={{
+        backgroundColor: "hsl(240 18% 9%)",
+        border: "1px solid hsl(240 24% 13%)",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+      }}
     >
-      <div className="px-5 py-3" style={{ borderBottom: "1px solid hsl(240 24% 14%)" }}>
-        <h3 className="text-[13px] font-semibold text-foreground">{title}</h3>
+      <div
+        className="flex items-center gap-3 px-5 py-3.5"
+        style={{ borderBottom: "1px solid hsl(240 24% 12%)" }}
+      >
+        {icon && (
+          <div
+            className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0"
+            style={{ backgroundColor: `${accentColor}18`, color: accentColor }}
+          >
+            {icon}
+          </div>
+        )}
+        <h3 className="text-[13px] font-semibold text-foreground tracking-tight">{title}</h3>
       </div>
       <div className="p-5 space-y-5">{children}</div>
     </div>
@@ -92,7 +146,6 @@ export default function SettingsPage() {
     brain_base_url: "http://localhost:11434/v1",
     claude_api_key: "",
     claude_model: "claude-3-5-sonnet-20241022",
-    openai_api_key: "",
     fal_api_key: "",
     seedance_api_key: "",
     ollama_base_url: "http://localhost:11434",
@@ -110,9 +163,9 @@ export default function SettingsPage() {
       .then(data => {
         setForm(prev => ({
           ...prev,
-          ...(Object.fromEntries(
+          ...Object.fromEntries(
             Object.entries(data).map(([k, v]) => [k, Array.isArray(v) ? (v as string[]).join(", ") : String(v)])
-          )),
+          ),
         }));
       })
       .catch(() => {})
@@ -157,52 +210,57 @@ export default function SettingsPage() {
       {/* Header */}
       <div
         className="flex items-center justify-between px-6 flex-shrink-0"
-        style={{ height: "48px", borderBottom: "1px solid hsl(240 24% 14%)" }}
+        style={{ height: "48px", borderBottom: "1px solid hsl(240 24% 12%)" }}
       >
         <div className="flex items-center gap-2 text-[14px]">
-          <span className="text-foreground">Settings</span>
-          <ChevronRight size={14} style={{ color: dim }} />
-          <span style={{ color: muted }}>API Keys & Config</span>
+          <span className="font-medium text-foreground">Settings</span>
+          <ChevronRight size={13} style={{ color: "hsl(242 17% 30%)" }} />
+          <span className="text-[13px]" style={{ color: muted }}>API Keys & Config</span>
         </div>
         <div className="flex items-center gap-3">
           {status === "success" && (
-            <div className="flex items-center gap-1.5 text-[13px]" style={{ color: "hsl(142 71% 45%)" }}>
-              <CheckCircle size={13} /> Saved
+            <div className="flex items-center gap-1.5 text-[12px]" style={{ color: "hsl(142 71% 45%)" }}>
+              <CheckCircle size={12} /> Saved
             </div>
           )}
           {status === "error" && (
-            <div className="flex items-center gap-1.5 text-[13px] text-destructive" title={errorMsg}>
-              <AlertCircle size={13} /> Error
+            <div className="flex items-center gap-1.5 text-[12px] text-destructive" title={errorMsg}>
+              <AlertCircle size={12} /> Error
             </div>
           )}
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] transition-all disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-[13px] font-medium transition-all disabled:opacity-50"
             style={{
-              backgroundColor: "hsl(246 89% 70% / 0.12)",
-              border: "1px solid hsl(246 89% 70% / 0.25)",
-              color: "hsl(246 89% 70%)",
+              background: "linear-gradient(135deg, hsl(246 89% 68%) 0%, hsl(258 75% 72%) 100%)",
+              color: "white",
+              boxShadow: "0 2px 8px rgba(124,111,247,0.3)",
             }}
           >
-            {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
+            {saving ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />}
             Save
           </button>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto feed-scroll px-6 py-6 space-y-4">
-        <Section title="Brain — Central LLM">
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto feed-scroll px-6 py-5 space-y-4 max-w-2xl w-full">
+        <Section
+          title="Brain — Central LLM"
+          icon={<span className="text-[11px] font-bold select-none">◈</span>}
+          accentColor="hsl(246 89% 70%)"
+        >
           <Field
             label="Provider"
             description="Routes all orchestration decisions"
             value={String(form.brain_provider)}
             onChange={set("brain_provider")}
             options={[
-              { value: "ollama", label: "Ollama (local)" },
+              { value: "ollama",    label: "Ollama (local)" },
               { value: "lmstudio", label: "LM Studio (local)" },
-              { value: "openai", label: "OpenAI" },
-              { value: "anthropic", label: "Anthropic" },
+              { value: "openai",   label: "OpenAI" },
+              { value: "anthropic",label: "Anthropic" },
             ]}
           />
           <Field
@@ -230,7 +288,11 @@ export default function SettingsPage() {
           )}
         </Section>
 
-        <Section title="Claude Worker">
+        <Section
+          title="Claude Worker"
+          icon={<span className="text-[11px] leading-none">⚡</span>}
+          accentColor="hsl(270 70% 72%)"
+        >
           <Field
             label="API Key"
             secret
@@ -243,14 +305,18 @@ export default function SettingsPage() {
             value={String(form.claude_model)}
             onChange={set("claude_model")}
             options={[
-              { value: "claude-3-5-sonnet-20241022", label: "claude-3-5-sonnet-20241022" },
-              { value: "claude-3-5-haiku-20241022", label: "claude-3-5-haiku-20241022" },
-              { value: "claude-3-opus-20240229", label: "claude-3-opus-20240229" },
+              { value: "claude-3-5-sonnet-20241022", label: "Claude 3.5 Sonnet" },
+              { value: "claude-3-5-haiku-20241022",  label: "Claude 3.5 Haiku" },
+              { value: "claude-3-opus-20240229",     label: "Claude 3 Opus" },
             ]}
           />
         </Section>
 
-        <Section title="Video Worker">
+        <Section
+          title="Video Worker"
+          icon={<span className="text-[11px] leading-none">🎬</span>}
+          accentColor="hsl(328 80% 68%)"
+        >
           <Field
             label="FAL API Key"
             secret
@@ -267,7 +333,11 @@ export default function SettingsPage() {
           />
         </Section>
 
-        <Section title="Local Worker — Shell">
+        <Section
+          title="Local Worker — Shell"
+          icon={<span className="text-[11px] leading-none">💻</span>}
+          accentColor="hsl(142 60% 55%)"
+        >
           <Field
             label="Allow Shell Commands"
             description="Execute system commands"
@@ -275,7 +345,7 @@ export default function SettingsPage() {
             onChange={set("allow_shell_commands")}
             options={[
               { value: "false", label: "Disabled (safe)" },
-              { value: "true", label: "Enabled (use with caution)" },
+              { value: "true",  label: "Enabled (use with caution)" },
             ]}
           />
           {String(form.allow_shell_commands) === "true" && (
@@ -289,7 +359,11 @@ export default function SettingsPage() {
           )}
         </Section>
 
-        <Section title="Local AI Endpoints">
+        <Section
+          title="Local AI Endpoints"
+          icon={<span className="text-[11px] leading-none">🔗</span>}
+          accentColor="hsl(38 90% 60%)"
+        >
           <Field
             label="Ollama Base URL"
             placeholder="http://localhost:11434"
@@ -304,7 +378,7 @@ export default function SettingsPage() {
           />
         </Section>
 
-        <p className="text-[11px] text-center pb-4" style={{ color: dim }}>
+        <p className="text-[11px] text-center pb-6 tracking-wide" style={{ color: "hsl(242 17% 32%)" }}>
           Settings stored locally at ~/.portiere/settings.json — never transmitted to third parties
         </p>
       </div>
