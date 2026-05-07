@@ -29,6 +29,50 @@ export async function fetchWorkers() {
   return r.json();
 }
 
+export interface WizardChunk {
+  type: "chunk" | "done" | "error" | "setup_result";
+  content?: string;
+  result?: Record<string, string>;
+}
+
+export function streamWizard(
+  messages: Array<{ role: string; content: string }>,
+  onChunk: (c: WizardChunk) => void,
+  onDone: () => void,
+): () => void {
+  const ctrl = new AbortController();
+  (async () => {
+    try {
+      const r = await fetch(`${API}/setup-wizard`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages }),
+        signal: ctrl.signal,
+      });
+      if (!r.ok) { onChunk({ type: "error", content: `HTTP ${r.status}` }); onDone(); return; }
+      const reader = r.body!.getReader();
+      const decoder = new TextDecoder();
+      let buf = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const lines = buf.split("\n");
+        buf = lines.pop() ?? "";
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            try { onChunk(JSON.parse(line.slice(6))); } catch { /* skip */ }
+          }
+        }
+      }
+    } catch (e: unknown) {
+      if ((e as Error)?.name !== "AbortError") onChunk({ type: "error", content: String(e) });
+    }
+    onDone();
+  })();
+  return () => ctrl.abort();
+}
+
 export async function probeOllama(): Promise<{ ok: boolean; models?: string[]; error?: string }> {
   const r = await fetch(`${API}/probe/ollama`);
   return r.json();

@@ -8,6 +8,7 @@ from sse_starlette.sse import EventSourceResponse
 from portiere.models import OrchestrateRequest
 from portiere.orchestrator import Orchestrator
 from portiere.settings_store import SettingsStore
+from portiere.setup_wizard import stream_wizard, parse_setup_result
 
 app = FastAPI(title="Portiere", version="0.1.0", docs_url="/api/docs", openapi_url="/api/openapi.json")
 
@@ -85,6 +86,29 @@ async def probe_lmstudio():
             return {"ok": False, "error": f"HTTP {r.status_code}"}
     except Exception as e:
         return {"ok": False, "error": str(e)}
+
+
+@app.post("/api/setup-wizard")
+async def setup_wizard(request: Request):
+    body = await request.json()
+    messages = body.get("messages", [])
+
+    async def generate():
+        full_text = ""
+        async for chunk_json in stream_wizard(messages):
+            yield {"data": chunk_json}
+            try:
+                obj = json.loads(chunk_json)
+                if obj.get("type") == "chunk":
+                    full_text += obj.get("content", "")
+            except Exception:
+                pass
+        # After streaming, check if there's a SETUP_RESULT to parse
+        result = parse_setup_result(full_text)
+        if result:
+            yield {"data": json.dumps({"type": "setup_result", "result": result})}
+
+    return EventSourceResponse(generate())
 
 
 @app.get("/api/workers")
