@@ -83,6 +83,53 @@ export async function probeLMStudio(): Promise<{ ok: boolean; models?: string[];
   return r.json();
 }
 
+export function streamOllamaInstall(
+  model: string,
+  onProgress: (status: string, percent?: number) => void,
+  onDone: () => void,
+  onError: (err: string) => void,
+): () => void {
+  const ctrl = new AbortController();
+  (async () => {
+    try {
+      const r = await fetch(`${API}/ollama/pull`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ model }),
+        signal: ctrl.signal,
+      });
+      if (!r.ok) { onError(`HTTP ${r.status}`); onDone(); return; }
+      const reader = r.body!.getReader();
+      const decoder = new TextDecoder();
+      let buf = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const lines = buf.split("\n");
+        buf = lines.pop() ?? "";
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            try {
+              const obj = JSON.parse(line.slice(6));
+              if (obj.error) { onError(obj.error); onDone(); return; }
+              const total = (obj.total as number) ?? 0;
+              const completed = (obj.completed as number) ?? 0;
+              const pct = total > 0 ? Math.round((completed / total) * 100) : undefined;
+              onProgress((obj.status as string) || "Downloading…", pct);
+              if (obj.status === "success") { onDone(); return; }
+            } catch { /* skip */ }
+          }
+        }
+      }
+    } catch (e: unknown) {
+      if ((e as Error)?.name !== "AbortError") onError(String(e));
+    }
+    onDone();
+  })();
+  return () => ctrl.abort();
+}
+
 export function streamOrchestrate(
   message: string,
   filePath: string | null,

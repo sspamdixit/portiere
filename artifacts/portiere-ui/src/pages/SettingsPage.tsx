@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { Save, Eye, EyeOff, CheckCircle, AlertCircle, Loader2, ChevronRight, ChevronDown, Sparkles, Film, Monitor, User, Mail } from "lucide-react";
+import { Save, Eye, EyeOff, CheckCircle, AlertCircle, Loader2, ChevronRight, ChevronDown, Sparkles, Film, Monitor, User, Mail, Brain } from "lucide-react";
 import { fetchSettings, saveSettings } from "@/lib/api";
+import { loadMemory, saveMemory } from "@/lib/memory";
 
 const dim = "hsl(238 18% 32%)";
 const muted = "hsl(238 18% 50%)";
@@ -141,6 +142,9 @@ export default function SettingsPage() {
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
 
+  const [memText, setMemText] = useState("");
+  const [memSaved, setMemSaved] = useState(false);
+
   useEffect(() => {
     fetchSettings()
       .then(data => setForm(prev => ({
@@ -151,6 +155,11 @@ export default function SettingsPage() {
       })))
       .catch(() => {})
       .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    const facts = loadMemory();
+    setMemText(facts.join("\n"));
   }, []);
 
   const set = (key: string) => (val: string) => setForm(prev => ({ ...prev, [key]: val }));
@@ -179,6 +188,13 @@ export default function SettingsPage() {
     }
   };
 
+  const handleSaveMemory = () => {
+    const facts = memText.split("\n").map(s => s.trim()).filter(Boolean);
+    saveMemory(facts);
+    setMemSaved(true);
+    setTimeout(() => setMemSaved(false), 2500);
+  };
+
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center">
@@ -192,6 +208,7 @@ export default function SettingsPage() {
   const hasFalKey = form.fal_api_key.length > 5;
   const hasSmtp = form.smtp_host.length > 2 && form.smtp_user.length > 2;
   const hasProfile = !!(form.profile_name || form.profile_city);
+  const memoryCount = memText.split("\n").map(s => s.trim()).filter(Boolean).length;
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden">
@@ -256,6 +273,50 @@ export default function SettingsPage() {
           <Field label="Preferences" description="anything Portiere should always know"
             placeholder="morning flights, vegetarian, concise answers, prefer email over phone..."
             value={form.profile_preferences} onChange={set("profile_preferences")} />
+        </SectionCard>
+
+        {/* AI Memory */}
+        <SectionCard
+          title="AI Memory"
+          icon={<Brain size={13} />}
+          iconColor="hsl(38 90% 62%)"
+          iconBg="rgba(245,158,11,0.14)"
+          statusLabel={memoryCount > 0 ? `${memoryCount} fact${memoryCount !== 1 ? "s" : ""}` : "Empty"}
+          statusOk={memoryCount > 0}
+        >
+          <p className="text-[13px] leading-relaxed" style={{ color: muted, letterSpacing: "-0.005em" }}>
+            Facts Portiere remembers across all conversations. Injected silently into every message — one fact per line.
+          </p>
+          <textarea
+            value={memText}
+            onChange={e => setMemText(e.target.value)}
+            placeholder={"I'm vegetarian\nI live in San Francisco\nI work in tech\nI prefer concise answers"}
+            rows={5}
+            className="portiere-input w-full resize-none text-[13px] leading-relaxed"
+            style={{ fontFamily: "inherit", caretColor: "hsl(248 90% 70%)" }}
+            onFocus={e => {
+              e.currentTarget.style.borderColor = "hsl(246 89% 70% / 0.45)";
+              e.currentTarget.style.boxShadow = "0 0 0 3px hsl(246 89% 70% / 0.07)";
+            }}
+            onBlur={e => {
+              e.currentTarget.style.borderColor = "hsl(240 20% 12%)";
+              e.currentTarget.style.boxShadow = "none";
+            }}
+          />
+          <div className="flex items-center justify-between">
+            <p className="text-[12px]" style={{ color: dim }}>Stored locally — never sent anywhere except your AI.</p>
+            <button
+              onClick={handleSaveMemory}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all"
+              style={{
+                background: memSaved ? "rgba(34,197,94,0.1)" : "rgba(109,95,234,0.1)",
+                border: `1px solid ${memSaved ? "rgba(34,197,94,0.25)" : "rgba(109,95,234,0.22)"}`,
+                color: memSaved ? green : primary,
+              }}
+            >
+              {memSaved ? <><CheckCircle size={11} /> Saved</> : "Save memory"}
+            </button>
+          </div>
         </SectionCard>
 
         {/* Your AI */}

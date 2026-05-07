@@ -5,6 +5,7 @@ export interface Session {
   title: string;
   timestamp: number;
   pinned?: boolean;
+  tags?: string[];
   events: OrchestrateEvent[];
 }
 
@@ -27,12 +28,14 @@ export function getSessions(): Session[] {
 
 export function saveSession(events: OrchestrateEvent[]): Session {
   const userEvent = events.find(e => e.type === "user_input");
-  const title = (userEvent?.content ?? "Session").slice(0, 60);
+  const rawTitle = (userEvent?.content ?? "Session").trim();
+  const title = rawTitle.slice(0, 60) + (rawTitle.length > 60 ? "…" : "");
   const session: Session = {
     id: crypto.randomUUID(),
     title,
     timestamp: Date.now(),
     pinned: false,
+    tags: [],
     events: events.filter(e =>
       ["user_input", "worker_done", "complete", "error", "worker_error"].includes(e.type)
     ),
@@ -51,6 +54,33 @@ export function togglePin(id: string): void {
     s.id === id ? { ...s, pinned: !s.pinned } : s
   );
   localStorage.setItem(KEY, JSON.stringify(sessions));
+}
+
+export function addTag(id: string, tag: string): void {
+  const sessions = getSessions().map(s => {
+    if (s.id !== id) return s;
+    const tags = [...new Set([...(s.tags ?? []), tag.trim()])];
+    return { ...s, tags };
+  });
+  localStorage.setItem(KEY, JSON.stringify(sessions));
+}
+
+export function removeTag(id: string, tag: string): void {
+  const sessions = getSessions().map(s => {
+    if (s.id !== id) return s;
+    return { ...s, tags: (s.tags ?? []).filter(t => t !== tag) };
+  });
+  localStorage.setItem(KEY, JSON.stringify(sessions));
+}
+
+/** Search session titles AND message content */
+export function searchSessions(query: string): Session[] {
+  if (!query.trim()) return getSessions();
+  const q = query.toLowerCase();
+  return getSessions().filter(s => {
+    if (s.title.toLowerCase().includes(q)) return true;
+    return s.events.some(e => (e.content ?? "").toLowerCase().includes(q));
+  });
 }
 
 export function clearAllSessions(): void {

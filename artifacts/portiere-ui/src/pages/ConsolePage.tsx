@@ -6,14 +6,15 @@ import {
   Cloud, Mail, Terminal, Download, ExternalLink,
   Image, Languages, Newspaper, TrendingUp, CalendarPlus,
   Plane, PenLine, Mic, MicOff, FileDown, BookOpen, Keyboard,
-  Zap,
+  Zap, Edit3, ArrowDown,
 } from "lucide-react";
-import { streamOrchestrate, type OrchestrateEvent } from "@/lib/api";
+import { streamOrchestrate, fetchSettings, type OrchestrateEvent } from "@/lib/api";
 import { saveSession } from "@/lib/sessions";
 import { useSession } from "@/lib/SessionContext";
 import { MarkdownContent } from "@/components/MarkdownContent";
 import KeyboardShortcutsModal from "@/components/KeyboardShortcutsModal";
 import TemplatesModal from "@/components/TemplatesModal";
+import { loadMemory } from "@/lib/memory";
 
 interface FeedEntry { id: number; event: OrchestrateEvent & { _elapsed?: number }; ts: string; }
 
@@ -572,6 +573,9 @@ export default function ConsolePage() {
   const [lastWorker, setLastWorker] = useState<string | null>(null);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
+  const [showScrollBtn, setShowScrollBtn] = useState(false);
+  const [currentBrain, setCurrentBrain] = useState<{ provider: string; model: string } | null>(null);
+  const [memories, setMemories] = useState<string[]>([]);
 
   const feedRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -609,6 +613,20 @@ export default function ConsolePage() {
     if (feedRef.current) feedRef.current.scrollTop = feedRef.current.scrollHeight;
   }, [feed, chunkBuffers, activity]);
 
+  useEffect(() => {
+    fetchSettings()
+      .then(s => setCurrentBrain({ provider: String(s.brain_provider || "ollama"), model: String(s.brain_model || "") }))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => { setMemories(loadMemory()); }, []);
+
+  useEffect(() => {
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+  }, []);
+
   const now = () => new Date().toLocaleTimeString("en", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
 
   const addEntry = useCallback((event: OrchestrateEvent) => {
@@ -638,22 +656,15 @@ export default function ConsolePage() {
     });
   }, []);
 
-  const submit = useCallback(() => {
-    const msg = input.trim();
-    if (!msg || running) return;
-    setInput(""); setRunning(true); setLoadedSession(null);
+  const runOrchestration = useCallback((msg: string, filePathArg: string | null, contextArg: string | null) => {
+    setRunning(true);
     setActivity({ message: "Waking up the Brain...", pipeline: [], brainStatus: "thinking", progress: 8 });
-    feedEventsRef.current = [];
-
-    const userEv: OrchestrateEvent = { type: "user_input", content: msg };
-    feedEventsRef.current.push(userEv);
-    setFeed(prev => lastContext && prev.length > 0
-      ? [...prev, { id: idSeq++, event: userEv, ts: now() }]
-      : [{ id: idSeq++, event: userEv, ts: now() }]
-    );
-
+    const memoriesCurrent = loadMemory();
+    const msgWithMemory = memoriesCurrent.length > 0
+      ? `[Context about me: ${memoriesCurrent.join(". ")}]\n\n${msg}`
+      : msg;
     const cancel = streamOrchestrate(
-      msg, filePath.trim() || null, lastContext,
+      msgWithMemory, filePathArg, contextArg,
       (event) => {
         if (["brain_thinking", "brain_decision", "chain_step", "worker_start", "worker_thinking"].includes(event.type)) {
           updateActivity(event); return;
@@ -686,6 +697,9 @@ export default function ConsolePage() {
           setActivity(null);
           saveSession([...feedEventsRef.current]);
           notifySessionSaved();
+          if (document.hidden && "Notification" in window && Notification.permission === "granted") {
+            new Notification("Portiere", { body: "Your request is ready" });
+          }
           return;
         }
         addEntry(event);
@@ -694,7 +708,61 @@ export default function ConsolePage() {
       (err) => { addEntry({ type: "error", error: err }); setRunning(false); setActivity(null); },
     );
     stopRef.current = cancel;
-  }, [input, filePath, running, lastContext, addEntry, updateActivity, notifySessionSaved, setLoadedSession]);
+  }, [addEntry, updateActivity, notifySessionSaved]);
+
+  const submit = useCallback(() => {
+    const msg = input.trim();
+    if (!msg || running) return;
+    setInput(""); setLoadedSession(null);
+    feedEventsRef.current = [];
+    const userEv: OrchestrateEvent = { type: "user_input", content: msg };
+    feedEventsRef.current.push(userEv);
+    setFeed(prev => lastContext && prev.length > 0
+      ? [...prev, { id: idSeq++, event: userEv, ts: now() }]
+      : [{ id: idSeq++, event: userEv, ts: now() }]
+    );
+    runOrchestration(msg, filePath.trim() || null, lastContext);
+  }, [input, filePath, running, lastContext, runOrchestration, setLoadedSession]);
+
+  const handleRegenerate = useCallback(() => {
+    if (running) return;
+    const lastUserEv = [...feedEventsRef.current].reverse().find(e => e.type === "user_input");
+    if (!lastUserEv?.content) return;
+    const msg = lastUserEv.content;
+    feedEventsRef.current = [];
+    setFeed([]);
+    setActivity(null);
+    setChunkBuffers({});
+    setLastContext(null);
+    setLastWorker(null);
+    setLoadedSession(null);
+    const userEv: OrchestrateEvent = { type: "user_input", content: msg };
+    feedEventsRef.current = [userEv];
+    setFeed([{ id: idSeq++, event: userEv, ts: now() }]);
+    runOrchestration(msg, null, null);
+  }, [running, runOrchestration, setLoadedSession]);
+
+  const handleEditMessage = useCallback((content: string) => {
+    setFeed([]);
+    feedEventsRef.current = [];
+    setActivity(null);
+    setChunkBuffers({});
+    setLastContext(null);
+    setLastWorker(null);
+    setLoadedSession(null);
+    setInput(content);
+    setTimeout(() => inputRef.current?.focus(), 0);
+  }, [setLoadedSession]);
+
+  const handleFeedScroll = useCallback(() => {
+    const el = feedRef.current;
+    if (!el) return;
+    setShowScrollBtn(el.scrollHeight - el.scrollTop - el.clientHeight > 120);
+  }, []);
+
+  const scrollToBottom = useCallback(() => {
+    feedRef.current?.scrollTo({ top: feedRef.current.scrollHeight, behavior: "smooth" });
+  }, []);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); }
@@ -765,6 +833,13 @@ export default function ConsolePage() {
           )}
         </div>
         <div className="flex items-center gap-1.5">
+          {currentBrain && !isEmpty && (
+            <div className="flex items-center gap-1.5 text-[11px] px-2 py-1 rounded-full mr-1"
+              style={{ background: "rgba(109,95,234,0.07)", border: "1px solid rgba(109,95,234,0.12)", color: "hsl(248 78% 68%)" }}>
+              <span style={{ opacity: 0.5 }}>◈</span>
+              <span style={{ letterSpacing: "-0.01em" }}>{currentBrain.model}</span>
+            </div>
+          )}
           {running && (
             <div className="flex items-center gap-1.5 text-[12px] mr-2" style={{ color: "hsl(248 90% 70%)" }}>
               <Loader2 size={11} className="animate-spin" />
@@ -832,7 +907,8 @@ export default function ConsolePage() {
       </div>
 
       {/* Feed */}
-      <div ref={feedRef} className="flex-1 overflow-y-auto feed-scroll">
+      <div className="flex-1 relative min-h-0">
+      <div ref={feedRef} className="h-full overflow-y-auto feed-scroll" onScroll={handleFeedScroll}>
         {isEmpty ? (
           <div className="relative flex flex-col items-center h-full px-6 pt-10 pb-4 overflow-y-auto feed-scroll">
             {/* Dot grid background */}
@@ -948,8 +1024,18 @@ export default function ConsolePage() {
               if (event.type === "user_input") {
                 return (
                   <div key={entry.id} className="flex justify-end px-5 mb-5 mt-3 animate-feed-in">
-                    <div className="user-bubble px-4 py-3 text-[14px]" style={{ maxWidth: "72%" }}>
-                      {event.content}
+                    <div className="relative group">
+                      <div className="user-bubble px-4 py-3 text-[14px]" style={{ maxWidth: "72vw" }}>
+                        {event.content}
+                      </div>
+                      <button
+                        onClick={() => handleEditMessage(event.content || "")}
+                        title="Edit and resend"
+                        className="absolute -left-8 top-1/2 -translate-y-1/2 p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                        style={{ color: "hsl(238 18% 44%)", backgroundColor: "hsl(238 18% 8%)", border: "1px solid hsl(238 18% 14%)" }}
+                      >
+                        <Edit3 size={11} />
+                      </button>
                     </div>
                   </div>
                 );
@@ -994,6 +1080,19 @@ export default function ConsolePage() {
             {activity && running && <ActivityCard activity={activity} elapsed={elapsed} />}
           </div>
         )}
+      </div>
+      {showScrollBtn && !isEmpty && (
+        <button
+          onClick={scrollToBottom}
+          title="Scroll to bottom"
+          className="absolute bottom-4 right-4 z-10 flex items-center justify-center w-8 h-8 rounded-full shadow-lg transition-all animate-feed-in"
+          style={{ background: "hsl(238 20% 13%)", border: "1px solid hsl(238 18% 22%)", color: "hsl(238 18% 62%)" }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "hsl(248 80% 70%)"; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "hsl(238 18% 62%)"; }}
+        >
+          <ArrowDown size={14} />
+        </button>
+      )}
       </div>
 
       {/* Input area */}
@@ -1048,6 +1147,19 @@ export default function ConsolePage() {
               Cancel
             </button>
           </div>
+        )}
+
+        {/* Regenerate */}
+        {isComplete && !running && (
+          <button
+            onClick={handleRegenerate}
+            className="flex items-center justify-center gap-1.5 w-full py-2 mb-2 rounded-xl text-[12.5px] font-medium transition-all"
+            style={{ border: "1px dashed hsl(238 18% 14%)", color: "hsl(238 18% 42%)" }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(109,95,234,0.3)"; e.currentTarget.style.color = "hsl(248 80% 68%)"; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = "hsl(238 18% 14%)"; e.currentTarget.style.color = "hsl(238 18% 42%)"; }}
+          >
+            <RotateCcw size={11} /> Regenerate response
+          </button>
         )}
 
         {/* Smart follow-up chips */}

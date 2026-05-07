@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { Link, useLocation } from "wouter";
-import { MessageSquare, Cpu, Settings, Plus, Trash2, Zap, Search, Pin, PinOff } from "lucide-react";
-import { getSessions, deleteSession, togglePin, relativeTime, type Session } from "@/lib/sessions";
+import { MessageSquare, Cpu, Settings, Plus, Trash2, Search, Pin, PinOff, Sun, Moon } from "lucide-react";
+import { getSessions, deleteSession, togglePin, relativeTime, searchSessions, type Session } from "@/lib/sessions";
 import { useSession } from "@/lib/SessionContext";
 
 const nav = [
@@ -17,6 +17,19 @@ export default function Sidebar() {
   const [search, setSearch] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
+
+  const [isDark, setIsDark] = useState(() => localStorage.getItem("portiere_theme") !== "light");
+
+  const toggleTheme = () => {
+    const next = !isDark;
+    setIsDark(next);
+    localStorage.setItem("portiere_theme", next ? "dark" : "light");
+    document.body.classList.toggle("light-mode", !next);
+  };
+
+  useEffect(() => {
+    document.body.classList.toggle("light-mode", !isDark);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     setSessions(getSessions());
@@ -48,10 +61,7 @@ export default function Sidebar() {
     navigate("/");
   };
 
-  const filtered = search.trim()
-    ? sessions.filter(s => s.title.toLowerCase().includes(search.toLowerCase()))
-    : sessions;
-
+  const filtered = search.trim() ? searchSessions(search) : sessions;
   const pinned = filtered.filter(s => s.pinned);
   const recent = filtered.filter(s => !s.pinned);
 
@@ -67,14 +77,9 @@ export default function Sidebar() {
       <div className="px-4 pt-5 pb-3 flex-shrink-0">
         <div className="flex items-center gap-3 px-1">
           <div className="relative flex-shrink-0">
-            {/* Ambient glow corona */}
             <div
               className="absolute rounded-full pointer-events-none animate-logo-breathe"
-              style={{
-                inset: "-6px",
-                background: "rgba(109,95,234,0.3)",
-                filter: "blur(10px)",
-              }}
+              style={{ inset: "-6px", background: "rgba(109,95,234,0.3)", filter: "blur(10px)" }}
             />
             <div
               className="relative w-8 h-8 rounded-xl flex items-center justify-center"
@@ -132,9 +137,7 @@ export default function Sidebar() {
                 {active && (
                   <div
                     className="absolute left-0 top-2 bottom-2 w-0.5 rounded-full"
-                    style={{
-                      background: "linear-gradient(180deg, hsl(248 82% 72%) 0%, hsl(264 68% 70%) 100%)",
-                    }}
+                    style={{ background: "linear-gradient(180deg, hsl(248 82% 72%) 0%, hsl(264 68% 70%) 100%)" }}
                   />
                 )}
                 <Icon
@@ -198,7 +201,7 @@ export default function Sidebar() {
               ref={searchRef}
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Search history..."
+              placeholder="Search history & content…"
               className="w-full rounded-xl text-[12px] outline-none"
               style={{
                 backgroundColor: "hsl(238 18% 7%)",
@@ -209,6 +212,11 @@ export default function Sidebar() {
               }}
             />
           </div>
+          {search.trim() && (
+            <p className="text-[10.5px] mt-1 px-1" style={{ color: "hsl(238 18% 36%)" }}>
+              Searching titles & messages
+            </p>
+          )}
         </div>
       )}
 
@@ -274,7 +282,16 @@ export default function Sidebar() {
           <span className="text-[11px]" style={{ color: "hsl(240 16% 30%)", letterSpacing: "-0.005em" }}>
             13 capabilities ready
           </span>
-          <Zap size={8} style={{ color: "hsl(240 16% 26%)", marginLeft: "auto", opacity: 0.7 }} />
+          <button
+            onClick={toggleTheme}
+            title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+            className="ml-auto p-1.5 rounded-lg transition-all"
+            style={{ color: "hsl(240 16% 32%)" }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "hsl(240 16% 58%)"; (e.currentTarget as HTMLElement).style.backgroundColor = "rgba(255,255,255,0.04)"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "hsl(240 16% 32%)"; (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"; }}
+          >
+            {isDark ? <Sun size={11} /> : <Moon size={11} />}
+          </button>
         </div>
       </div>
     </aside>
@@ -309,9 +326,21 @@ function SessionItem({
       >
         {s.title}
       </span>
-      <span className="text-[10.5px]" style={{ color: "hsl(240 16% 28%)" }}>
-        {relativeTime(s.timestamp)}
-      </span>
+      <div className="flex items-center gap-2">
+        <span className="text-[10.5px]" style={{ color: "hsl(240 16% 28%)" }}>
+          {relativeTime(s.timestamp)}
+        </span>
+        {s.tags && s.tags.length > 0 && (
+          <div className="flex gap-1">
+            {s.tags.slice(0, 2).map(tag => (
+              <span key={tag} className="text-[9px] px-1.5 py-0.5 rounded-full font-medium"
+                style={{ background: "rgba(109,95,234,0.12)", color: "hsl(248 80% 66%)", border: "1px solid rgba(109,95,234,0.2)" }}>
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
       <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
         <button
           onClick={e => onPin(e, s.id)}

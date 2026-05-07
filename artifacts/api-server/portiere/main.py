@@ -111,6 +111,28 @@ async def setup_wizard(request: Request):
     return EventSourceResponse(generate())
 
 
+@app.post("/api/ollama/pull")
+async def pull_ollama_model(request: Request):
+    body = await request.json()
+    model_name = body.get("model", "").strip()
+    if not model_name:
+        return JSONResponse({"error": "model name is required"}, status_code=400)
+    settings = _settings_store.get_raw()
+    base = settings.ollama_base_url.rstrip("/")
+
+    async def generate():
+        try:
+            async with httpx.AsyncClient(timeout=600.0) as client:
+                async with client.stream("POST", f"{base}/api/pull", json={"name": model_name}) as r:
+                    async for line in r.aiter_lines():
+                        if line.strip():
+                            yield {"data": line}
+        except Exception as e:
+            yield {"data": json.dumps({"error": str(e)})}
+
+    return EventSourceResponse(generate())
+
+
 @app.get("/api/workers")
 async def get_workers():
     return {

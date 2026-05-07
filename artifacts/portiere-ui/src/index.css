@@ -373,3 +373,21 @@
 .prose p { letter-spacing: -0.005em; }
 .prose table { border-collapse: collapse; width: 100%; }
 .prose th, .prose td { padding: 8px 12px; }
+
+/* ═══════════════════════════════════════════════════════
+   LIGHT MODE — CSS filter inversion approach
+   Images and videos are double-inverted to look normal.
+══════════════════════════════════════════════════════════ */
+body.light-mode {
+  filter: invert(1) hue-rotate(180deg);
+}
+body.light-mode img,
+body.light-mode video,
+body.light-mode canvas,
+body.light-mode [data-no-invert] {
+  filter: invert(1) hue-rotate(180deg);
+}
+body.light-mode .syntax-highlighter,
+body.light-mode [class*="hljs"] {
+  filter: invert(1) hue-rotate(180deg);
+}

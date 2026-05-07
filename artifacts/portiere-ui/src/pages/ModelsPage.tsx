@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { RefreshCw, Cpu, HardDrive, Loader2, AlertCircle, Box, ChevronRight, Sparkles, Search, Globe, Film, Monitor, Check, Cloud, Mail, Terminal, Image, Languages, Newspaper, TrendingUp, CalendarPlus, ExternalLink, Copy } from "lucide-react";
-import { fetchModels, fetchSettings } from "@/lib/api";
+import { useState, useRef, useEffect } from "react";
+import { RefreshCw, Cpu, HardDrive, Loader2, AlertCircle, Box, ChevronRight, Sparkles, Search, Globe, Film, Monitor, Check, Cloud, Mail, Terminal, Image, Languages, Newspaper, TrendingUp, CalendarPlus, ExternalLink, Copy, Download, X } from "lucide-react";
+import { fetchModels, fetchSettings, saveSettings, streamOllamaInstall, probeOllama } from "@/lib/api";
 
 const dim = "hsl(238 18% 32%)";
 const muted = "hsl(238 18% 50%)";
@@ -16,106 +16,47 @@ interface ModelsData {
   lmstudio_error?: string;
 }
 
+const RAM_MAP: Record<string, string> = {
+  "llama3.2": "2 GB",   "llama3.2:1b": "1.3 GB", "llama3.2:3b": "2 GB",
+  "llama3.1:8b": "4.9 GB", "llama3.1:70b": "40 GB", "llama3.1:405b": "229 GB",
+  "llama3:8b": "4.7 GB", "llama3:70b": "40 GB",
+  "mistral": "4.1 GB",  "mistral:7b": "4.1 GB",
+  "gemma2": "5.4 GB",   "gemma2:2b": "1.6 GB", "gemma2:9b": "5.4 GB",
+  "phi3": "2.2 GB",     "phi3.5": "2.2 GB",    "phi4": "8.5 GB",
+  "qwen2.5": "4.7 GB",  "qwen2.5:7b": "4.7 GB", "qwen2.5:14b": "9 GB",
+  "deepseek-r1:7b": "4.7 GB", "deepseek-r1:14b": "9 GB",
+  "codellama": "3.8 GB", "codellama:7b": "3.8 GB",
+  "nomic-embed-text": "0.3 GB", "mxbai-embed-large": "0.7 GB",
+};
+
+function getRAM(name: string): string | null {
+  return RAM_MAP[name] ?? RAM_MAP[name.split(":")[0]] ?? null;
+}
+
+const POPULAR_MODELS = [
+  { name: "llama3.2",       desc: "Fast · 2 GB"         },
+  { name: "llama3.1:8b",    desc: "Balanced · 5 GB"     },
+  { name: "mistral",        desc: "Reasoning · 4 GB"    },
+  { name: "gemma2:2b",      desc: "Tiny · 1.6 GB"       },
+  { name: "phi4",           desc: "Smart · 8.5 GB"      },
+  { name: "deepseek-r1:7b", desc: "Step-by-step · 5 GB" },
+  { name: "codellama",      desc: "Code · 4 GB"         },
+];
+
 const CAPABILITIES = [
-  {
-    Icon: Search,
-    label: "Web Search",
-    desc: "Real-time search — flights, therapists, news, products, and anything on the web.",
-    color: primary,
-    status: "built-in" as const,
-  },
-  {
-    Icon: Cloud,
-    label: "Weather",
-    desc: "Current conditions and 7-day forecast for any city worldwide. No API key needed.",
-    color: "hsl(200 80% 65%)",
-    status: "built-in" as const,
-  },
-  {
-    Icon: Newspaper,
-    label: "Live News",
-    desc: "Latest headlines on any topic — tech, world events, sports, finance. No API key needed.",
-    color: "hsl(25 90% 62%)",
-    status: "built-in" as const,
-  },
-  {
-    Icon: TrendingUp,
-    label: "Finance & Markets",
-    desc: "Real-time stock prices and crypto rates — TSLA, AAPL, Bitcoin, Ethereum, and more.",
-    color: "hsl(142 60% 55%)",
-    status: "built-in" as const,
-  },
-  {
-    Icon: Languages,
-    label: "Translator",
-    desc: "Translate text to and from 50+ languages instantly. No API key needed.",
-    color: "hsl(185 70% 58%)",
-    status: "built-in" as const,
-  },
-  {
-    Icon: CalendarPlus,
-    label: "Calendar & Reminders",
-    desc: "Create calendar events as .ics files — import into Google Calendar, Outlook, or Apple Calendar.",
-    color: "hsl(246 89% 70%)",
-    status: "built-in" as const,
-  },
-  {
-    Icon: Sparkles,
-    label: "Claude — Writing & Coding",
-    desc: "Deep reasoning, code generation, drafting emails, analysis, and complex tasks.",
-    color: "hsl(270 70% 72%)",
-    status: "key" as const,
-    key: "claude_api_key",
-    keyLabel: "Anthropic API Key",
-  },
-  {
-    Icon: Mail,
-    label: "Email",
-    desc: "Compose and send emails. Sends via SMTP if configured, otherwise creates a mailto draft.",
-    color: "hsl(38 90% 60%)",
-    status: "smtp" as const,
-    key: "smtp_host",
-    keyLabel: "SMTP Host",
-  },
-  {
-    Icon: Terminal,
-    label: "Code Runner",
-    desc: "Write and execute Python code — see output instantly in the feed.",
-    color: "hsl(142 60% 55%)",
-    status: "built-in" as const,
-  },
-  {
-    Icon: Globe,
-    label: "Research & OSINT",
-    desc: "Domain investigation, DNS/WHOIS lookups, and digital footprinting.",
-    color: "hsl(38 90% 60%)",
-    status: "built-in" as const,
-  },
-  {
-    Icon: Monitor,
-    label: "System Monitor",
-    desc: "CPU, RAM, battery, disk usage, and file system access.",
-    color: "hsl(142 60% 55%)",
-    status: "built-in" as const,
-  },
-  {
-    Icon: Image,
-    label: "Image Generation",
-    desc: "Generate AI images via FAL.ai Flux from any text description — portraits, artwork, concepts.",
-    color: "hsl(310 70% 68%)",
-    status: "key" as const,
-    key: "fal_api_key",
-    keyLabel: "FAL API Key",
-  },
-  {
-    Icon: Film,
-    label: "Video Generation",
-    desc: "Generate AI video clips via FAL.ai or Seedance from a text prompt.",
-    color: "hsl(328 80% 68%)",
-    status: "key" as const,
-    key: "fal_api_key",
-    keyLabel: "FAL API Key",
-  },
+  { Icon: Search,      label: "Web Search",           desc: "Real-time search — flights, therapists, news, products, and anything on the web.", color: primary, status: "built-in" as const },
+  { Icon: Cloud,       label: "Weather",              desc: "Current conditions and 7-day forecast for any city worldwide. No API key needed.", color: "hsl(200 80% 65%)", status: "built-in" as const },
+  { Icon: Newspaper,   label: "Live News",            desc: "Latest headlines on any topic — tech, world events, sports, finance. No API key needed.", color: "hsl(25 90% 62%)", status: "built-in" as const },
+  { Icon: TrendingUp,  label: "Finance & Markets",    desc: "Real-time stock prices and crypto rates — TSLA, AAPL, Bitcoin, Ethereum, and more.", color: "hsl(142 60% 55%)", status: "built-in" as const },
+  { Icon: Languages,   label: "Translator",           desc: "Translate text to and from 50+ languages instantly. No API key needed.", color: "hsl(185 70% 58%)", status: "built-in" as const },
+  { Icon: CalendarPlus,label: "Calendar & Reminders", desc: "Create calendar events as .ics files — import into Google Calendar, Outlook, or Apple Calendar.", color: "hsl(246 89% 70%)", status: "built-in" as const },
+  { Icon: Sparkles,    label: "Claude — Writing & Coding", desc: "Deep reasoning, code generation, drafting emails, analysis, and complex tasks.", color: "hsl(270 70% 72%)", status: "key" as const, key: "claude_api_key", keyLabel: "Anthropic API Key" },
+  { Icon: Mail,        label: "Email",                desc: "Compose and send emails. Sends via SMTP if configured, otherwise creates a mailto draft.", color: "hsl(38 90% 60%)", status: "smtp" as const, key: "smtp_host", keyLabel: "SMTP Host" },
+  { Icon: Terminal,    label: "Code Runner",          desc: "Write and execute Python code — see output instantly in the feed.", color: "hsl(142 60% 55%)", status: "built-in" as const },
+  { Icon: Globe,       label: "Research & OSINT",     desc: "Domain investigation, DNS/WHOIS lookups, and digital footprinting.", color: "hsl(38 90% 60%)", status: "built-in" as const },
+  { Icon: Monitor,     label: "System Monitor",       desc: "CPU, RAM, battery, disk usage, and file system access.", color: "hsl(142 60% 55%)", status: "built-in" as const },
+  { Icon: Image,       label: "Image Generation",     desc: "Generate AI images via FAL.ai Flux from any text description — portraits, artwork, concepts.", color: "hsl(310 70% 68%)", status: "key" as const, key: "fal_api_key", keyLabel: "FAL API Key" },
+  { Icon: Film,        label: "Video Generation",     desc: "Generate AI video clips via FAL.ai or Seedance from a text prompt.", color: "hsl(328 80% 68%)", status: "key" as const, key: "fal_api_key", keyLabel: "FAL API Key" },
 ];
 
 export default function CapabilitiesPage() {
@@ -125,18 +66,78 @@ export default function CapabilitiesPage() {
   const [error, setError] = useState<string | null>(null);
   const [lastRefresh, setLastRefresh] = useState<string | null>(null);
 
+  const [selectedBrain, setSelectedBrain] = useState<string | null>(null);
+  const [showInstaller, setShowInstaller] = useState(false);
+  const [installModel, setInstallModel] = useState("llama3.2");
+  const [installProgress, setInstallProgress] = useState<{ status: string; percent?: number } | null>(null);
+  const [installError, setInstallError] = useState<string | null>(null);
+  const [justReconnected, setJustReconnected] = useState(false);
+  const installCancelRef = useRef<(() => void) | null>(null);
+  const reconnectRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    fetchSettings()
+      .then(s => setSelectedBrain(String(s.brain_model || "")))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!modelData?.ollama_error) {
+      if (reconnectRef.current) { clearInterval(reconnectRef.current); reconnectRef.current = null; }
+      return;
+    }
+    reconnectRef.current = setInterval(async () => {
+      try {
+        const r = await probeOllama();
+        if (r.ok) {
+          clearInterval(reconnectRef.current!); reconnectRef.current = null;
+          setJustReconnected(true);
+          setTimeout(() => setJustReconnected(false), 4000);
+          refresh();
+        }
+      } catch { /* ignore */ }
+    }, 5000);
+    return () => { if (reconnectRef.current) clearInterval(reconnectRef.current); };
+  }, [modelData?.ollama_error]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const refresh = async () => {
     setLoading(true); setError(null);
     try {
       const [models, cfg] = await Promise.all([fetchModels(), fetchSettings()]);
       setModelData(models);
       setSettings(Object.fromEntries(Object.entries(cfg).map(([k, v]) => [k, String(v)])));
+      setSelectedBrain(String(cfg.brain_model || ""));
       setLastRefresh(new Date().toLocaleTimeString("en", { hour12: false }));
     } catch (e) {
       setError(String(e));
     } finally {
       setLoading(false);
     }
+  };
+
+  const useModel = async (modelName: string) => {
+    try {
+      await saveSettings({ brain_model: modelName, brain_provider: "ollama" });
+      setSelectedBrain(modelName);
+    } catch { /* ignore */ }
+  };
+
+  const handleInstall = () => {
+    const m = installModel.trim();
+    if (!m || installProgress) return;
+    setInstallError(null);
+    setInstallProgress({ status: "Starting…" });
+    installCancelRef.current = streamOllamaInstall(
+      m,
+      (status, percent) => setInstallProgress({ status, percent }),
+      () => { setInstallProgress(null); setShowInstaller(false); refresh(); },
+      (err) => { setInstallError(err); setInstallProgress(null); },
+    );
+  };
+
+  const cancelInstall = () => {
+    installCancelRef.current?.();
+    setInstallProgress(null);
   };
 
   const isKeyConfigured = (key: string) => (settings[key] || "").length > 5;
@@ -183,6 +184,16 @@ export default function CapabilitiesPage() {
           </div>
         )}
 
+        {/* Reconnected banner */}
+        {justReconnected && (
+          <div
+            className="flex items-center gap-2 px-4 py-3 rounded-2xl text-[13px] animate-feed-in"
+            style={{ background: "rgba(34,197,94,0.07)", border: "1px solid rgba(34,197,94,0.2)", color: green }}
+          >
+            <Check size={13} /> Ollama reconnected — models refreshed
+          </div>
+        )}
+
         {/* Capability cards */}
         <div>
           <p className="text-[10px] uppercase font-semibold mb-3 px-1" style={{ color: "hsl(242 17% 34%)", letterSpacing: "0.06em" }}>
@@ -207,10 +218,8 @@ export default function CapabilitiesPage() {
                     borderLeft: configured ? `3px solid ${color}55` : "1px solid hsl(240 20% 12%)",
                   }}
                 >
-                  <div
-                    className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
-                    style={{ backgroundColor: `${color}16`, color }}
-                  >
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
+                    style={{ backgroundColor: `${color}16`, color }}>
                     <Icon size={16} />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -249,16 +258,11 @@ export default function CapabilitiesPage() {
 
           {!modelData && !loading && (
             <div className="relative flex flex-col items-center justify-center py-16 gap-4">
-              <div
-                className="absolute inset-0 pointer-events-none dot-grid"
-                style={{ opacity: 0.35, borderRadius: "16px" }}
-              />
+              <div className="absolute inset-0 pointer-events-none dot-grid" style={{ opacity: 0.35, borderRadius: "16px" }} />
               <div className="absolute inset-0 pointer-events-none"
                 style={{ background: "radial-gradient(ellipse 50% 30% at 50% 50%, rgba(124,111,247,0.06) 0%, transparent 70%)" }} />
-              <div
-                className="relative w-12 h-12 rounded-2xl flex items-center justify-center"
-                style={{ backgroundColor: "hsl(240 20% 9%)", border: "1px solid hsl(240 20% 13%)" }}
-              >
+              <div className="relative w-12 h-12 rounded-2xl flex items-center justify-center"
+                style={{ backgroundColor: "hsl(240 20% 9%)", border: "1px solid hsl(240 20% 13%)" }}>
                 <Cpu size={20} style={{ color: "hsl(242 18% 38%)" }} />
               </div>
               <div className="text-center">
@@ -267,14 +271,11 @@ export default function CapabilitiesPage() {
                 </p>
                 <p className="text-[13px] mt-1" style={{ color: muted }}>Scans Ollama and LM Studio</p>
               </div>
-              <button
-                onClick={refresh}
+              <button onClick={refresh}
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-[13px] font-semibold"
                 style={{
                   background: "linear-gradient(135deg, hsl(246 89% 64%) 0%, hsl(258 72% 68%) 100%)",
-                  color: "white",
-                  boxShadow: "0 2px 12px rgba(124,111,247,0.38)",
-                  letterSpacing: "-0.01em",
+                  color: "white", boxShadow: "0 2px 12px rgba(124,111,247,0.38)", letterSpacing: "-0.01em",
                 }}
               >
                 <RefreshCw size={13} /> Scan now
@@ -295,32 +296,43 @@ export default function CapabilitiesPage() {
               <div className="section-card">
                 <div className="section-card-header">
                   <div className="flex items-center gap-2.5">
-                    <div
-                      className="w-7 h-7 rounded-lg flex items-center justify-center"
-                      style={{ backgroundColor: "rgba(124,111,247,0.14)", color: primary }}
-                    >
+                    <div className="w-7 h-7 rounded-lg flex items-center justify-center"
+                      style={{ backgroundColor: "rgba(124,111,247,0.14)", color: primary }}>
                       <Box size={13} />
                     </div>
                     <span className="text-[13px] font-semibold" style={{ color: "hsl(244 30% 92%)", letterSpacing: "-0.01em" }}>
                       Ollama
                     </span>
                   </div>
-                  {modelData.ollama_error ? (
-                    <span
-                      className="text-[11px] px-2.5 py-0.5 rounded-full font-medium"
-                      style={{ color: "hsl(347 87% 62%)", backgroundColor: "hsl(347 87% 60% / 0.08)", border: "1px solid hsl(347 87% 60% / 0.2)" }}
-                    >
-                      Unreachable
-                    </span>
-                  ) : (
-                    <span
-                      className="text-[11px] px-2.5 py-0.5 rounded-full font-medium"
-                      style={{ backgroundColor: "rgba(124,111,247,0.12)", color: primary, border: "1px solid rgba(124,111,247,0.25)" }}
-                    >
-                      {modelData.ollama.length} model{modelData.ollama.length !== 1 ? "s" : ""}
-                    </span>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {!modelData.ollama_error && (
+                      <button
+                        onClick={() => setShowInstaller(v => !v)}
+                        className="flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-lg transition-all"
+                        style={{
+                          color: showInstaller ? primary : muted,
+                          background: showInstaller ? "rgba(109,95,234,0.1)" : "transparent",
+                          border: `1px solid ${showInstaller ? "rgba(109,95,234,0.25)" : "transparent"}`,
+                        }}
+                        title="Install a new model"
+                      >
+                        <Download size={10} /> Install model
+                      </button>
+                    )}
+                    {modelData.ollama_error ? (
+                      <span className="text-[11px] px-2.5 py-0.5 rounded-full font-medium"
+                        style={{ color: "hsl(347 87% 62%)", backgroundColor: "hsl(347 87% 60% / 0.08)", border: "1px solid hsl(347 87% 60% / 0.2)" }}>
+                        Unreachable
+                      </span>
+                    ) : (
+                      <span className="text-[11px] px-2.5 py-0.5 rounded-full font-medium"
+                        style={{ backgroundColor: "rgba(124,111,247,0.12)", color: primary, border: "1px solid rgba(124,111,247,0.25)" }}>
+                        {modelData.ollama.length} model{modelData.ollama.length !== 1 ? "s" : ""}
+                      </span>
+                    )}
+                  </div>
                 </div>
+
                 {modelData.ollama_error ? (
                   <div className="px-5 py-5 space-y-3">
                     <div className="flex items-start gap-2.5">
@@ -336,8 +348,7 @@ export default function CapabilitiesPage() {
                         <div className="flex-1">
                           <p className="text-[12.5px] font-medium text-foreground mb-1">Download Ollama <span className="font-normal" style={{ color: dim }}>(skip if you have it)</span></p>
                           <a href="https://ollama.com/download" target="_blank" rel="noreferrer"
-                            className="inline-flex items-center gap-1.5 text-[12px] font-medium"
-                            style={{ color: primary }}>
+                            className="inline-flex items-center gap-1.5 text-[12px] font-medium" style={{ color: primary }}>
                             ollama.com/download <ExternalLink size={10} />
                           </a>
                         </div>
@@ -347,7 +358,7 @@ export default function CapabilitiesPage() {
                         <div>
                           <p className="text-[12.5px] font-medium text-foreground mb-1">Open the Ollama app</p>
                           <p className="text-[12px] leading-relaxed" style={{ color: muted }}>
-                            Look for the 🦙 icon in your menu bar (Mac) or taskbar (Windows). It starts automatically when you open it.
+                            Look for the 🦙 icon in your menu bar (Mac) or taskbar (Windows).
                           </p>
                           <p className="text-[11.5px] mt-1.5" style={{ color: dim }}>
                             Linux: run <code className="px-1.5 py-0.5 rounded text-[11px]" style={{ background: "hsl(238 22% 5%)", border: "1px solid hsl(238 18% 14%)", color: "hsl(240 20% 84%)" }}>ollama serve</code> in a terminal
@@ -355,10 +366,13 @@ export default function CapabilitiesPage() {
                         </div>
                       </div>
                     </div>
+                    <p className="text-[11.5px] text-center py-1" style={{ color: dim }}>
+                      Checking for connection automatically every 5 seconds…
+                    </p>
                     <button onClick={refresh}
                       className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-[13px] font-semibold transition-all"
                       style={{ background: "rgba(109,95,234,0.1)", border: "1px solid hsl(248 90% 68% / 0.22)", color: primary }}>
-                      <RefreshCw size={12} /> Check again
+                      <RefreshCw size={12} /> Check now
                     </button>
                   </div>
                 ) : modelData.ollama.length === 0 ? (
@@ -367,62 +381,155 @@ export default function CapabilitiesPage() {
                       <span className="text-lg leading-none mt-0.5">✓</span>
                       <div>
                         <p className="text-[13.5px] font-semibold mb-0.5" style={{ color: green }}>Ollama is running</p>
-                        <p className="text-[12.5px]" style={{ color: muted }}>Now download a model to get started.</p>
+                        <p className="text-[12.5px]" style={{ color: muted }}>Now install a model to get started.</p>
                       </div>
                     </div>
-                    <p className="text-[12.5px] font-medium" style={{ color: "hsl(240 16% 68%)" }}>Open Terminal and paste this:</p>
-                    <div className="flex items-center justify-between gap-3 rounded-xl px-4 py-3"
-                      style={{ backgroundColor: "hsl(238 22% 5%)", border: "1px solid hsl(238 18% 12%)" }}>
-                      <code className="text-[13px] font-mono" style={{ color: "hsl(240 20% 90%)" }}>ollama pull llama3.2</code>
-                      <button
-                        onClick={() => navigator.clipboard.writeText("ollama pull llama3.2")}
-                        className="flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-md flex-shrink-0"
-                        style={{ color: muted, background: "rgba(255,255,255,0.04)" }}>
-                        <Copy size={10} /> Copy
-                      </button>
-                    </div>
-                    <p className="text-[12px]" style={{ color: dim }}>Llama 3.2 is 2 GB — downloads in a few minutes. Fast, free, and great for most everyday tasks.</p>
                     <div className="flex flex-wrap gap-2">
                       {[
+                        { name: "llama3.2", desc: "Fast · 2 GB — best for most tasks" },
                         { name: "llama3.1:8b", desc: "Smarter · 5 GB" },
-                        { name: "mistral",     desc: "Reasoning · 4 GB" },
+                        { name: "mistral", desc: "Reasoning · 4 GB" },
                       ].map(({ name, desc }) => (
                         <button key={name}
-                          onClick={() => navigator.clipboard.writeText(`ollama pull ${name}`)}
+                          onClick={() => { setInstallModel(name); setShowInstaller(true); }}
                           className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-[11.5px] transition-colors"
-                          style={{ background: "hsl(238 18% 7%)", border: "1px solid hsl(238 18% 12%)" }}
-                          title={`Copy: ollama pull ${name}`}>
+                          style={{ background: "hsl(238 18% 7%)", border: "1px solid hsl(238 18% 12%)" }}>
                           <code style={{ color: "hsl(240 20% 78%)" }}>{name}</code>
                           <span style={{ color: dim }}>·</span>
                           <span style={{ color: dim }}>{desc}</span>
-                          <Copy size={9} style={{ color: dim, marginLeft: 2 }} />
+                          <Download size={9} style={{ color: dim, marginLeft: 2 }} />
                         </button>
                       ))}
                     </div>
                     <button onClick={refresh}
                       className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-[13px] font-semibold transition-all"
                       style={{ background: "rgba(109,95,234,0.1)", border: "1px solid hsl(248 90% 68% / 0.22)", color: primary }}>
-                      <RefreshCw size={12} /> I pulled a model — scan again
+                      <RefreshCw size={12} /> I installed a model — scan again
                     </button>
                   </div>
                 ) : (
                   <div className="divide-y" style={{ borderColor: "hsl(240 20% 11%)" }}>
-                    {modelData.ollama.map(m => (
-                      <div key={m.name} className="flex items-center justify-between px-5 py-3">
-                        <div className="flex items-center gap-3">
-                          <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: primary }} />
-                          <span className="text-[13.5px] font-medium" style={{ color: "hsl(244 30% 90%)", letterSpacing: "-0.01em" }}>
-                            {m.name}
-                          </span>
+                    {modelData.ollama.map(m => {
+                      const ram = getRAM(m.name);
+                      const isSelected = selectedBrain === m.name;
+                      return (
+                        <div key={m.name} className="flex items-center justify-between px-5 py-3 gap-3">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: isSelected ? green : primary }} />
+                            <span className="text-[13.5px] font-medium truncate" style={{ color: "hsl(244 30% 90%)", letterSpacing: "-0.01em" }}>
+                              {m.name}
+                            </span>
+                            {ram && (
+                              <span className="text-[10px] px-1.5 py-0.5 rounded-md flex-shrink-0"
+                                style={{ color: "hsl(38 90% 62%)", background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.15)" }}>
+                                {ram} RAM
+                              </span>
+                            )}
+                            {isSelected && (
+                              <span className="text-[10px] px-1.5 py-0.5 rounded-md flex-shrink-0"
+                                style={{ color: green, background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.2)" }}>
+                                Active brain
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            <button
+                              onClick={() => useModel(m.name)}
+                              disabled={isSelected}
+                              className="flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 rounded-lg transition-all disabled:opacity-50"
+                              style={{
+                                color: isSelected ? green : primary,
+                                background: isSelected ? "rgba(34,197,94,0.08)" : "rgba(109,95,234,0.08)",
+                                border: `1px solid ${isSelected ? "rgba(34,197,94,0.2)" : "rgba(109,95,234,0.2)"}`,
+                              }}
+                              title="Use this as AI brain"
+                            >
+                              {isSelected ? <Check size={10} /> : null}
+                              {isSelected ? "In use" : "Use"}
+                            </button>
+                            <span className="text-[11px] flex items-center gap-1.5 px-2.5 py-1 rounded-lg"
+                              style={{ color: muted, backgroundColor: "hsl(240 22% 7%)", border: "1px solid hsl(240 20% 11%)" }}>
+                              <HardDrive size={10} /> {m.size_gb} GB
+                            </span>
+                          </div>
                         </div>
-                        <span
-                          className="text-[11px] flex items-center gap-1.5 px-2.5 py-1 rounded-lg"
-                          style={{ color: muted, backgroundColor: "hsl(240 22% 7%)", border: "1px solid hsl(240 20% 11%)" }}
-                        >
-                          <HardDrive size={10} /> {m.size_gb} GB
-                        </span>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Model installer panel */}
+                {showInstaller && !modelData.ollama_error && (
+                  <div className="px-5 py-4" style={{ borderTop: "1px solid hsl(240 20% 11%)" }}>
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-[11px] uppercase tracking-widest font-semibold" style={{ color: "hsl(242 17% 40%)" }}>
+                        Install a model
+                      </p>
+                      <button onClick={() => { setShowInstaller(false); setInstallError(null); }}
+                        className="p-1 rounded-md" style={{ color: dim }}
+                        onMouseEnter={e => (e.currentTarget.style.color = muted)}
+                        onMouseLeave={e => (e.currentTarget.style.color = dim)}>
+                        <X size={12} />
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 mb-3">
+                      {POPULAR_MODELS.map(({ name, desc }) => (
+                        <button key={name} onClick={() => setInstallModel(name)}
+                          className="px-2.5 py-1 rounded-lg text-[11px] transition-all"
+                          style={{
+                            background: installModel === name ? "rgba(109,95,234,0.15)" : "hsl(238 18% 7%)",
+                            border: `1px solid ${installModel === name ? "rgba(109,95,234,0.35)" : "hsl(238 18% 12%)"}`,
+                            color: installModel === name ? primary : muted,
+                          }}>
+                          <span style={{ color: installModel === name ? "hsl(244 30% 90%)" : "hsl(240 20% 72%)" }}>{name}</span>
+                          <span style={{ color: dim }}> · {desc}</span>
+                        </button>
+                      ))}
+                    </div>
+                    <div className="flex gap-2 mb-2">
+                      <input
+                        value={installModel}
+                        onChange={e => setInstallModel(e.target.value)}
+                        placeholder="or type a custom model name…"
+                        className="portiere-input flex-1 text-[13px]"
+                        style={{ height: "36px" }}
+                        onKeyDown={e => { if (e.key === "Enter") handleInstall(); }}
+                      />
+                      {installProgress ? (
+                        <button onClick={cancelInstall}
+                          className="px-3 py-2 rounded-xl text-[13px] font-medium"
+                          style={{ background: "hsl(347 87% 60% / 0.08)", border: "1px solid hsl(347 87% 60% / 0.2)", color: "hsl(347 87% 62%)" }}>
+                          <X size={13} />
+                        </button>
+                      ) : (
+                        <button onClick={handleInstall} disabled={!installModel.trim()}
+                          className="px-4 py-2 rounded-xl text-[13px] font-semibold disabled:opacity-50 transition-all flex items-center gap-1.5"
+                          style={{ background: "linear-gradient(135deg, hsl(246 89% 64%) 0%, hsl(258 72% 68%) 100%)", color: "white" }}>
+                          <Download size={12} /> Install
+                        </button>
+                      )}
+                    </div>
+                    {installProgress && (
+                      <div className="space-y-1.5 animate-feed-in">
+                        <div className="flex justify-between text-[11px]">
+                          <span style={{ color: muted }}>{installProgress.status}</span>
+                          {installProgress.percent !== undefined && (
+                            <span style={{ color: primary }}>{installProgress.percent}%</span>
+                          )}
+                        </div>
+                        {installProgress.percent !== undefined && (
+                          <div className="h-1 rounded-full overflow-hidden" style={{ background: "hsl(240 20% 12%)" }}>
+                            <div className="h-full rounded-full transition-all duration-300"
+                              style={{ width: `${installProgress.percent}%`, background: "linear-gradient(90deg, hsl(246 89% 64%) 0%, hsl(258 72% 68%) 100%)" }} />
+                          </div>
+                        )}
                       </div>
-                    ))}
+                    )}
+                    {installError && (
+                      <p className="text-[12px] mt-2 flex items-center gap-1.5" style={{ color: "hsl(347 87% 62%)" }}>
+                        <AlertCircle size={11} /> {installError}
+                      </p>
+                    )}
                   </div>
                 )}
               </div>
@@ -431,10 +538,8 @@ export default function CapabilitiesPage() {
               <div className="section-card">
                 <div className="section-card-header">
                   <div className="flex items-center gap-2.5">
-                    <div
-                      className="w-7 h-7 rounded-lg flex items-center justify-center"
-                      style={{ backgroundColor: "rgba(167,139,250,0.14)", color: "hsl(270 70% 72%)" }}
-                    >
+                    <div className="w-7 h-7 rounded-lg flex items-center justify-center"
+                      style={{ backgroundColor: "rgba(167,139,250,0.14)", color: "hsl(270 70% 72%)" }}>
                       <Cpu size={13} />
                     </div>
                     <span className="text-[13px] font-semibold" style={{ color: "hsl(244 30% 92%)", letterSpacing: "-0.01em" }}>
@@ -442,17 +547,13 @@ export default function CapabilitiesPage() {
                     </span>
                   </div>
                   {modelData.lmstudio_error ? (
-                    <span
-                      className="text-[11px] px-2.5 py-0.5 rounded-full font-medium"
-                      style={{ color: "hsl(347 87% 62%)", backgroundColor: "hsl(347 87% 60% / 0.08)", border: "1px solid hsl(347 87% 60% / 0.2)" }}
-                    >
+                    <span className="text-[11px] px-2.5 py-0.5 rounded-full font-medium"
+                      style={{ color: "hsl(347 87% 62%)", backgroundColor: "hsl(347 87% 60% / 0.08)", border: "1px solid hsl(347 87% 60% / 0.2)" }}>
                       Unreachable
                     </span>
                   ) : (
-                    <span
-                      className="text-[11px] px-2.5 py-0.5 rounded-full font-medium"
-                      style={{ backgroundColor: "rgba(167,139,250,0.12)", color: "hsl(270 70% 72%)", border: "1px solid rgba(167,139,250,0.25)" }}
-                    >
+                    <span className="text-[11px] px-2.5 py-0.5 rounded-full font-medium"
+                      style={{ backgroundColor: "rgba(167,139,250,0.12)", color: "hsl(270 70% 72%)", border: "1px solid rgba(167,139,250,0.25)" }}>
                       {modelData.lmstudio.length} model{modelData.lmstudio.length !== 1 ? "s" : ""}
                     </span>
                   )}
@@ -498,10 +599,8 @@ export default function CapabilitiesPage() {
                             {m.name}
                           </span>
                         </div>
-                        <span
-                          className="text-[11px] px-2.5 py-1 rounded-lg"
-                          style={{ color: dim, backgroundColor: "hsl(240 22% 7%)", border: "1px solid hsl(240 20% 11%)" }}
-                        >
+                        <span className="text-[11px] px-2.5 py-1 rounded-lg"
+                          style={{ color: dim, backgroundColor: "hsl(240 22% 7%)", border: "1px solid hsl(240 20% 11%)" }}>
                           {m.object}
                         </span>
                       </div>
