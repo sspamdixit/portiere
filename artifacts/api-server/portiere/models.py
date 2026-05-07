@@ -55,6 +55,14 @@ class SettingsModel(BaseModel):
     allow_shell_commands: bool = False
     shell_command_allowlist: list[str] = []
 
+    # Email / SMTP
+    smtp_host: Optional[str] = None
+    smtp_port: int = 587
+    smtp_user: Optional[str] = None
+    smtp_password: Optional[str] = None
+    smtp_from: Optional[str] = None
+    smtp_tls: bool = True
+
     # User profile — injected into every Brain prompt for personalization
     profile_name: Optional[str] = None
     profile_city: Optional[str] = None

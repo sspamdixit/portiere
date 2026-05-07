@@ -7,7 +7,22 @@ from portiere.workers.video_worker import VideoWorker
 from portiere.workers.local_worker import LocalWorker
 from portiere.workers.osint_worker import OSINTWorker
 from portiere.workers.search_worker import SearchWorker
+from portiere.workers.weather_worker import WeatherWorker
+from portiere.workers.code_runner_worker import CodeRunnerWorker
+from portiere.workers.email_worker import EmailWorker
 import httpx
+
+
+WORKER_REGISTRY = {
+    "claude":       ClaudeWorker,
+    "video":        VideoWorker,
+    "local":        LocalWorker,
+    "osint":        OSINTWorker,
+    "search":       SearchWorker,
+    "weather":      WeatherWorker,
+    "code_runner":  CodeRunnerWorker,
+    "email":        EmailWorker,
+}
 
 
 class Orchestrator:
@@ -15,16 +30,10 @@ class Orchestrator:
         self.settings_store = settings_store
 
     def _get_worker(self, name: str, settings: SettingsModel):
-        workers = {
-            "claude":  ClaudeWorker,
-            "video":   VideoWorker,
-            "local":   LocalWorker,
-            "osint":   OSINTWorker,
-            "search":  SearchWorker,
-        }
-        cls = workers.get(name.lower())
+        cls = WORKER_REGISTRY.get(name.lower())
         if not cls:
-            raise ValueError(f"Unknown worker: '{name}'. Available: {list(workers.keys())}")
+            known = list(WORKER_REGISTRY.keys())
+            raise ValueError(f"Unknown worker: '{name}'. Available: {known}")
         return cls(settings)
 
     async def run(self, request: OrchestrateRequest) -> AsyncIterator[dict]:

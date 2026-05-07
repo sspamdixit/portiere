@@ -3,6 +3,7 @@ import {
   ArrowUp, Paperclip, X, Loader2,
   Film, Globe, Cpu, ChevronRight,
   Sparkles, Search as SearchIcon, Monitor, Check, Copy, RotateCcw,
+  Cloud, Mail, Terminal, Download, ExternalLink,
 } from "lucide-react";
 import { streamOrchestrate, type OrchestrateEvent } from "@/lib/api";
 import { saveSession } from "@/lib/sessions";
@@ -21,22 +22,40 @@ interface ActivityState {
 const WORKER_LABELS: Record<string, string> = {
   brain: "Brain", claude: "Writing", search: "Searching",
   osint: "Research", local: "System", video: "Video",
+  weather: "Weather", email: "Email", code_runner: "Code",
 };
 
 const WORKER_MESSAGES: Record<string, string> = {
-  claude: "Writing a response for you...",
-  search: "Searching the web...",
-  osint:  "Scanning and researching...",
-  local:  "Checking your system...",
-  video:  "Generating your video...",
+  claude:      "Writing a response for you...",
+  search:      "Searching the web...",
+  osint:       "Scanning and researching...",
+  local:       "Checking your system...",
+  video:       "Generating your video...",
+  weather:     "Fetching the latest forecast...",
+  email:       "Composing your email...",
+  code_runner: "Running your code...",
 };
 
 const CARD_META: Record<string, { label: string; Icon: React.FC<{ size?: number }>; color: string }> = {
-  claude: { label: "Response",    Icon: Sparkles,    color: "hsl(270 70% 72%)" },
-  search: { label: "Web Results", Icon: SearchIcon,  color: "hsl(246 89% 70%)" },
-  osint:  { label: "Research",    Icon: Globe,       color: "hsl(38 90% 60%)"  },
-  local:  { label: "System Info", Icon: Monitor,     color: "hsl(142 60% 55%)" },
-  video:  { label: "Video",       Icon: Film,        color: "hsl(328 80% 68%)" },
+  claude:      { label: "Response",    Icon: Sparkles,    color: "hsl(270 70% 72%)" },
+  search:      { label: "Web Results", Icon: SearchIcon,  color: "hsl(246 89% 70%)" },
+  osint:       { label: "Research",    Icon: Globe,       color: "hsl(38 90% 60%)"  },
+  local:       { label: "System Info", Icon: Monitor,     color: "hsl(142 60% 55%)" },
+  video:       { label: "Video",       Icon: Film,        color: "hsl(328 80% 68%)" },
+  weather:     { label: "Weather",     Icon: Cloud,       color: "hsl(200 80% 65%)" },
+  email:       { label: "Email",       Icon: Mail,        color: "hsl(38 90% 60%)"  },
+  code_runner: { label: "Code Output", Icon: Terminal,    color: "hsl(142 60% 55%)" },
+};
+
+const FOLLOW_UP_CHIPS: Record<string, string[]> = {
+  search:      ["Summarize these results", "Make a detailed plan from this", "Find more information"],
+  claude:      ["Make this shorter", "Turn into bullet points", "Draft this as an email"],
+  weather:     ["What should I pack?", "Best activities for this weather", "Plan around the forecast"],
+  email:       ["Adjust the tone", "Write a follow-up email", "Make it more formal"],
+  osint:       ["What are the risks here?", "Write a report on this", "Check related domains"],
+  local:       ["What does this mean?", "How can I improve this?", "Run a full diagnostic"],
+  code_runner: ["Fix any errors", "Add more features", "Explain what this does"],
+  video:       ["Generate a variation", "Write a script for this", "Make it longer"],
 };
 
 const ALL_SUGGESTIONS = [
@@ -44,97 +63,71 @@ const ALL_SUGGESTIONS = [
   "Help me write a cold pitch email",
   "Build a to-do app in Python",
   "Find a therapist near me who takes insurance",
-  "What's trending in AI today?",
+  "What's the weather this weekend?",
   "Check my computer's performance",
   "Find flights to Barcelona next Friday",
   "Help me write my resume summary",
 ];
 
+function downloadFile(content: string, worker: string) {
+  const ext = worker === "code_runner" ? "py" : "md";
+  const name = `portiere-${worker}-${Date.now()}.${ext}`;
+  const blob = new Blob([content], { type: "text/plain" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 // ─── Pipeline step ────────────────────────────────────────────────────────
 function PipelineStep({ label, status }: { label: string; status: "pending" | "active" | "done" }) {
   return (
     <div className="flex flex-col items-center gap-1.5">
-      <div
-        className="w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300"
+      <div className="w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300"
         style={{
-          backgroundColor:
-            status === "done"   ? "rgba(34,197,94,0.14)"   :
-            status === "active" ? "rgba(124,111,247,0.2)"  :
-            "hsl(240 18% 12%)",
-          border: `1.5px solid ${
-            status === "done"   ? "rgba(34,197,94,0.4)"   :
-            status === "active" ? "rgba(124,111,247,0.55)" :
-            "hsl(240 24% 18%)"
-          }`,
+          backgroundColor: status === "done" ? "rgba(34,197,94,0.14)" : status === "active" ? "rgba(124,111,247,0.2)" : "hsl(240 18% 12%)",
+          border: `1.5px solid ${status === "done" ? "rgba(34,197,94,0.4)" : status === "active" ? "rgba(124,111,247,0.55)" : "hsl(240 24% 18%)"}`,
           boxShadow: status === "active" ? "0 0 10px rgba(124,111,247,0.3)" : "none",
-        }}
-      >
-        {status === "done" ? (
-          <Check size={12} style={{ color: "hsl(142 71% 45%)" }} />
-        ) : status === "active" ? (
-          <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: "hsl(246 89% 72%)" }} />
-        ) : (
-          <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: "hsl(242 17% 32%)" }} />
-        )}
+        }}>
+        {status === "done" ? <Check size={12} style={{ color: "hsl(142 71% 45%)" }} /> :
+         status === "active" ? <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: "hsl(246 89% 72%)" }} /> :
+         <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: "hsl(242 17% 32%)" }} />}
       </div>
-      <span
-        className="text-[10px] font-semibold tracking-wide"
-        style={{
-          color:
-            status === "done"   ? "hsl(142 71% 50%)"  :
-            status === "active" ? "hsl(246 89% 74%)"  :
-            "hsl(242 17% 36%)",
-        }}
-      >
+      <span className="text-[10px] font-semibold tracking-wide"
+        style={{ color: status === "done" ? "hsl(142 71% 50%)" : status === "active" ? "hsl(246 89% 74%)" : "hsl(242 17% 36%)" }}>
         {label}
       </span>
     </div>
   );
 }
 
-// ─── Activity card (progress pipeline) ───────────────────────────────────
+// ─── Activity card ────────────────────────────────────────────────────────
 function ActivityCard({ activity, elapsed }: { activity: ActivityState; elapsed: number }) {
   const { message, pipeline, brainStatus, progress } = activity;
   const allDone = pipeline.length > 0 && pipeline.every(s => s.status === "done");
-
   return (
-    <div
-      className="mx-5 mt-4 mb-2 p-4 rounded-2xl animate-feed-in"
-      style={{
-        backgroundColor: "hsl(240 20% 8%)",
-        border: "1px solid hsl(240 24% 14%)",
-        boxShadow: "0 0 0 1px rgba(124,111,247,0.05), 0 4px 20px rgba(0,0,0,0.3)",
-      }}
-    >
+    <div className="mx-5 mt-4 mb-2 p-4 rounded-2xl animate-feed-in"
+      style={{ backgroundColor: "hsl(240 20% 8%)", border: "1px solid hsl(240 24% 14%)", boxShadow: "0 0 0 1px rgba(124,111,247,0.05), 0 4px 20px rgba(0,0,0,0.3)" }}>
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Loader2 size={13} className="animate-spin" style={{ color: "hsl(246 89% 70%)" }} />
           <span className="text-[13px] font-semibold text-foreground">Portiere is working</span>
         </div>
-        <span className="text-[12px] tabular-nums font-medium" style={{ color: "hsl(242 17% 40%)" }}>
-          {elapsed}s
-        </span>
+        <span className="text-[12px] tabular-nums font-medium" style={{ color: "hsl(242 17% 40%)" }}>{elapsed}s</span>
       </div>
-
       <div className="h-1 rounded-full mb-4 overflow-hidden" style={{ backgroundColor: "hsl(240 24% 13%)" }}>
-        <div
-          className="h-full rounded-full transition-all duration-700 ease-out"
-          style={{
-            width: `${progress}%`,
-            background: "linear-gradient(90deg, hsl(246 89% 65%) 0%, hsl(258 75% 72%) 100%)",
-            boxShadow: "0 0 8px rgba(124,111,247,0.45)",
-          }}
-        />
+        <div className="h-full rounded-full transition-all duration-700 ease-out"
+          style={{ width: `${progress}%`, background: "linear-gradient(90deg, hsl(246 89% 65%) 0%, hsl(258 75% 72%) 100%)", boxShadow: "0 0 8px rgba(124,111,247,0.45)" }} />
       </div>
-
       <div className="flex items-end justify-center gap-1 mb-3">
         <PipelineStep label="Brain" status={brainStatus === "done" ? "done" : "active"} />
         {pipeline.map(step => (
           <div key={step.worker} className="flex items-center gap-1">
-            <div
-              className="h-px w-6 transition-colors duration-500"
-              style={{ backgroundColor: step.status !== "pending" ? "rgba(124,111,247,0.35)" : "hsl(240 24% 16%)" }}
-            />
+            <div className="h-px w-6 transition-colors duration-500"
+              style={{ backgroundColor: step.status !== "pending" ? "rgba(124,111,247,0.35)" : "hsl(240 24% 16%)" }} />
             <PipelineStep label={step.label} status={step.status} />
           </div>
         ))}
@@ -143,62 +136,114 @@ function ActivityCard({ activity, elapsed }: { activity: ActivityState; elapsed:
           <PipelineStep label="Done" status={allDone ? "done" : "pending"} />
         </div>
       </div>
-
       <p className="text-[12px] text-center" style={{ color: "hsl(242 18% 52%)" }}>{message}</p>
     </div>
   );
 }
 
-// ─── Worker result card (with markdown) ───────────────────────────────────
+// ─── Search result cards ─────────────────────────────────────────────────
+interface SearchResultItem { title: string; snippet: string; url: string; }
+interface SearchData { answer?: string; abstract?: string; abstract_url?: string; results?: SearchResultItem[]; }
+
+function SearchResultCards({ data }: { data: SearchData }) {
+  const results = data.results || [];
+  return (
+    <div className="space-y-2">
+      {data.answer && (
+        <div className="px-4 py-3 rounded-xl mb-3"
+          style={{ backgroundColor: "rgba(124,111,247,0.08)", border: "1px solid rgba(124,111,247,0.18)" }}>
+          <p className="text-[14px] font-semibold text-foreground">{data.answer}</p>
+        </div>
+      )}
+      {data.abstract && (
+        <p className="text-[14px] leading-relaxed mb-3" style={{ color: "hsl(244 100% 97% / 0.78)" }}>
+          {data.abstract}
+          {data.abstract_url && (
+            <a href={data.abstract_url} target="_blank" rel="noreferrer"
+              className="inline-flex items-center gap-1 ml-2 text-[13px] underline underline-offset-2"
+              style={{ color: "hsl(246 89% 70%)" }}>
+              Source <ExternalLink size={10} />
+            </a>
+          )}
+        </p>
+      )}
+      {results.length > 0 && (
+        <div className="space-y-1.5">
+          {results.map((r, i) => (
+            <a key={i} href={r.url || "#"} target="_blank" rel="noreferrer"
+              className="flex items-start justify-between gap-3 p-3.5 rounded-xl transition-all group"
+              style={{ backgroundColor: "hsl(240 20% 7%)", border: "1px solid hsl(240 24% 13%)" }}
+              onClick={!r.url ? (e) => e.preventDefault() : undefined}>
+              <div className="flex-1 min-w-0">
+                <p className="text-[13px] font-semibold text-foreground group-hover:text-primary transition-colors leading-snug">
+                  {r.title || r.snippet.slice(0, 70)}
+                </p>
+                {r.snippet && r.snippet !== r.title && (
+                  <p className="text-[12px] mt-0.5 leading-relaxed line-clamp-2" style={{ color: "hsl(242 18% 52%)" }}>
+                    {r.snippet.slice(0, 180)}
+                  </p>
+                )}
+                {r.url && (
+                  <p className="text-[11px] mt-1 truncate font-mono" style={{ color: "hsl(246 89% 68%)" }}>
+                    {r.url.replace(/^https?:\/\//, "").slice(0, 60)}
+                  </p>
+                )}
+              </div>
+              {r.url && <ExternalLink size={12} className="flex-shrink-0 mt-1 opacity-40 group-hover:opacity-70 transition-opacity" style={{ color: "hsl(246 89% 70%)" }} />}
+            </a>
+          ))}
+        </div>
+      )}
+      {results.length === 0 && !data.answer && !data.abstract && (
+        <p className="text-[14px]" style={{ color: "hsl(242 18% 50%)" }}>No results found. Try a different search.</p>
+      )}
+    </div>
+  );
+}
+
+// ─── Worker result card ───────────────────────────────────────────────────
 function WorkerResultCard({ event }: { event: OrchestrateEvent }) {
   const k = (event.worker || "brain").toLowerCase();
   const meta = CARD_META[k] || { label: "Result", Icon: Cpu, color: "hsl(242 18% 55%)" };
   const content = event.content || "";
-  const videoUrl = (event.data as Record<string, unknown>)?.video_url as string | undefined;
+  const data = event.data as Record<string, unknown> | undefined;
+  const videoUrl = data?.video_url as string | undefined;
+  const searchData = (k === "search" && data?.results) ? data as unknown as SearchData : null;
 
   const [copied, setCopied] = useState(false);
-  const copy = () => {
-    navigator.clipboard.writeText(content);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+  const copy = () => { navigator.clipboard.writeText(content); setCopied(true); setTimeout(() => setCopied(false), 2000); };
 
   return (
-    <div
-      className="mx-5 my-2.5 rounded-2xl overflow-hidden animate-feed-in"
-      style={{
-        backgroundColor: "hsl(240 18% 9%)",
-        border: "1px solid hsl(240 24% 13%)",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
-      }}
-    >
-      <div
-        className="flex items-center justify-between px-4 py-3"
-        style={{ borderBottom: "1px solid hsl(240 24% 12%)" }}
-      >
+    <div className="mx-5 my-2.5 rounded-2xl overflow-hidden animate-feed-in"
+      style={{ backgroundColor: "hsl(240 18% 9%)", border: "1px solid hsl(240 24% 13%)", boxShadow: "0 2px 8px rgba(0,0,0,0.2)" }}>
+      <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid hsl(240 24% 12%)" }}>
         <div className="flex items-center gap-2.5">
-          <div
-            className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{ backgroundColor: `${meta.color}18`, color: meta.color }}
-          >
+          <div className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0"
+            style={{ backgroundColor: `${meta.color}18`, color: meta.color }}>
             <meta.Icon size={13} />
           </div>
           <span className="text-[13px] font-semibold text-foreground">{meta.label}</span>
         </div>
-        <button
-          onClick={copy}
-          className="flex items-center gap-1.5 text-[11px] font-medium transition-all px-2 py-1 rounded-md"
-          style={{
-            color: copied ? "hsl(142 71% 50%)" : "hsl(242 17% 40%)",
-            backgroundColor: copied ? "rgba(34,197,94,0.07)" : "transparent",
-          }}
-        >
-          {copied ? <Check size={11} /> : <Copy size={11} />}
-          {copied ? "Copied" : "Copy"}
-        </button>
+        <div className="flex items-center gap-1.5">
+          <button onClick={() => downloadFile(content, k)}
+            className="flex items-center gap-1.5 text-[11px] font-medium transition-all px-2 py-1 rounded-md hover:bg-white/[0.04]"
+            style={{ color: "hsl(242 17% 38%)" }} title="Save to file">
+            <Download size={11} />
+          </button>
+          <button onClick={copy}
+            className="flex items-center gap-1.5 text-[11px] font-medium transition-all px-2 py-1 rounded-md"
+            style={{ color: copied ? "hsl(142 71% 50%)" : "hsl(242 17% 40%)", backgroundColor: copied ? "rgba(34,197,94,0.07)" : "transparent" }}>
+            {copied ? <Check size={11} /> : <Copy size={11} />}
+            {copied ? "Copied" : "Copy"}
+          </button>
+        </div>
       </div>
       <div className="px-5 py-4">
-        <MarkdownContent content={content} />
+        {searchData ? (
+          <SearchResultCards data={searchData} />
+        ) : (
+          <MarkdownContent content={content} />
+        )}
         {videoUrl && (
           <a href={videoUrl} target="_blank" rel="noreferrer"
             className="inline-flex items-center gap-1.5 mt-3 text-[13px] font-medium"
@@ -241,8 +286,7 @@ function CompleteRow({ elapsed }: { elapsed?: number }) {
     <div className="flex items-center gap-3 py-5 px-5 animate-feed-in">
       <div className="flex-1 h-px" style={{ background: "linear-gradient(90deg, transparent, hsl(240 24% 14%) 40%)" }} />
       <div className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wide" style={{ color: "hsl(142 71% 45%)" }}>
-        <Check size={11} />
-        Done{elapsed !== undefined ? ` · ${elapsed}s` : ""}
+        <Check size={11} /> Done{elapsed !== undefined ? ` · ${elapsed}s` : ""}
       </div>
       <div className="flex-1 h-px" style={{ background: "linear-gradient(90deg, hsl(240 24% 14%) 60%, transparent)" }} />
     </div>
@@ -264,6 +308,7 @@ export default function ConsolePage() {
   const [running, setRunning] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [lastContext, setLastContext] = useState<string | null>(null);
+  const [lastWorker, setLastWorker] = useState<string | null>(null);
 
   const feedRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -276,36 +321,33 @@ export default function ConsolePage() {
     []
   );
 
-  // Load session from sidebar
+  const followUpChips = useMemo(() => {
+    if (!lastWorker) return [];
+    return (FOLLOW_UP_CHIPS[lastWorker] || ["Tell me more", "Try a different approach", "Summarize this"]).slice(0, 3);
+  }, [lastWorker]);
+
   useEffect(() => {
     if (loadedSession) {
       feedEventsRef.current = loadedSession.events;
       setFeed(loadedSession.events.map(e => ({ id: idSeq++, event: e, ts: "—" })));
-      setActivity(null);
-      setChunkBuffers({});
-      setRunning(false);
-      setLastContext(null);
+      setActivity(null); setChunkBuffers({}); setRunning(false);
+      setLastContext(null); setLastWorker(null);
     }
   }, [loadedSession]);
 
-  // Elapsed timer
   useEffect(() => {
     if (running) {
       startTimeRef.current = Date.now();
       const t = setInterval(() => setElapsed(Math.floor((Date.now() - startTimeRef.current) / 1000)), 1000);
       return () => clearInterval(t);
-    } else {
-      setElapsed(0);
-    }
+    } else { setElapsed(0); }
   }, [running]);
 
-  // Auto-scroll
   useEffect(() => {
     if (feedRef.current) feedRef.current.scrollTop = feedRef.current.scrollHeight;
   }, [feed, chunkBuffers, activity]);
 
-  const now = () =>
-    new Date().toLocaleTimeString("en", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  const now = () => new Date().toLocaleTimeString("en", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
 
   const addEntry = useCallback((event: OrchestrateEvent) => {
     feedEventsRef.current = [...feedEventsRef.current, event];
@@ -314,22 +356,12 @@ export default function ConsolePage() {
 
   const updateActivity = useCallback((event: OrchestrateEvent) => {
     setActivity(prev => {
-      const base: ActivityState = prev || {
-        message: "Waking up the Brain...",
-        pipeline: [],
-        brainStatus: "thinking",
-        progress: 8,
-      };
-
-      if (event.type === "brain_thinking") {
-        return { ...base, message: "Understanding your request...", progress: Math.max(base.progress, 15) };
-      }
+      const base: ActivityState = prev || { message: "Waking up the Brain...", pipeline: [], brainStatus: "thinking", progress: 8 };
+      if (event.type === "brain_thinking") return { ...base, message: "Understanding your request...", progress: Math.max(base.progress, 15) };
       if (event.type === "brain_decision") {
         const chain = (event.data as Record<string, unknown[]>)?.chain ?? [];
         const pipeline = (chain as Array<Record<string, string>>).map(s => ({
-          worker: s.worker,
-          label: WORKER_LABELS[s.worker] || s.worker,
-          status: "pending" as const,
+          worker: s.worker, label: WORKER_LABELS[s.worker] || s.worker, status: "pending" as const,
         }));
         return { ...base, brainStatus: "done", pipeline, message: "Planning the best approach...", progress: 28 };
       }
@@ -339,9 +371,7 @@ export default function ConsolePage() {
         const doneCount = pipeline.filter(s => s.status === "done").length;
         return { ...base, pipeline, message: WORKER_MESSAGES[w] || "Working on it...", progress: 28 + (doneCount / Math.max(1, pipeline.length)) * 62 };
       }
-      if (event.type === "worker_thinking") {
-        return { ...base, message: event.content || base.message };
-      }
+      if (event.type === "worker_thinking") return { ...base, message: event.content || base.message };
       return base;
     });
   }, []);
@@ -349,30 +379,22 @@ export default function ConsolePage() {
   const submit = useCallback(() => {
     const msg = input.trim();
     if (!msg || running) return;
-    setInput("");
-    setRunning(true);
-    setLoadedSession(null);
+    setInput(""); setRunning(true); setLoadedSession(null);
     setActivity({ message: "Waking up the Brain...", pipeline: [], brainStatus: "thinking", progress: 8 });
     feedEventsRef.current = [];
 
     const userEv: OrchestrateEvent = { type: "user_input", content: msg };
     feedEventsRef.current.push(userEv);
-    setFeed(prev => {
-      // If there are existing entries (continuing), keep them and add new user message
-      if (prev.length > 0 && lastContext) {
-        return [...prev, { id: idSeq++, event: userEv, ts: now() }];
-      }
-      return [{ id: idSeq++, event: userEv, ts: now() }];
-    });
+    setFeed(prev => lastContext && prev.length > 0
+      ? [...prev, { id: idSeq++, event: userEv, ts: now() }]
+      : [{ id: idSeq++, event: userEv, ts: now() }]
+    );
 
     const cancel = streamOrchestrate(
-      msg,
-      filePath.trim() || null,
-      lastContext,
+      msg, filePath.trim() || null, lastContext,
       (event) => {
         if (["brain_thinking", "brain_decision", "chain_step", "worker_start", "worker_thinking"].includes(event.type)) {
-          updateActivity(event);
-          return;
+          updateActivity(event); return;
         }
         if (event.type === "worker_chunk") {
           const key = event.worker || "unknown";
@@ -382,17 +404,15 @@ export default function ConsolePage() {
         if (event.type === "worker_done") {
           if (event.worker) {
             setChunkBuffers(prev => { const u = { ...prev }; delete u[event.worker!]; return u; });
+            setLastWorker(event.worker.toLowerCase());
             setActivity(prev => {
               if (!prev) return prev;
-              const pipeline = prev.pipeline.map(s =>
-                s.worker === event.worker ? { ...s, status: "done" as const } : s
-              );
+              const pipeline = prev.pipeline.map(s => s.worker === event.worker ? { ...s, status: "done" as const } : s);
               const doneCount = pipeline.filter(s => s.status === "done").length;
               return { ...prev, pipeline, progress: 28 + (doneCount / Math.max(1, pipeline.length)) * 62, message: "Finalizing..." };
             });
           }
-          addEntry(event);
-          return;
+          addEntry(event); return;
         }
         if (event.type === "complete") {
           const secs = Math.floor((Date.now() - startTimeRef.current) / 1000);
@@ -418,10 +438,18 @@ export default function ConsolePage() {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); }
   };
 
+  // Global Cmd+K shortcut
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") { e.preventDefault(); inputRef.current?.focus(); }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
+
   const handleClear = () => {
-    setFeed([]); feedEventsRef.current = [];
-    setActivity(null); setChunkBuffers({});
-    setLoadedSession(null); setLastContext(null);
+    setFeed([]); feedEventsRef.current = []; setActivity(null);
+    setChunkBuffers({}); setLoadedSession(null); setLastContext(null); setLastWorker(null);
   };
 
   const isEmpty = feed.length === 0 && !running;
@@ -446,11 +474,10 @@ export default function ConsolePage() {
         <div className="flex items-center gap-3">
           {running && (
             <div className="flex items-center gap-1.5 text-[12px]" style={{ color: "hsl(246 89% 72%)" }}>
-              <Loader2 size={12} className="animate-spin" />
-              Working · {elapsed}s
+              <Loader2 size={12} className="animate-spin" /> Working · {elapsed}s
             </div>
           )}
-          {isComplete && (
+          {isComplete && !running && (
             <div className="flex items-center gap-1.5 text-[12px]" style={{ color: "hsl(142 71% 48%)" }}>
               <Check size={11} /> Done
             </div>
@@ -458,9 +485,7 @@ export default function ConsolePage() {
           {!isEmpty && (
             <button onClick={handleClear}
               className="text-[12px] px-2.5 py-1 rounded-lg transition-all hover:bg-white/[0.04]"
-              style={{ color: "hsl(242 17% 40%)" }}>
-              Clear
-            </button>
+              style={{ color: "hsl(242 17% 40%)" }}>Clear</button>
           )}
         </div>
       </div>
@@ -473,11 +498,7 @@ export default function ConsolePage() {
               style={{ background: "radial-gradient(ellipse 55% 38% at 50% 48%, rgba(124,111,247,0.07) 0%, transparent 72%)" }} />
             <div className="relative flex flex-col items-center gap-4">
               <div className="w-14 h-14 rounded-2xl flex items-center justify-center"
-                style={{
-                  background: "linear-gradient(135deg, rgba(124,111,247,0.18) 0%, rgba(124,111,247,0.06) 100%)",
-                  border: "1px solid rgba(124,111,247,0.22)",
-                  boxShadow: "0 0 28px rgba(124,111,247,0.12)",
-                }}>
+                style={{ background: "linear-gradient(135deg, rgba(124,111,247,0.18) 0%, rgba(124,111,247,0.06) 100%)", border: "1px solid rgba(124,111,247,0.22)", boxShadow: "0 0 28px rgba(124,111,247,0.12)" }}>
                 <span className="text-[26px] leading-none" style={{ color: "hsl(246 89% 72%)" }}>◈</span>
               </div>
               <div>
@@ -496,18 +517,18 @@ export default function ConsolePage() {
                 </button>
               ))}
             </div>
+            <p className="text-[11px] absolute bottom-6" style={{ color: "hsl(242 17% 28%)" }}>
+              ⌘K to focus · Shift+Enter for new line
+            </p>
           </div>
         ) : (
           <div className="max-w-3xl mx-auto w-full py-5">
             {feed.map(entry => {
               const { event } = entry;
-
               if (event.type === "user_input") {
                 return (
                   <div key={entry.id} className="flex flex-col items-end px-5 mb-6 mt-4 animate-feed-in">
-                    <span className="text-[10px] uppercase tracking-widest font-semibold mb-1.5" style={{ color: "hsl(242 17% 34%)" }}>
-                      You
-                    </span>
+                    <span className="text-[10px] uppercase tracking-widest font-semibold mb-1.5" style={{ color: "hsl(242 17% 34%)" }}>You</span>
                     <p className="text-[15px] font-medium leading-relaxed text-right"
                       style={{ color: "hsl(244 100% 97%)", maxWidth: "68%" }}>
                       {event.content}
@@ -515,25 +536,16 @@ export default function ConsolePage() {
                   </div>
                 );
               }
-
-              if (event.type === "worker_done") {
-                return <WorkerResultCard key={entry.id} event={event} />;
-              }
-
-              if (event.type === "complete") {
-                return <CompleteRow key={entry.id} elapsed={(event as OrchestrateEvent & { _elapsed?: number })._elapsed} />;
-              }
-
+              if (event.type === "worker_done") return <WorkerResultCard key={entry.id} event={event} />;
+              if (event.type === "complete") return <CompleteRow key={entry.id} elapsed={(event as OrchestrateEvent & { _elapsed?: number })._elapsed} />;
               if (event.type === "error" || event.type === "worker_error") {
                 return (
-                  <div key={entry.id}
-                    className="mx-5 my-2 p-4 rounded-2xl text-[13px] text-destructive animate-feed-in"
+                  <div key={entry.id} className="mx-5 my-2 p-4 rounded-2xl text-[13px] text-destructive animate-feed-in"
                     style={{ backgroundColor: "hsl(347 87% 60% / 0.06)", border: "1px solid hsl(347 87% 60% / 0.18)" }}>
                     {event.error || event.content}
                   </div>
                 );
               }
-
               if (event.type === "file_loaded") {
                 return (
                   <div key={entry.id} className="flex items-center gap-2 px-6 py-1 animate-feed-in">
@@ -542,14 +554,11 @@ export default function ConsolePage() {
                   </div>
                 );
               }
-
               return null;
             })}
-
             {Object.entries(chunkBuffers).map(([worker, text]) =>
               text ? <StreamingCard key={worker} worker={worker} text={text} /> : null
             )}
-
             {activity && running && <ActivityCard activity={activity} elapsed={elapsed} />}
           </div>
         )}
@@ -557,15 +566,14 @@ export default function ConsolePage() {
 
       {/* Input area */}
       <div className="flex-shrink-0 px-5 pb-5 pt-3" style={{ borderTop: "1px solid hsl(240 24% 12%)" }}>
-        {/* Context / follow-up indicator */}
+        {/* Context indicator */}
         {lastContext && !running && (
           <div className="flex items-center gap-2 mb-3">
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium"
               style={{ backgroundColor: "rgba(124,111,247,0.1)", border: "1px solid rgba(124,111,247,0.2)", color: "hsl(246 89% 72%)" }}>
-              <RotateCcw size={11} />
-              Following up on previous result
+              <RotateCcw size={11} /> Following up on previous result
             </div>
-            <button onClick={() => setLastContext(null)}
+            <button onClick={() => { setLastContext(null); setLastWorker(null); }}
               className="text-[11px] px-2.5 py-1.5 rounded-full transition-colors hover:bg-white/[0.04]"
               style={{ color: "hsl(242 17% 40%)" }}>
               Start fresh
@@ -573,10 +581,10 @@ export default function ConsolePage() {
           </div>
         )}
 
-        {/* Post-completion suggestion chips */}
-        {isComplete && !lastContext && (
+        {/* Smart follow-up chips after completion */}
+        {isComplete && followUpChips.length > 0 && (
           <div className="flex gap-2 mb-3 flex-wrap">
-            {suggestions.slice(0, 3).map(s => (
+            {followUpChips.map(s => (
               <button key={s} onClick={() => { setInput(s); inputRef.current?.focus(); }}
                 className="suggestion-chip px-3 py-1.5 rounded-full text-[12px]"
                 style={{ backgroundColor: "hsl(240 18% 9%)", border: "1px solid hsl(240 24% 14%)", color: "hsl(242 18% 52%)" }}>
@@ -606,13 +614,10 @@ export default function ConsolePage() {
             <Paperclip size={15} />
           </button>
           <textarea
-            ref={inputRef}
-            value={input}
-            onChange={e => setInput(e.target.value)}
+            ref={inputRef} value={input} onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={lastContext ? "Ask a follow-up question..." : "What should Portiere do next?"}
-            disabled={running}
-            rows={1}
+            disabled={running} rows={1}
             className="flex-1 bg-transparent text-[14px] text-foreground outline-none resize-none leading-relaxed max-h-36 overflow-y-auto disabled:opacity-40"
             style={{ minHeight: "1.5rem", caretColor: "hsl(246 89% 70%)" }}
           />
@@ -625,12 +630,10 @@ export default function ConsolePage() {
               color: running ? "hsl(347 87% 65%)" : "white",
               border: running ? "1px solid hsl(347 87% 60% / 0.35)" : "none",
               boxShadow: running ? "none" : "0 2px 8px rgba(124,111,247,0.35)",
-            }}
-          >
+            }}>
             {running ? <X size={14} /> : <ArrowUp size={14} />}
           </button>
         </div>
-
         <p className="text-center text-[11px] mt-2.5 tracking-wide" style={{ color: "hsl(242 17% 30%)" }}>
           Portiere uses AI — always verify important results
         </p>

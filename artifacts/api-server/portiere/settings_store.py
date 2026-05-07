@@ -7,6 +7,11 @@ from portiere.models import SettingsModel
 SETTINGS_DIR = Path.home() / ".portiere"
 SETTINGS_FILE = SETTINGS_DIR / "settings.json"
 
+_SECRET_KEYS = {
+    "brain_api_key", "claude_api_key", "openai_api_key",
+    "fal_api_key", "seedance_api_key", "smtp_password",
+}
+
 
 class SettingsStore:
     def __init__(self):
@@ -29,9 +34,10 @@ class SettingsStore:
         data = self._read()
         model = SettingsModel(**data)
         out = model.model_dump()
-        for key in ["brain_api_key", "claude_api_key", "openai_api_key", "fal_api_key", "seedance_api_key"]:
-            if out.get(key):
-                out[key] = "••••••••" + out[key][-4:] if len(out.get(key, "")) > 4 else "••••"
+        for key in _SECRET_KEYS:
+            val = out.get(key)
+            if val:
+                out[key] = "••••••••" + val[-4:] if len(val) > 4 else "••••"
         out["first_launch"] = data.get("first_launch", True)
         return out
 
