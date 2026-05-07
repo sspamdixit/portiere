@@ -264,7 +264,7 @@ export default function SettingsPage() {
           icon={<span className="text-[12px] font-bold">◈</span>}
           iconColor={primary}
           iconBg="rgba(124,111,247,0.16)"
-          statusLabel={provider === "ollama" || provider === "lmstudio" ? "Local" : "Cloud"}
+          statusLabel={provider === "ollama" || provider === "lmstudio" ? "Local · no key needed" : "Cloud"}
           statusOk={true}
         >
           <Field label="Provider" value={provider} onChange={set("brain_provider")}
@@ -278,8 +278,21 @@ export default function SettingsPage() {
           <Field label="Model" placeholder="llama3.2 / gpt-4o / claude-3-5-sonnet-20241022"
             value={form.brain_model} onChange={set("brain_model")} />
           {(provider === "ollama" || provider === "lmstudio") ? (
-            <Field label="Local endpoint" placeholder="http://localhost:11434/v1"
-              value={form.brain_base_url} onChange={set("brain_base_url")} />
+            <div
+              className="p-4 rounded-xl text-[13px] leading-relaxed"
+              style={{ background: "rgba(109,95,234,0.06)", border: "1px solid rgba(109,95,234,0.15)" }}
+            >
+              <p className="font-medium mb-1.5" style={{ color: "hsl(248 80% 76%)" }}>
+                {provider === "ollama" ? "🦙 No API key needed" : "🖥 No API key needed"}
+              </p>
+              <p style={{ color: muted }}>
+                Portiere talks directly to {provider === "ollama" ? "Ollama" : "LM Studio"} running on your computer.
+                Just keep the app open while you use Portiere.
+              </p>
+              <p className="mt-2 text-[12px]" style={{ color: dim }}>
+                Not connected? Go to <strong style={{ color: "hsl(240 16% 56%)" }}>Capabilities</strong> in the sidebar to check the status and get setup help.
+              </p>
+            </div>
           ) : (
             <Field label="API Key" secret placeholder="sk-..."
               value={form.brain_api_key} onChange={set("brain_api_key")} />

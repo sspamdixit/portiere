@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { RefreshCw, Cpu, HardDrive, Loader2, AlertCircle, Box, ChevronRight, Sparkles, Search, Globe, Film, Monitor, Check, Cloud, Mail, Terminal, Image, Languages, Newspaper, TrendingUp, CalendarPlus } from "lucide-react";
+import { RefreshCw, Cpu, HardDrive, Loader2, AlertCircle, Box, ChevronRight, Sparkles, Search, Globe, Film, Monitor, Check, Cloud, Mail, Terminal, Image, Languages, Newspaper, TrendingUp, CalendarPlus, ExternalLink, Copy } from "lucide-react";
 import { fetchModels, fetchSettings } from "@/lib/api";
 
 const dim = "hsl(238 18% 32%)";
@@ -322,31 +322,88 @@ export default function CapabilitiesPage() {
                   )}
                 </div>
                 {modelData.ollama_error ? (
-                  <div className="px-5 py-4 text-[13px] flex items-start gap-2.5" style={{ color: muted }}>
-                    <AlertCircle size={13} style={{ color: "hsl(347 87% 62%)" }} className="flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p>{modelData.ollama_error}</p>
-                      <p className="mt-2" style={{ color: dim }}>
-                        Run{" "}
-                        <code
-                          className="px-1.5 py-0.5 rounded text-[12px]"
-                          style={{ backgroundColor: "hsl(240 22% 6%)", color: "hsl(244 30% 88%)", border: "1px solid hsl(240 20% 12%)" }}
-                        >
-                          ollama serve
-                        </code>{" "}
-                        to start.
-                      </p>
+                  <div className="px-5 py-5 space-y-3">
+                    <div className="flex items-start gap-2.5">
+                      <span className="text-lg leading-none mt-0.5">🦙</span>
+                      <div>
+                        <p className="text-[13.5px] font-semibold text-foreground mb-0.5">Ollama isn't running</p>
+                        <p className="text-[12.5px]" style={{ color: muted }}>Follow these steps to get it working:</p>
+                      </div>
                     </div>
+                    <div className="space-y-2">
+                      <div className="flex items-start gap-3 p-3.5 rounded-xl" style={{ background: "hsl(238 22% 6%)", border: "1px solid hsl(238 18% 12%)" }}>
+                        <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-[10px] font-bold" style={{ background: "rgba(109,95,234,0.18)", color: primary }}>1</div>
+                        <div className="flex-1">
+                          <p className="text-[12.5px] font-medium text-foreground mb-1">Download Ollama <span className="font-normal" style={{ color: dim }}>(skip if you have it)</span></p>
+                          <a href="https://ollama.com/download" target="_blank" rel="noreferrer"
+                            className="inline-flex items-center gap-1.5 text-[12px] font-medium"
+                            style={{ color: primary }}>
+                            ollama.com/download <ExternalLink size={10} />
+                          </a>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3 p-3.5 rounded-xl" style={{ background: "hsl(238 22% 6%)", border: "1px solid hsl(238 18% 12%)" }}>
+                        <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-[10px] font-bold" style={{ background: "rgba(109,95,234,0.18)", color: primary }}>2</div>
+                        <div>
+                          <p className="text-[12.5px] font-medium text-foreground mb-1">Open the Ollama app</p>
+                          <p className="text-[12px] leading-relaxed" style={{ color: muted }}>
+                            Look for the 🦙 icon in your menu bar (Mac) or taskbar (Windows). It starts automatically when you open it.
+                          </p>
+                          <p className="text-[11.5px] mt-1.5" style={{ color: dim }}>
+                            Linux: run <code className="px-1.5 py-0.5 rounded text-[11px]" style={{ background: "hsl(238 22% 5%)", border: "1px solid hsl(238 18% 14%)", color: "hsl(240 20% 84%)" }}>ollama serve</code> in a terminal
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <button onClick={refresh}
+                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-[13px] font-semibold transition-all"
+                      style={{ background: "rgba(109,95,234,0.1)", border: "1px solid hsl(248 90% 68% / 0.22)", color: primary }}>
+                      <RefreshCw size={12} /> Check again
+                    </button>
                   </div>
                 ) : modelData.ollama.length === 0 ? (
-                  <div className="px-5 py-4 text-[13px]" style={{ color: muted }}>
-                    No models installed. Run{" "}
-                    <code
-                      className="px-1.5 py-0.5 rounded text-[12px]"
-                      style={{ backgroundColor: "hsl(240 22% 6%)", color: "hsl(244 30% 88%)", border: "1px solid hsl(240 20% 12%)" }}
-                    >
-                      ollama pull llama3.2
-                    </code>
+                  <div className="px-5 py-5 space-y-3">
+                    <div className="flex items-start gap-2.5">
+                      <span className="text-lg leading-none mt-0.5">✓</span>
+                      <div>
+                        <p className="text-[13.5px] font-semibold mb-0.5" style={{ color: green }}>Ollama is running</p>
+                        <p className="text-[12.5px]" style={{ color: muted }}>Now download a model to get started.</p>
+                      </div>
+                    </div>
+                    <p className="text-[12.5px] font-medium" style={{ color: "hsl(240 16% 68%)" }}>Open Terminal and paste this:</p>
+                    <div className="flex items-center justify-between gap-3 rounded-xl px-4 py-3"
+                      style={{ backgroundColor: "hsl(238 22% 5%)", border: "1px solid hsl(238 18% 12%)" }}>
+                      <code className="text-[13px] font-mono" style={{ color: "hsl(240 20% 90%)" }}>ollama pull llama3.2</code>
+                      <button
+                        onClick={() => navigator.clipboard.writeText("ollama pull llama3.2")}
+                        className="flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-md flex-shrink-0"
+                        style={{ color: muted, background: "rgba(255,255,255,0.04)" }}>
+                        <Copy size={10} /> Copy
+                      </button>
+                    </div>
+                    <p className="text-[12px]" style={{ color: dim }}>Llama 3.2 is 2 GB — downloads in a few minutes. Fast, free, and great for most everyday tasks.</p>
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        { name: "llama3.1:8b", desc: "Smarter · 5 GB" },
+                        { name: "mistral",     desc: "Reasoning · 4 GB" },
+                      ].map(({ name, desc }) => (
+                        <button key={name}
+                          onClick={() => navigator.clipboard.writeText(`ollama pull ${name}`)}
+                          className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-[11.5px] transition-colors"
+                          style={{ background: "hsl(238 18% 7%)", border: "1px solid hsl(238 18% 12%)" }}
+                          title={`Copy: ollama pull ${name}`}>
+                          <code style={{ color: "hsl(240 20% 78%)" }}>{name}</code>
+                          <span style={{ color: dim }}>·</span>
+                          <span style={{ color: dim }}>{desc}</span>
+                          <Copy size={9} style={{ color: dim, marginLeft: 2 }} />
+                        </button>
+                      ))}
+                    </div>
+                    <button onClick={refresh}
+                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-[13px] font-semibold transition-all"
+                      style={{ background: "rgba(109,95,234,0.1)", border: "1px solid hsl(248 90% 68% / 0.22)", color: primary }}>
+                      <RefreshCw size={12} /> I pulled a model — scan again
+                    </button>
                   </div>
                 ) : (
                   <div className="divide-y" style={{ borderColor: "hsl(240 20% 11%)" }}>
@@ -401,13 +458,35 @@ export default function CapabilitiesPage() {
                   )}
                 </div>
                 {modelData.lmstudio_error ? (
-                  <div className="px-5 py-4 text-[13px] flex items-start gap-2.5" style={{ color: muted }}>
-                    <AlertCircle size={13} style={{ color: "hsl(347 87% 62%)" }} className="flex-shrink-0" />
-                    <p>Start the LM Studio local server on port 1234.</p>
+                  <div className="px-5 py-5 space-y-3">
+                    <div className="flex items-start gap-2.5">
+                      <span className="text-lg leading-none mt-0.5">🖥</span>
+                      <div>
+                        <p className="text-[13.5px] font-semibold text-foreground mb-0.5">LM Studio isn't connected</p>
+                        <p className="text-[12.5px]" style={{ color: muted }}>Three quick steps:</p>
+                      </div>
+                    </div>
+                    <div className="space-y-2 text-[12.5px]">
+                      {[
+                        { n: "1", text: <>Download LM Studio from <a href="https://lmstudio.ai" target="_blank" rel="noreferrer" className="underline" style={{ color: primary }}>lmstudio.ai</a> and open it <span style={{ color: dim }}>(skip if you have it)</span></> },
+                        { n: "2", text: <>In LM Studio, browse and download a model — Mistral 7B or Llama 3 are good starting points</> },
+                        { n: "3", text: <>Click the <strong style={{ color: "hsl(240 20% 82%)" }}>Local Server</strong> tab → hit <strong style={{ color: "hsl(240 20% 82%)" }}>Start Server</strong>. Make sure the port is 1234.</> },
+                      ].map(({ n, text }) => (
+                        <div key={n} className="flex items-start gap-3 p-3 rounded-xl" style={{ background: "hsl(238 22% 6%)", border: "1px solid hsl(238 18% 12%)" }}>
+                          <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-[10px] font-bold" style={{ background: "rgba(167,139,250,0.18)", color: "hsl(270 70% 72%)" }}>{n}</div>
+                          <p style={{ color: muted }}>{text}</p>
+                        </div>
+                      ))}
+                    </div>
+                    <button onClick={refresh}
+                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-[13px] font-semibold transition-all"
+                      style={{ background: "rgba(167,139,250,0.1)", border: "1px solid rgba(167,139,250,0.22)", color: "hsl(270 70% 72%)" }}>
+                      <RefreshCw size={12} /> Check again
+                    </button>
                   </div>
                 ) : modelData.lmstudio.length === 0 ? (
                   <div className="px-5 py-4 text-[13px]" style={{ color: muted }}>
-                    No loaded models. Load a model in LM Studio and enable the local server.
+                    No loaded models. Load a model in LM Studio and enable the local server, then scan again.
                   </div>
                 ) : (
                   <div className="divide-y" style={{ borderColor: "hsl(240 20% 11%)" }}>

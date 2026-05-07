@@ -475,56 +475,114 @@ export default function OnboardingModal({ onDone }: { onDone: () => void }) {
 
           {/* ── Step 2: Ollama setup ── */}
           {step === 2 && provider === "ollama" && (
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-4">
               <div>
                 <p className="text-[11px] uppercase tracking-widest font-semibold mb-1.5" style={{ color: dim }}>Step 2 of {totalSteps}</p>
-                <h2 className="text-[18px] font-semibold text-foreground" style={{ letterSpacing: "-0.02em" }}>Install Ollama</h2>
-                <p className="text-[13px] mt-1" style={{ color: muted }}>Runs AI locally for free — no GPU required for small models.</p>
+                <h2 className="text-[18px] font-semibold text-foreground" style={{ letterSpacing: "-0.02em" }}>Get Ollama running</h2>
+                <p className="text-[13px] mt-1" style={{ color: muted }}>Free, private AI on your computer — no account, no usage limits.</p>
               </div>
-              <div className="space-y-5">
-                <div>
-                  <p className="text-[12px] font-semibold text-foreground mb-2">1. Install</p>
-                  <p className="text-[12px] mb-1" style={{ color: dim }}>macOS</p>
-                  <CodeBlock>brew install ollama</CodeBlock>
-                  <p className="text-[12px] mt-2 mb-1" style={{ color: dim }}>Linux / macOS (direct)</p>
-                  <CodeBlock>curl -fsSL https://ollama.com/install.sh | sh</CodeBlock>
-                  <a href="https://ollama.com/download" target="_blank" rel="noreferrer"
-                    className="inline-flex items-center gap-1 text-[12px] mt-2" style={{ color: primary }}>
-                    Windows installer <ExternalLink size={10} />
-                  </a>
-                </div>
-                <div>
-                  <p className="text-[12px] font-semibold text-foreground mb-2">2. Start Ollama</p>
-                  <CodeBlock>ollama serve</CodeBlock>
-                </div>
-                <div>
-                  <p className="text-[12px] font-semibold text-foreground mb-2">3. Pick a model</p>
-                  <div className="space-y-1.5">
-                    {OLLAMA_MODELS.map(m => (
-                      <RadioCard key={m.id} id={m.id} selected={ollamaModel} onSelect={setOllamaModel}>
-                        <span className="text-[13px] font-medium text-foreground">{m.label}</span>
-                        <span className="text-[12px] ml-2" style={{ color: muted }}>{m.note}</span>
-                      </RadioCard>
-                    ))}
-                  </div>
-                  <CodeBlock>{`ollama pull ${ollamaModel}`}</CodeBlock>
-                </div>
-                <div>
-                  <p className="text-[12px] font-semibold text-foreground mb-2">4. Test connection</p>
-                  <button onClick={handleProbe} disabled={probing}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-medium transition-all disabled:opacity-50"
-                    style={{ backgroundColor: "rgba(109,95,234,0.1)", border: "1px solid hsl(248 90% 68% / 0.22)", color: primary }}>
-                    {probing ? <Loader2 size={13} className="animate-spin" /> : <Monitor size={13} />}
-                    {probing ? "Testing…" : "Test Ollama connection"}
-                  </button>
-                  {probeResult && (
-                    <div className="mt-2 p-3 rounded-xl text-[13px]"
-                      style={{ backgroundColor: probeResult.ok ? "rgba(34,197,94,0.07)" : "rgba(244,63,94,0.07)", border: `1px solid ${probeResult.ok ? "rgba(34,197,94,0.2)" : "rgba(244,63,94,0.2)"}`, color: probeResult.ok ? green : "hsl(4 86% 60%)" }}>
-                      {probeResult.ok ? `✓ Connected — ${probeResult.models?.length ?? 0} model(s) installed` : `✗ ${probeResult.error}`}
+
+              {/* Step 1 */}
+              <div className="p-4 rounded-2xl" style={{ background: bg2, border: `1px solid ${border}` }}>
+                <div className="flex items-start gap-3">
+                  <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-[10px] font-bold"
+                    style={{ background: "rgba(109,95,234,0.2)", color: primary }}>1</div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[13px] font-semibold text-foreground mb-2">Download Ollama <span className="font-normal text-[12px]" style={{ color: dim }}>(skip if already installed)</span></p>
+                    <div className="flex flex-wrap gap-2">
+                      <a href="https://ollama.com/download/mac" target="_blank" rel="noreferrer"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[12px] font-medium"
+                        style={{ background: "rgba(109,95,234,0.1)", border: "1px solid hsl(248 90% 68% / 0.22)", color: primary }}>
+                        <ExternalLink size={10} /> macOS
+                      </a>
+                      <a href="https://ollama.com/download/windows" target="_blank" rel="noreferrer"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[12px] font-medium"
+                        style={{ background: "rgba(109,95,234,0.1)", border: "1px solid hsl(248 90% 68% / 0.22)", color: primary }}>
+                        <ExternalLink size={10} /> Windows
+                      </a>
                     </div>
-                  )}
+                    <p className="text-[11px] mt-2 mb-1" style={{ color: dim }}>Linux</p>
+                    <CodeBlock>curl -fsSL https://ollama.com/install.sh | sh</CodeBlock>
+                  </div>
                 </div>
               </div>
+
+              {/* Step 2 */}
+              <div className="p-4 rounded-2xl" style={{ background: bg2, border: `1px solid ${border}` }}>
+                <div className="flex items-start gap-3">
+                  <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-[10px] font-bold"
+                    style={{ background: "rgba(109,95,234,0.2)", color: primary }}>2</div>
+                  <div className="flex-1">
+                    <p className="text-[13px] font-semibold text-foreground mb-1">Open Ollama</p>
+                    <p className="text-[12.5px] leading-relaxed" style={{ color: muted }}>
+                      <strong style={{ color: "hsl(240 20% 84%)" }}>macOS / Windows:</strong> Open the app like normal — look for the 🦙 icon in your menu bar or taskbar. It runs quietly in the background.
+                    </p>
+                    <p className="text-[12px] mt-1.5" style={{ color: dim }}>
+                      Linux: run <code className="px-1.5 py-0.5 rounded-md text-[11px]" style={{ background: "hsl(238 22% 6%)", border: `1px solid ${border}`, color: "hsl(240 20% 86%)" }}>ollama serve</code> in a terminal window.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 3: model picker */}
+              <div className="p-4 rounded-2xl" style={{ background: bg2, border: `1px solid ${border}` }}>
+                <div className="flex items-start gap-3">
+                  <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-[10px] font-bold"
+                    style={{ background: "rgba(109,95,234,0.2)", color: primary }}>3</div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[13px] font-semibold text-foreground mb-2">Download a model <span className="font-normal text-[12px]" style={{ color: dim }}>(skip if you have one)</span></p>
+                    <div className="space-y-1.5 mb-3">
+                      {OLLAMA_MODELS.map(m => (
+                        <RadioCard key={m.id} id={m.id} selected={ollamaModel} onSelect={setOllamaModel}>
+                          <span className="text-[13px] font-medium text-foreground">{m.label}</span>
+                          <span className="text-[12px] ml-2" style={{ color: muted }}>{m.note}</span>
+                        </RadioCard>
+                      ))}
+                    </div>
+                    <p className="text-[12px] mb-1.5" style={{ color: dim }}>Open Terminal and run:</p>
+                    <CodeBlock>{`ollama pull ${ollamaModel}`}</CodeBlock>
+                    <p className="text-[11.5px] mt-2" style={{ color: dim }}>Takes 2–5 minutes (1–5 GB depending on model). Come back when it's done.</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Test */}
+              <button
+                onClick={handleProbe}
+                disabled={probing}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl text-[14px] font-semibold transition-all duration-200 disabled:opacity-60"
+                style={{
+                  background: probeResult?.ok
+                    ? "rgba(34,197,94,0.1)"
+                    : "linear-gradient(135deg, hsl(248 82% 60%) 0%, hsl(264 68% 64%) 100%)",
+                  border: probeResult?.ok ? "1px solid rgba(34,197,94,0.3)" : "none",
+                  color: probeResult?.ok ? green : "white",
+                  boxShadow: probeResult?.ok ? "none" : "0 2px 12px rgba(109,95,234,0.35)",
+                }}
+              >
+                {probing ? (
+                  <><Loader2 size={15} className="animate-spin" /> Checking…</>
+                ) : probeResult?.ok ? (
+                  <><Check size={15} /> Ollama is running — {probeResult.models?.length ?? 0} model{(probeResult.models?.length ?? 0) !== 1 ? "s" : ""} ready</>
+                ) : (
+                  <>Done with the steps above? Test it</>
+                )}
+              </button>
+
+              {probeResult && !probeResult.ok && (
+                <div className="p-4 rounded-2xl text-[13px]" style={{ background: "rgba(220,53,69,0.06)", border: "1px solid rgba(220,53,69,0.18)" }}>
+                  <p className="font-semibold mb-1.5" style={{ color: "hsl(4 86% 66%)" }}>Couldn't find Ollama</p>
+                  <p className="leading-relaxed" style={{ color: muted }}>
+                    Make sure Ollama is open first — look for the 🦙 icon in your menu bar or taskbar. If you just installed it, try opening it now and clicking Test again.
+                  </p>
+                </div>
+              )}
+              {probeResult?.ok && !(probeResult.models?.length) && (
+                <div className="p-4 rounded-2xl text-[13px]" style={{ background: "rgba(245,158,11,0.06)", border: "1px solid rgba(245,158,11,0.2)" }}>
+                  <p className="font-semibold mb-1" style={{ color: "hsl(38 90% 64%)" }}>Ollama is running, but no models found yet</p>
+                  <p style={{ color: muted }}>Run the <code className="px-1 py-0.5 rounded text-[11px]" style={{ background: "hsl(238 22% 6%)", border: `1px solid ${border}` }}>ollama pull</code> command in step 3 above, then test again.</p>
+                </div>
+              )}
             </div>
           )}
 
