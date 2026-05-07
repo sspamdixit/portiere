@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { RefreshCw, Cpu, HardDrive, Loader2, AlertCircle, Box, ChevronRight, Sparkles, Search, Globe, Film, Monitor, Check } from "lucide-react";
+import { RefreshCw, Cpu, HardDrive, Loader2, AlertCircle, Box, ChevronRight, Sparkles, Search, Globe, Film, Monitor, Check, Cloud, Mail, Terminal } from "lucide-react";
 import { fetchModels, fetchSettings } from "@/lib/api";
 
 const dim = "hsl(242 17% 36%)";
@@ -25,6 +25,13 @@ const CAPABILITIES = [
     status: "built-in" as const,
   },
   {
+    Icon: Cloud,
+    label: "Weather",
+    desc: "Current conditions and 7-day forecast for any city worldwide. No API key needed.",
+    color: "hsl(200 80% 65%)",
+    status: "built-in" as const,
+  },
+  {
     Icon: Sparkles,
     label: "Claude — Writing & Coding",
     desc: "Deep reasoning, code generation, drafting emails, analysis, and complex tasks.",
@@ -32,6 +39,22 @@ const CAPABILITIES = [
     status: "key" as const,
     key: "claude_api_key",
     keyLabel: "Anthropic API Key",
+  },
+  {
+    Icon: Mail,
+    label: "Email",
+    desc: "Compose and send emails. Sends via SMTP if configured, otherwise creates a mailto draft.",
+    color: "hsl(38 90% 60%)",
+    status: "smtp" as const,
+    key: "smtp_host",
+    keyLabel: "SMTP Host",
+  },
+  {
+    Icon: Terminal,
+    label: "Code Runner",
+    desc: "Write and execute Python code — see output instantly in the feed.",
+    color: "hsl(142 60% 55%)",
+    status: "built-in" as const,
   },
   {
     Icon: Globe,
@@ -116,6 +139,7 @@ export default function CapabilitiesPage() {
           <div className="space-y-2">
             {CAPABILITIES.map(({ Icon, label, desc, color, status, key, keyLabel }) => {
               const configured = status === "built-in" || (key ? isKeyConfigured(key) : false);
+              const badgeText = status === "built-in" ? "Built-in" : status === "smtp" ? (configured ? "Configured" : `Needs ${keyLabel}`) : configured ? "Connected" : `Needs ${keyLabel}`;
               return (
                 <div key={label} className="flex items-start gap-4 p-4 rounded-2xl"
                   style={{ backgroundColor: "hsl(240 18% 9%)", border: "1px solid hsl(240 24% 13%)" }}>
@@ -132,7 +156,7 @@ export default function CapabilitiesPage() {
                           color: configured ? green : dim,
                           border: `1px solid ${configured ? "rgba(34,197,94,0.22)" : "transparent"}`,
                         }}>
-                        {status === "built-in" ? "Built-in" : configured ? "Connected" : `Needs ${keyLabel}`}
+                        {badgeText}
                       </span>
                     </div>
                     <p className="text-[12px] leading-relaxed" style={{ color: muted }}>{desc}</p>

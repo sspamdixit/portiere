@@ -56,18 +56,28 @@ class WeatherWorker(BaseWorker):
 
     def _extract_location(self, task: str) -> str:
         import re
-        # "weather in X", "forecast for X", "temperature in X"
-        patterns = [
-            r"(?:weather|forecast|temperature|climate|conditions?)\s+(?:in|for|at)\s+([A-Za-z\s,]+?)(?:\s+(?:this|next|on|today|tomorrow|weekend)|$)",
-            r"(?:in|for|at)\s+([A-Za-z\s,]+?)(?:\s+(?:this|next|on|today|tomorrow|weekend|weather|forecast)|$)",
-            r"^([A-Za-z\s,]+?)\s+weather",
-        ]
-        for p in patterns:
-            m = re.search(p, task, re.IGNORECASE)
-            if m:
-                loc = m.group(1).strip().rstrip(",")
-                if len(loc) > 1 and loc.lower() not in ("the", "a", "an", "my"):
-                    return loc
+        # Normalize — strip trailing punctuation so "$" anchors work cleanly
+        text = task.strip().rstrip("?!.")
+
+        # Pattern 1: weather/forecast KEYWORD comes first, then in/for/at CITY
+        # e.g. "What is the weather in Paris", "forecast for New York this weekend"
+        m = re.search(
+            r"\b(?:weather|forecast|temperature|climate|conditions?)\b.{0,40}?\b(?:in|for|at)\s+"
+            r"([A-Za-z][A-Za-z\s]{1,34}?)(?:\s+(?:this|next|today|tomorrow|weekend)|$)",
+            text, re.IGNORECASE,
+        )
+        if m:
+            loc = m.group(1).strip().rstrip(",")
+            if len(loc) > 1 and loc.lower() not in ("the", "a", "an", "my"):
+                return loc
+
+        # Pattern 2: "CITY weather" or "CITY forecast" at start of string
+        m = re.search(r"^([A-Za-z][A-Za-z\s,]{1,34}?)\s+(?:weather|forecast)", text, re.IGNORECASE)
+        if m:
+            loc = m.group(1).strip().rstrip(",")
+            if len(loc) > 1 and loc.lower() not in ("the", "a", "an", "my", "what", "what's"):
+                return loc
+
         return ""
 
     async def _geocode(self, location: str) -> dict | None:

@@ -168,7 +168,7 @@ export default function Sidebar() {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-60" />
             <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-accent" />
           </div>
-          <span className="text-[11px] text-muted-foreground tracking-wide">5 capabilities online</span>
+          <span className="text-[11px] text-muted-foreground tracking-wide">8 capabilities online</span>
         </div>
       </div>
     </aside>

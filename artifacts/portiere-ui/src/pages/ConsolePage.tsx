@@ -336,11 +336,10 @@ export default function ConsolePage() {
   }, [loadedSession]);
 
   useEffect(() => {
-    if (running) {
-      startTimeRef.current = Date.now();
-      const t = setInterval(() => setElapsed(Math.floor((Date.now() - startTimeRef.current) / 1000)), 1000);
-      return () => clearInterval(t);
-    } else { setElapsed(0); }
+    if (!running) { setElapsed(0); return; }
+    startTimeRef.current = Date.now();
+    const t = setInterval(() => setElapsed(Math.floor((Date.now() - startTimeRef.current) / 1000)), 1000);
+    return () => clearInterval(t);
   }, [running]);
 
   useEffect(() => {
