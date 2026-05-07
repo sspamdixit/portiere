@@ -4,6 +4,7 @@ import {
   Film, Globe, Cpu, ChevronRight,
   Sparkles, Search as SearchIcon, Monitor, Check, Copy, RotateCcw,
   Cloud, Mail, Terminal, Download, ExternalLink,
+  Image, Languages, Newspaper, TrendingUp, CalendarPlus,
 } from "lucide-react";
 import { streamOrchestrate, type OrchestrateEvent } from "@/lib/api";
 import { saveSession } from "@/lib/sessions";
@@ -23,6 +24,8 @@ const WORKER_LABELS: Record<string, string> = {
   brain: "Brain", claude: "Writing", search: "Search",
   osint: "Research", local: "System", video: "Video",
   weather: "Weather", email: "Email", code_runner: "Code",
+  image_gen: "Image", translator: "Translate", news: "News",
+  finance: "Finance", reminder: "Calendar",
 };
 
 const WORKER_MESSAGES: Record<string, string> = {
@@ -34,6 +37,11 @@ const WORKER_MESSAGES: Record<string, string> = {
   weather:     "Fetching the latest forecast...",
   email:       "Composing your email...",
   code_runner: "Running your code...",
+  image_gen:   "Generating your image...",
+  translator:  "Translating...",
+  news:        "Fetching latest news...",
+  finance:     "Fetching market data...",
+  reminder:    "Creating your event...",
 };
 
 const CARD_META: Record<string, { label: string; Icon: React.FC<{ size?: number }>; color: string }> = {
@@ -45,6 +53,11 @@ const CARD_META: Record<string, { label: string; Icon: React.FC<{ size?: number 
   weather:     { label: "Weather",     Icon: Cloud,       color: "hsl(200 80% 65%)" },
   email:       { label: "Email",       Icon: Mail,        color: "hsl(38 90% 60%)"  },
   code_runner: { label: "Code Output", Icon: Terminal,    color: "hsl(142 60% 55%)" },
+  image_gen:   { label: "Image",       Icon: Image,       color: "hsl(310 70% 68%)" },
+  translator:  { label: "Translation", Icon: Languages,   color: "hsl(185 70% 58%)" },
+  news:        { label: "News",        Icon: Newspaper,   color: "hsl(25 90% 62%)"  },
+  finance:     { label: "Markets",     Icon: TrendingUp,  color: "hsl(142 60% 55%)" },
+  reminder:    { label: "Calendar",    Icon: CalendarPlus,color: "hsl(246 89% 70%)" },
 };
 
 const FOLLOW_UP_CHIPS: Record<string, string[]> = {
@@ -56,6 +69,11 @@ const FOLLOW_UP_CHIPS: Record<string, string[]> = {
   local:       ["What does this mean?", "How can I improve this?", "Run a full diagnostic"],
   code_runner: ["Fix any errors", "Add more features", "Explain what this does"],
   video:       ["Generate a variation", "Write a script for this", "Make it longer"],
+  image_gen:   ["Generate a variation", "Try a different style", "Make it more detailed"],
+  translator:  ["Translate to another language", "Explain the grammar", "Make it more formal"],
+  news:        ["Summarize into a report", "What does this mean for me?", "Find related news"],
+  finance:     ["Should I buy or sell?", "Compare with competitors", "Show me the trend"],
+  reminder:    ["Add another event", "Set a follow-up", "Email myself this"],
 };
 
 const ALL_SUGGESTIONS = [
@@ -67,6 +85,14 @@ const ALL_SUGGESTIONS = [
   "Check my computer's performance",
   "Find flights to Barcelona next Friday",
   "Help me write my resume summary",
+  "What's the latest news on AI?",
+  "How is Bitcoin doing today?",
+  "Generate an image of a cyberpunk city at night",
+  "Translate 'I love you' to 10 different languages",
+  "Schedule a dentist appointment for tomorrow at 10am",
+  "How is Tesla stock doing?",
+  "What's trending in tech right now?",
+  "Summarize the latest SpaceX news",
 ];
 
 function downloadFile(content: string, worker: string) {
@@ -253,6 +279,7 @@ function WorkerResultCard({ event }: { event: OrchestrateEvent }) {
   const content = event.content || "";
   const data = event.data as Record<string, unknown> | undefined;
   const videoUrl = data?.video_url as string | undefined;
+  const imageUrl = data?.image_url as string | undefined;
   const searchData = (k === "search" && data?.results) ? data as unknown as SearchData : null;
 
   const [copied, setCopied] = useState(false);
@@ -314,7 +341,26 @@ function WorkerResultCard({ event }: { event: OrchestrateEvent }) {
         </div>
       </div>
       <div className="px-5 py-4">
-        {searchData ? (
+        {imageUrl ? (
+          <div className="space-y-3">
+            <img
+              src={imageUrl}
+              alt={content}
+              className="w-full rounded-xl object-cover"
+              style={{ maxHeight: "380px", border: "1px solid hsl(240 20% 14%)" }}
+            />
+            <p className="text-[12px]" style={{ color: "hsl(242 18% 50%)" }}>{content}</p>
+            <a
+              href={imageUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 text-[13px] font-medium"
+              style={{ color: "hsl(246 89% 72%)" }}
+            >
+              <ExternalLink size={12} /> Open full size
+            </a>
+          </div>
+        ) : searchData ? (
           <SearchResultCards data={searchData} />
         ) : (
           <MarkdownContent content={content} />

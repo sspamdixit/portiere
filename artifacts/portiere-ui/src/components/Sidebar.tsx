@@ -178,7 +178,7 @@ export default function Sidebar() {
             <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-accent" />
           </div>
           <span className="text-[11px]" style={{ color: "hsl(242 18% 38%)", letterSpacing: "0.02em" }}>
-            8 capabilities online
+            13 capabilities online
           </span>
         </div>
       </div>

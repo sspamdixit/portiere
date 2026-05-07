@@ -3,6 +3,7 @@ import {
   ArrowRight, Check, Copy, ExternalLink, Loader2,
   Cpu, Zap, ChevronLeft, X,
   Monitor, Server, Search, Cloud, Mail, Terminal, Sparkles,
+  Newspaper, TrendingUp, Languages, CalendarPlus, Image,
 } from "lucide-react";
 import { saveSettings, probeOllama, probeLMStudio } from "@/lib/api";
 
@@ -80,12 +81,37 @@ const CAPABILITY_CARDS = [
   {
     Icon: Search, iconColor: "hsl(246 89% 72%)", iconBg: "rgba(124,111,247,0.14)",
     title: "Web Search",
-    desc: "Flights, therapists, restaurants, news — anything on the web",
+    desc: "Flights, therapists, restaurants — anything on the web",
   },
   {
     Icon: Sparkles, iconColor: "hsl(270 70% 75%)", iconBg: "rgba(167,139,250,0.14)",
     title: "Writing & Code",
-    desc: "Emails, resumes, code, planning, analysis — deep AI reasoning",
+    desc: "Emails, resumes, code, analysis — deep AI reasoning",
+  },
+  {
+    Icon: Newspaper, iconColor: "hsl(25 90% 62%)", iconBg: "rgba(249,115,22,0.14)",
+    title: "Live News",
+    desc: "Latest headlines on any topic — free, no API key needed",
+  },
+  {
+    Icon: TrendingUp, iconColor: "hsl(142 60% 55%)", iconBg: "rgba(34,197,94,0.14)",
+    title: "Finance & Markets",
+    desc: "Stocks and crypto prices in real time — TSLA, Bitcoin, etc.",
+  },
+  {
+    Icon: Languages, iconColor: "hsl(185 70% 58%)", iconBg: "rgba(20,184,166,0.14)",
+    title: "Translator",
+    desc: "Translate to and from 50+ languages — free, no key needed",
+  },
+  {
+    Icon: CalendarPlus, iconColor: "hsl(246 89% 70%)", iconBg: "rgba(124,111,247,0.14)",
+    title: "Calendar & Reminders",
+    desc: "Create .ics events for any calendar app in seconds",
+  },
+  {
+    Icon: Image, iconColor: "hsl(310 70% 68%)", iconBg: "rgba(192,132,252,0.14)",
+    title: "Image Generation",
+    desc: "Generate AI images from any description via FAL.ai",
   },
   {
     Icon: Cloud, iconColor: "hsl(200 80% 65%)", iconBg: "rgba(96,165,250,0.14)",
@@ -106,6 +132,11 @@ const CAPABILITY_CARDS = [
     Icon: Monitor, iconColor: "hsl(142 60% 55%)", iconBg: "rgba(34,197,94,0.1)",
     title: "System Monitor",
     desc: "CPU, RAM, disk usage — and file system access",
+  },
+  {
+    Icon: Search, iconColor: "hsl(38 90% 60%)", iconBg: "rgba(245,158,11,0.1)",
+    title: "Research & OSINT",
+    desc: "Domain/IP investigation, WHOIS, DNS, digital footprinting",
   },
 ];
 

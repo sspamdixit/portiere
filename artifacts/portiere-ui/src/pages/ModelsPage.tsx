@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { RefreshCw, Cpu, HardDrive, Loader2, AlertCircle, Box, ChevronRight, Sparkles, Search, Globe, Film, Monitor, Check, Cloud, Mail, Terminal } from "lucide-react";
+import { RefreshCw, Cpu, HardDrive, Loader2, AlertCircle, Box, ChevronRight, Sparkles, Search, Globe, Film, Monitor, Check, Cloud, Mail, Terminal, Image, Languages, Newspaper, TrendingUp, CalendarPlus } from "lucide-react";
 import { fetchModels, fetchSettings } from "@/lib/api";
 
 const dim = "hsl(242 17% 36%)";
@@ -29,6 +29,34 @@ const CAPABILITIES = [
     label: "Weather",
     desc: "Current conditions and 7-day forecast for any city worldwide. No API key needed.",
     color: "hsl(200 80% 65%)",
+    status: "built-in" as const,
+  },
+  {
+    Icon: Newspaper,
+    label: "Live News",
+    desc: "Latest headlines on any topic — tech, world events, sports, finance. No API key needed.",
+    color: "hsl(25 90% 62%)",
+    status: "built-in" as const,
+  },
+  {
+    Icon: TrendingUp,
+    label: "Finance & Markets",
+    desc: "Real-time stock prices and crypto rates — TSLA, AAPL, Bitcoin, Ethereum, and more.",
+    color: "hsl(142 60% 55%)",
+    status: "built-in" as const,
+  },
+  {
+    Icon: Languages,
+    label: "Translator",
+    desc: "Translate text to and from 50+ languages instantly. No API key needed.",
+    color: "hsl(185 70% 58%)",
+    status: "built-in" as const,
+  },
+  {
+    Icon: CalendarPlus,
+    label: "Calendar & Reminders",
+    desc: "Create calendar events as .ics files — import into Google Calendar, Outlook, or Apple Calendar.",
+    color: "hsl(246 89% 70%)",
     status: "built-in" as const,
   },
   {
@@ -71,9 +99,18 @@ const CAPABILITIES = [
     status: "built-in" as const,
   },
   {
+    Icon: Image,
+    label: "Image Generation",
+    desc: "Generate AI images via FAL.ai Flux from any text description — portraits, artwork, concepts.",
+    color: "hsl(310 70% 68%)",
+    status: "key" as const,
+    key: "fal_api_key",
+    keyLabel: "FAL API Key",
+  },
+  {
     Icon: Film,
     label: "Video Generation",
-    desc: "Generate AI videos via FAL.ai or Seedance from a text prompt.",
+    desc: "Generate AI video clips via FAL.ai or Seedance from a text prompt.",
     color: "hsl(328 80% 68%)",
     status: "key" as const,
     key: "fal_api_key",

@@ -10,6 +10,11 @@ from portiere.workers.search_worker import SearchWorker
 from portiere.workers.weather_worker import WeatherWorker
 from portiere.workers.code_runner_worker import CodeRunnerWorker
 from portiere.workers.email_worker import EmailWorker
+from portiere.workers.image_gen_worker import ImageGenWorker
+from portiere.workers.translator_worker import TranslatorWorker
+from portiere.workers.news_worker import NewsWorker
+from portiere.workers.finance_worker import FinanceWorker
+from portiere.workers.reminder_worker import ReminderWorker
 import httpx
 
 
@@ -22,6 +27,11 @@ WORKER_REGISTRY = {
     "weather":      WeatherWorker,
     "code_runner":  CodeRunnerWorker,
     "email":        EmailWorker,
+    "image_gen":    ImageGenWorker,
+    "translator":   TranslatorWorker,
+    "news":         NewsWorker,
+    "finance":      FinanceWorker,
+    "reminder":     ReminderWorker,
 }
 
 
