@@ -3,8 +3,8 @@ import { RefreshCw, Cpu, HardDrive, Loader2, AlertCircle, Box, ChevronRight, Spa
 import { fetchModels, fetchSettings } from "@/lib/api";
 
 const dim = "hsl(242 17% 36%)";
-const muted = "hsl(242 18% 61%)";
-const green = "hsl(142 71% 45%)";
+const muted = "hsl(242 18% 56%)";
+const green = "hsl(142 68% 48%)";
 const primary = "hsl(246 89% 70%)";
 
 interface OllamaModel { name: string; size_gb: number; modified: string; }
@@ -107,17 +107,30 @@ export default function CapabilitiesPage() {
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 flex-shrink-0" style={{ height: "48px", borderBottom: "1px solid hsl(240 24% 12%)" }}>
-        <div className="flex items-center gap-2 text-[14px]">
-          <span className="font-medium text-foreground">Capabilities</span>
-          <ChevronRight size={13} style={{ color: "hsl(242 17% 30%)" }} />
+      <div
+        className="flex items-center justify-between px-6 flex-shrink-0"
+        style={{ height: "46px", borderBottom: "1px solid hsl(240 20% 9%)" }}
+      >
+        <div className="flex items-center gap-2">
+          <span className="text-[13.5px] font-semibold" style={{ color: "hsl(244 30% 85%)", letterSpacing: "-0.01em" }}>
+            Capabilities
+          </span>
+          <ChevronRight size={12} style={{ color: "hsl(242 17% 28%)" }} />
           <span className="text-[13px]" style={{ color: muted }}>
             {lastRefresh ? `Local models · ${lastRefresh}` : "What Portiere can do"}
           </span>
         </div>
-        <button onClick={refresh} disabled={loading}
+        <button
+          onClick={refresh}
+          disabled={loading}
           className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-[13px] font-medium transition-all disabled:opacity-50"
-          style={{ backgroundColor: "rgba(124,111,247,0.1)", border: "1px solid hsl(246 89% 70% / 0.22)", color: primary }}>
+          style={{
+            backgroundColor: "rgba(124,111,247,0.1)",
+            border: "1px solid hsl(246 89% 70% / 0.22)",
+            color: primary,
+            letterSpacing: "-0.01em",
+          }}
+        >
           {loading ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />}
           Refresh local models
         </button>
@@ -125,44 +138,65 @@ export default function CapabilitiesPage() {
 
       <div className="flex-1 overflow-y-auto feed-scroll px-6 py-5 space-y-6 max-w-2xl w-full">
         {error && (
-          <div className="flex items-center gap-2 p-4 rounded-2xl text-destructive text-[13px]"
-            style={{ backgroundColor: "hsl(347 87% 60% / 0.06)", border: "1px solid hsl(347 87% 60% / 0.18)" }}>
+          <div
+            className="flex items-center gap-2 p-4 rounded-2xl text-[13px]"
+            style={{ backgroundColor: "hsl(347 87% 60% / 0.06)", border: "1px solid hsl(347 87% 60% / 0.2)", color: "hsl(347 87% 65%)" }}
+          >
             <AlertCircle size={14} className="flex-shrink-0" /> {error}
           </div>
         )}
 
         {/* Capability cards */}
         <div>
-          <p className="text-[11px] uppercase tracking-widest font-semibold mb-3 px-1" style={{ color: dim }}>
+          <p className="text-[10px] uppercase font-semibold mb-3 px-1" style={{ color: "hsl(242 17% 34%)", letterSpacing: "0.06em" }}>
             Available capabilities
           </p>
           <div className="space-y-2">
             {CAPABILITIES.map(({ Icon, label, desc, color, status, key, keyLabel }) => {
               const configured = status === "built-in" || (key ? isKeyConfigured(key) : false);
-              const badgeText = status === "built-in" ? "Built-in" : status === "smtp" ? (configured ? "Configured" : `Needs ${keyLabel}`) : configured ? "Connected" : `Needs ${keyLabel}`;
+              const badgeText = status === "built-in"
+                ? "Built-in"
+                : status === "smtp"
+                ? (configured ? "Configured" : `Needs ${keyLabel}`)
+                : configured ? "Connected" : `Needs ${keyLabel}`;
+
               return (
-                <div key={label} className="flex items-start gap-4 p-4 rounded-2xl"
-                  style={{ backgroundColor: "hsl(240 18% 9%)", border: "1px solid hsl(240 24% 13%)" }}>
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
-                    style={{ backgroundColor: `${color}16`, color }}>
+                <div
+                  key={label}
+                  className="flex items-start gap-4 p-4 rounded-2xl transition-colors"
+                  style={{
+                    backgroundColor: "hsl(240 20% 8%)",
+                    border: "1px solid hsl(240 20% 12%)",
+                    borderLeft: configured ? `3px solid ${color}55` : "1px solid hsl(240 20% 12%)",
+                  }}
+                >
+                  <div
+                    className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
+                    style={{ backgroundColor: `${color}16`, color }}
+                  >
                     <Icon size={16} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[13px] font-semibold text-foreground">{label}</span>
-                      <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold"
+                      <span className="text-[13px] font-semibold" style={{ color: "hsl(244 30% 93%)", letterSpacing: "-0.01em" }}>
+                        {label}
+                      </span>
+                      <span
+                        className="text-[10px] px-2 py-0.5 rounded-full font-semibold"
                         style={{
-                          backgroundColor: configured ? "rgba(34,197,94,0.1)" : "hsl(240 24% 13%)",
-                          color: configured ? green : dim,
-                          border: `1px solid ${configured ? "rgba(34,197,94,0.22)" : "transparent"}`,
-                        }}>
+                          backgroundColor: configured ? "rgba(34,197,94,0.1)" : "hsl(240 20% 12%)",
+                          color: configured ? green : "hsl(242 17% 40%)",
+                          border: `1px solid ${configured ? "rgba(34,197,94,0.25)" : "transparent"}`,
+                          letterSpacing: "0.01em",
+                        }}
+                      >
                         {badgeText}
                       </span>
                     </div>
                     <p className="text-[12px] leading-relaxed" style={{ color: muted }}>{desc}</p>
                   </div>
                   {configured && (
-                    <Check size={14} className="flex-shrink-0 mt-1" style={{ color: green }} />
+                    <Check size={13} className="flex-shrink-0 mt-1.5" style={{ color: green, opacity: 0.8 }} />
                   )}
                 </div>
               );
@@ -172,25 +206,40 @@ export default function CapabilitiesPage() {
 
         {/* Local AI models */}
         <div>
-          <p className="text-[11px] uppercase tracking-widest font-semibold mb-3 px-1" style={{ color: dim }}>
+          <p className="text-[10px] uppercase font-semibold mb-3 px-1" style={{ color: "hsl(242 17% 34%)", letterSpacing: "0.06em" }}>
             Local AI models
           </p>
 
           {!modelData && !loading && (
             <div className="relative flex flex-col items-center justify-center py-16 gap-4">
+              <div
+                className="absolute inset-0 pointer-events-none dot-grid"
+                style={{ opacity: 0.35, borderRadius: "16px" }}
+              />
               <div className="absolute inset-0 pointer-events-none"
-                style={{ background: "radial-gradient(ellipse 50% 30% at 50% 50%, rgba(124,111,247,0.05) 0%, transparent 70%)" }} />
-              <div className="relative w-12 h-12 rounded-2xl flex items-center justify-center"
-                style={{ backgroundColor: "hsl(240 18% 10%)", border: "1px solid hsl(240 24% 14%)" }}>
-                <Cpu size={20} style={{ color: "hsl(242 18% 40%)" }} />
+                style={{ background: "radial-gradient(ellipse 50% 30% at 50% 50%, rgba(124,111,247,0.06) 0%, transparent 70%)" }} />
+              <div
+                className="relative w-12 h-12 rounded-2xl flex items-center justify-center"
+                style={{ backgroundColor: "hsl(240 20% 9%)", border: "1px solid hsl(240 20% 13%)" }}
+              >
+                <Cpu size={20} style={{ color: "hsl(242 18% 38%)" }} />
               </div>
               <div className="text-center">
-                <p className="text-[14px] font-medium text-foreground">Check for local models</p>
+                <p className="text-[14px] font-semibold" style={{ color: "hsl(244 30% 88%)", letterSpacing: "-0.01em" }}>
+                  Check for local models
+                </p>
                 <p className="text-[13px] mt-1" style={{ color: muted }}>Scans Ollama and LM Studio</p>
               </div>
-              <button onClick={refresh}
+              <button
+                onClick={refresh}
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-[13px] font-semibold"
-                style={{ background: "linear-gradient(135deg, hsl(246 89% 68%) 0%, hsl(258 75% 72%) 100%)", color: "white", boxShadow: "0 2px 10px rgba(124,111,247,0.35)" }}>
+                style={{
+                  background: "linear-gradient(135deg, hsl(246 89% 64%) 0%, hsl(258 72% 68%) 100%)",
+                  color: "white",
+                  boxShadow: "0 2px 12px rgba(124,111,247,0.38)",
+                  letterSpacing: "-0.01em",
+                }}
+              >
                 <RefreshCw size={13} /> Scan now
               </button>
             </div>
@@ -206,47 +255,76 @@ export default function CapabilitiesPage() {
           {modelData && !loading && (
             <div className="space-y-3">
               {/* Ollama */}
-              <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "hsl(240 18% 9%)", border: "1px solid hsl(240 24% 13%)" }}>
-                <div className="flex items-center justify-between px-5 py-3.5" style={{ borderBottom: "1px solid hsl(240 24% 12%)" }}>
+              <div className="section-card">
+                <div className="section-card-header">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: "rgba(124,111,247,0.14)", color: primary }}>
+                    <div
+                      className="w-7 h-7 rounded-lg flex items-center justify-center"
+                      style={{ backgroundColor: "rgba(124,111,247,0.14)", color: primary }}
+                    >
                       <Box size={13} />
                     </div>
-                    <span className="text-[13px] font-semibold text-foreground">Ollama</span>
+                    <span className="text-[13px] font-semibold" style={{ color: "hsl(244 30% 92%)", letterSpacing: "-0.01em" }}>
+                      Ollama
+                    </span>
                   </div>
                   {modelData.ollama_error ? (
-                    <span className="text-[11px] px-2.5 py-0.5 rounded-full font-medium text-destructive" style={{ backgroundColor: "hsl(347 87% 60% / 0.08)", border: "1px solid hsl(347 87% 60% / 0.18)" }}>
+                    <span
+                      className="text-[11px] px-2.5 py-0.5 rounded-full font-medium"
+                      style={{ color: "hsl(347 87% 62%)", backgroundColor: "hsl(347 87% 60% / 0.08)", border: "1px solid hsl(347 87% 60% / 0.2)" }}
+                    >
                       Unreachable
                     </span>
                   ) : (
-                    <span className="text-[11px] px-2.5 py-0.5 rounded-full font-medium" style={{ backgroundColor: "rgba(124,111,247,0.12)", color: primary, border: "1px solid rgba(124,111,247,0.25)" }}>
+                    <span
+                      className="text-[11px] px-2.5 py-0.5 rounded-full font-medium"
+                      style={{ backgroundColor: "rgba(124,111,247,0.12)", color: primary, border: "1px solid rgba(124,111,247,0.25)" }}
+                    >
                       {modelData.ollama.length} model{modelData.ollama.length !== 1 ? "s" : ""}
                     </span>
                   )}
                 </div>
                 {modelData.ollama_error ? (
                   <div className="px-5 py-4 text-[13px] flex items-start gap-2.5" style={{ color: muted }}>
-                    <AlertCircle size={13} className="text-destructive flex-shrink-0 mt-0.5" />
+                    <AlertCircle size={13} style={{ color: "hsl(347 87% 62%)" }} className="flex-shrink-0 mt-0.5" />
                     <div>
                       <p>{modelData.ollama_error}</p>
-                      <p className="mt-1.5" style={{ color: dim }}>
-                        Run <code className="px-1.5 py-0.5 rounded text-[12px] text-foreground" style={{ backgroundColor: "hsl(240 20% 12%)" }}>ollama serve</code> to start.
+                      <p className="mt-2" style={{ color: dim }}>
+                        Run{" "}
+                        <code
+                          className="px-1.5 py-0.5 rounded text-[12px]"
+                          style={{ backgroundColor: "hsl(240 22% 6%)", color: "hsl(244 30% 88%)", border: "1px solid hsl(240 20% 12%)" }}
+                        >
+                          ollama serve
+                        </code>{" "}
+                        to start.
                       </p>
                     </div>
                   </div>
                 ) : modelData.ollama.length === 0 ? (
                   <div className="px-5 py-4 text-[13px]" style={{ color: muted }}>
-                    No models installed. Run <code className="px-1.5 py-0.5 rounded text-[12px] text-foreground" style={{ backgroundColor: "hsl(240 20% 12%)" }}>ollama pull llama3.2</code>
+                    No models installed. Run{" "}
+                    <code
+                      className="px-1.5 py-0.5 rounded text-[12px]"
+                      style={{ backgroundColor: "hsl(240 22% 6%)", color: "hsl(244 30% 88%)", border: "1px solid hsl(240 20% 12%)" }}
+                    >
+                      ollama pull llama3.2
+                    </code>
                   </div>
                 ) : (
-                  <div className="divide-y" style={{ borderColor: "hsl(240 24% 12%)" }}>
+                  <div className="divide-y" style={{ borderColor: "hsl(240 20% 11%)" }}>
                     {modelData.ollama.map(m => (
                       <div key={m.name} className="flex items-center justify-between px-5 py-3">
                         <div className="flex items-center gap-3">
                           <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: primary }} />
-                          <span className="text-[14px] font-medium text-foreground">{m.name}</span>
+                          <span className="text-[13.5px] font-medium" style={{ color: "hsl(244 30% 90%)", letterSpacing: "-0.01em" }}>
+                            {m.name}
+                          </span>
                         </div>
-                        <span className="text-[12px] flex items-center gap-1.5 px-2 py-0.5 rounded-lg" style={{ color: muted, backgroundColor: "hsl(240 20% 12%)" }}>
+                        <span
+                          className="text-[11px] flex items-center gap-1.5 px-2.5 py-1 rounded-lg"
+                          style={{ color: muted, backgroundColor: "hsl(240 22% 7%)", border: "1px solid hsl(240 20% 11%)" }}
+                        >
                           <HardDrive size={10} /> {m.size_gb} GB
                         </span>
                       </div>
@@ -256,27 +334,38 @@ export default function CapabilitiesPage() {
               </div>
 
               {/* LM Studio */}
-              <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "hsl(240 18% 9%)", border: "1px solid hsl(240 24% 13%)" }}>
-                <div className="flex items-center justify-between px-5 py-3.5" style={{ borderBottom: "1px solid hsl(240 24% 12%)" }}>
+              <div className="section-card">
+                <div className="section-card-header">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: "rgba(167,139,250,0.14)", color: "hsl(270 70% 72%)" }}>
+                    <div
+                      className="w-7 h-7 rounded-lg flex items-center justify-center"
+                      style={{ backgroundColor: "rgba(167,139,250,0.14)", color: "hsl(270 70% 72%)" }}
+                    >
                       <Cpu size={13} />
                     </div>
-                    <span className="text-[13px] font-semibold text-foreground">LM Studio</span>
+                    <span className="text-[13px] font-semibold" style={{ color: "hsl(244 30% 92%)", letterSpacing: "-0.01em" }}>
+                      LM Studio
+                    </span>
                   </div>
                   {modelData.lmstudio_error ? (
-                    <span className="text-[11px] px-2.5 py-0.5 rounded-full font-medium text-destructive" style={{ backgroundColor: "hsl(347 87% 60% / 0.08)", border: "1px solid hsl(347 87% 60% / 0.18)" }}>
+                    <span
+                      className="text-[11px] px-2.5 py-0.5 rounded-full font-medium"
+                      style={{ color: "hsl(347 87% 62%)", backgroundColor: "hsl(347 87% 60% / 0.08)", border: "1px solid hsl(347 87% 60% / 0.2)" }}
+                    >
                       Unreachable
                     </span>
                   ) : (
-                    <span className="text-[11px] px-2.5 py-0.5 rounded-full font-medium" style={{ backgroundColor: "rgba(167,139,250,0.12)", color: "hsl(270 70% 72%)", border: "1px solid rgba(167,139,250,0.25)" }}>
+                    <span
+                      className="text-[11px] px-2.5 py-0.5 rounded-full font-medium"
+                      style={{ backgroundColor: "rgba(167,139,250,0.12)", color: "hsl(270 70% 72%)", border: "1px solid rgba(167,139,250,0.25)" }}
+                    >
                       {modelData.lmstudio.length} model{modelData.lmstudio.length !== 1 ? "s" : ""}
                     </span>
                   )}
                 </div>
                 {modelData.lmstudio_error ? (
                   <div className="px-5 py-4 text-[13px] flex items-start gap-2.5" style={{ color: muted }}>
-                    <AlertCircle size={13} className="text-destructive flex-shrink-0 mt-0.5" />
+                    <AlertCircle size={13} style={{ color: "hsl(347 87% 62%)" }} className="flex-shrink-0" />
                     <p>Start the LM Studio local server on port 1234.</p>
                   </div>
                 ) : modelData.lmstudio.length === 0 ? (
@@ -284,14 +373,19 @@ export default function CapabilitiesPage() {
                     No loaded models. Load a model in LM Studio and enable the local server.
                   </div>
                 ) : (
-                  <div className="divide-y" style={{ borderColor: "hsl(240 24% 12%)" }}>
+                  <div className="divide-y" style={{ borderColor: "hsl(240 20% 11%)" }}>
                     {modelData.lmstudio.map(m => (
                       <div key={m.name} className="flex items-center justify-between px-5 py-3">
                         <div className="flex items-center gap-3">
                           <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: "hsl(270 70% 72%)" }} />
-                          <span className="text-[14px] font-medium text-foreground">{m.name}</span>
+                          <span className="text-[13.5px] font-medium" style={{ color: "hsl(244 30% 90%)", letterSpacing: "-0.01em" }}>
+                            {m.name}
+                          </span>
                         </div>
-                        <span className="text-[11px] px-2 py-0.5 rounded-lg" style={{ color: dim, backgroundColor: "hsl(240 17% 12%)" }}>
+                        <span
+                          className="text-[11px] px-2.5 py-1 rounded-lg"
+                          style={{ color: dim, backgroundColor: "hsl(240 22% 7%)", border: "1px solid hsl(240 20% 11%)" }}
+                        >
                           {m.object}
                         </span>
                       </div>
@@ -300,7 +394,7 @@ export default function CapabilitiesPage() {
                 )}
               </div>
 
-              <p className="text-[11px] text-center pb-4 tracking-wide" style={{ color: "hsl(242 17% 30%)" }}>
+              <p className="text-[11px] text-center pb-4" style={{ color: "hsl(242 17% 28%)", letterSpacing: "0.02em" }}>
                 Local models run entirely on your machine — no data leaves your device
               </p>
             </div>

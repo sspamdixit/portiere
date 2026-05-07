@@ -3,9 +3,9 @@ import { Save, Eye, EyeOff, CheckCircle, AlertCircle, Loader2, ChevronRight, Che
 import { fetchSettings, saveSettings } from "@/lib/api";
 
 const dim = "hsl(242 17% 36%)";
-const muted = "hsl(242 18% 61%)";
+const muted = "hsl(242 18% 56%)";
 const primary = "hsl(246 89% 70%)";
-const green = "hsl(142 71% 45%)";
+const green = "hsl(142 68% 48%)";
 
 function SelectField({ value, onChange, options }: {
   value: string; onChange: (v: string) => void;
@@ -13,11 +13,19 @@ function SelectField({ value, onChange, options }: {
 }) {
   return (
     <div className="relative">
-      <select value={value} onChange={e => onChange(e.target.value)}
-        className="w-full appearance-none rounded-xl px-4 py-3 text-[14px] text-foreground outline-none pr-10"
-        style={{ backgroundColor: "hsl(240 20% 8%)", border: "1px solid hsl(240 24% 14%)", cursor: "pointer" }}
-        onFocus={e => { e.currentTarget.style.borderColor = "hsl(246 89% 70% / 0.4)"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(124,111,247,0.07)"; }}
-        onBlur={e => { e.currentTarget.style.borderColor = "hsl(240 24% 14%)"; e.currentTarget.style.boxShadow = "none"; }}>
+      <select
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        className="portiere-input portiere-select pr-10"
+        onFocus={e => {
+          e.currentTarget.style.borderColor = "hsl(246 89% 70% / 0.45)";
+          e.currentTarget.style.boxShadow = "0 0 0 3px hsl(246 89% 70% / 0.07)";
+        }}
+        onBlur={e => {
+          e.currentTarget.style.borderColor = "hsl(240 20% 12%)";
+          e.currentTarget.style.boxShadow = "none";
+        }}
+      >
         {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
       <ChevronDown size={13} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2" style={{ color: dim }} />
@@ -33,24 +41,44 @@ function Field({ label, description, secret, value, onChange, placeholder, type,
 }) {
   const [show, setShow] = useState(false);
   return (
-    <div className="space-y-2">
+    <div className="space-y-1.5">
       <div className="flex items-baseline justify-between">
-        <label className="text-[13px] font-medium text-foreground">{label}</label>
-        {description && <span className="text-[11px] tracking-wide" style={{ color: dim }}>{description}</span>}
+        <label className="text-[13px] font-medium" style={{ color: "hsl(244 30% 88%)", letterSpacing: "-0.01em" }}>
+          {label}
+        </label>
+        {description && (
+          <span className="text-[11px]" style={{ color: "hsl(242 17% 36%)", letterSpacing: "0.01em" }}>
+            {description}
+          </span>
+        )}
       </div>
       {options ? (
         <SelectField value={value} onChange={onChange} options={options} />
       ) : (
         <div className="relative">
-          <input type={secret && !show ? "password" : (type || "text")} value={value}
-            onChange={e => onChange(e.target.value)} placeholder={placeholder}
-            className="w-full rounded-xl px-4 py-3 text-[14px] text-foreground outline-none transition-all"
-            style={{ backgroundColor: "hsl(240 20% 8%)", border: "1px solid hsl(240 24% 14%)", caretColor: primary, paddingRight: secret ? "2.75rem" : undefined }}
-            onFocus={e => { e.currentTarget.style.borderColor = "hsl(246 89% 70% / 0.4)"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(124,111,247,0.07)"; }}
-            onBlur={e => { e.currentTarget.style.borderColor = "hsl(240 24% 14%)"; e.currentTarget.style.boxShadow = "none"; }} />
+          <input
+            type={secret && !show ? "password" : (type || "text")}
+            value={value}
+            onChange={e => onChange(e.target.value)}
+            placeholder={placeholder}
+            className="portiere-input"
+            style={{ paddingRight: secret ? "2.75rem" : undefined }}
+            onFocus={e => {
+              e.currentTarget.style.borderColor = "hsl(246 89% 70% / 0.45)";
+              e.currentTarget.style.boxShadow = "0 0 0 3px hsl(246 89% 70% / 0.07)";
+            }}
+            onBlur={e => {
+              e.currentTarget.style.borderColor = "hsl(240 20% 12%)";
+              e.currentTarget.style.boxShadow = "none";
+            }}
+          />
           {secret && (
-            <button type="button" onClick={() => setShow(v => !v)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 transition-opacity hover:opacity-70" style={{ color: muted }}>
+            <button
+              type="button"
+              onClick={() => setShow(v => !v)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 transition-opacity hover:opacity-70"
+              style={{ color: muted }}
+            >
               {show ? <EyeOff size={14} /> : <Eye size={14} />}
             </button>
           )}
@@ -60,21 +88,33 @@ function Field({ label, description, secret, value, onChange, placeholder, type,
   );
 }
 
-function CapabilityCard({ title, icon, iconColor, iconBg, statusLabel, statusOk, children }: {
+function SectionCard({ title, icon, iconColor, iconBg, statusLabel, statusOk, children }: {
   title: string; icon: React.ReactNode; iconColor: string; iconBg: string;
   statusLabel: string; statusOk: boolean; children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl overflow-hidden mb-3" style={{ backgroundColor: "hsl(240 18% 9%)", border: "1px solid hsl(240 24% 13%)" }}>
-      <div className="flex items-center justify-between px-5 py-3.5" style={{ borderBottom: "1px solid hsl(240 24% 12%)" }}>
+    <div className="section-card mb-3">
+      <div className="section-card-header">
         <div className="flex items-center gap-3">
-          <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ backgroundColor: iconBg, color: iconColor }}>
+          <div
+            className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+            style={{ backgroundColor: iconBg, color: iconColor }}
+          >
             {icon}
           </div>
-          <span className="text-[13px] font-semibold text-foreground">{title}</span>
+          <span className="text-[13px] font-semibold" style={{ color: "hsl(244 30% 94%)", letterSpacing: "-0.01em" }}>
+            {title}
+          </span>
         </div>
-        <span className="text-[11px] px-2 py-0.5 rounded-full font-medium"
-          style={{ backgroundColor: statusOk ? "rgba(34,197,94,0.1)" : "hsl(240 24% 13%)", color: statusOk ? green : dim, border: `1px solid ${statusOk ? "rgba(34,197,94,0.25)" : "transparent"}` }}>
+        <span
+          className="text-[11px] px-2.5 py-1 rounded-full font-semibold"
+          style={{
+            backgroundColor: statusOk ? "rgba(34,197,94,0.1)" : "hsl(240 20% 11%)",
+            color: statusOk ? green : "hsl(242 17% 40%)",
+            border: `1px solid ${statusOk ? "rgba(34,197,94,0.25)" : "transparent"}`,
+            letterSpacing: "0.01em",
+          }}
+        >
           {statusLabel}
         </span>
       </div>
@@ -140,7 +180,11 @@ export default function SettingsPage() {
   };
 
   if (loading) {
-    return <div className="flex-1 flex items-center justify-center"><Loader2 size={18} className="animate-spin" style={{ color: muted }} /></div>;
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <Loader2 size={18} className="animate-spin" style={{ color: muted }} />
+      </div>
+    );
   }
 
   const provider = form.brain_provider;
@@ -152,11 +196,13 @@ export default function SettingsPage() {
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 flex-shrink-0"
-        style={{ height: "48px", borderBottom: "1px solid hsl(240 24% 12%)" }}>
-        <div className="flex items-center gap-2 text-[14px]">
-          <span className="font-medium text-foreground">Settings</span>
-          <ChevronRight size={13} style={{ color: "hsl(242 17% 30%)" }} />
+      <div
+        className="flex items-center justify-between px-6 flex-shrink-0"
+        style={{ height: "46px", borderBottom: "1px solid hsl(240 20% 9%)" }}
+      >
+        <div className="flex items-center gap-2">
+          <span className="text-[13.5px] font-semibold" style={{ color: "hsl(244 30% 85%)", letterSpacing: "-0.01em" }}>Settings</span>
+          <ChevronRight size={12} style={{ color: "hsl(242 17% 28%)" }} />
           <span className="text-[13px]" style={{ color: muted }}>AI & Capabilities</span>
         </div>
         <div className="flex items-center gap-3">
@@ -166,13 +212,21 @@ export default function SettingsPage() {
             </div>
           )}
           {status === "error" && (
-            <div className="flex items-center gap-1.5 text-[12px] text-destructive" title={errorMsg}>
+            <div className="flex items-center gap-1.5 text-[12px]" style={{ color: "hsl(347 87% 62%)" }} title={errorMsg}>
               <AlertCircle size={12} /> Error
             </div>
           )}
-          <button onClick={handleSave} disabled={saving}
+          <button
+            onClick={handleSave}
+            disabled={saving}
             className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-[13px] font-semibold transition-all disabled:opacity-50"
-            style={{ background: "linear-gradient(135deg, hsl(246 89% 68%) 0%, hsl(258 75% 72%) 100%)", color: "white", boxShadow: "0 2px 8px rgba(124,111,247,0.3)" }}>
+            style={{
+              background: "linear-gradient(135deg, hsl(246 89% 64%) 0%, hsl(258 72% 68%) 100%)",
+              color: "white",
+              boxShadow: "0 2px 10px rgba(124,111,247,0.32)",
+              letterSpacing: "-0.01em",
+            }}
+          >
             {saving ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />}
             Save
           </button>
@@ -182,89 +236,95 @@ export default function SettingsPage() {
       <div className="flex-1 overflow-y-auto feed-scroll px-6 py-5 space-y-4 max-w-2xl w-full">
 
         {/* About You */}
-        <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "hsl(240 18% 9%)", border: "1px solid hsl(240 24% 13%)" }}>
-          <div className="flex items-center gap-3 px-5 py-3.5" style={{ borderBottom: "1px solid hsl(240 24% 12%)" }}>
-            <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ backgroundColor: "rgba(34,197,94,0.14)", color: "hsl(142 60% 55%)" }}>
-              <User size={13} />
-            </div>
-            <div>
-              <h3 className="text-[13px] font-semibold text-foreground">About You</h3>
-              <p className="text-[11px] mt-0.5" style={{ color: dim }}>
-                {hasProfile ? "Portiere knows your context" : "Tell Portiere about yourself for personalized responses"}
-              </p>
-            </div>
+        <SectionCard
+          title="About You"
+          icon={<User size={14} />}
+          iconColor="hsl(142 60% 55%)"
+          iconBg="rgba(34,197,94,0.14)"
+          statusLabel={hasProfile ? "Personalized" : "Not set"}
+          statusOk={hasProfile}
+        >
+          <p className="text-[13px] leading-relaxed" style={{ color: muted, letterSpacing: "-0.005em" }}>
+            Injected into every request — "find a therapist near me" works because Portiere knows your city. Emails are signed with your name.
+          </p>
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="Your name" placeholder="Alex" value={form.profile_name} onChange={set("profile_name")} />
+            <Field label="City / location" placeholder="New York, NY" value={form.profile_city} onChange={set("profile_city")} />
           </div>
-          <div className="p-5 space-y-4">
-            <p className="text-[13px] leading-relaxed" style={{ color: muted }}>
-              Injected into every request — "find a therapist near me" works because Portiere knows your city. Emails are signed with your name.
-            </p>
-            <div className="grid grid-cols-2 gap-4">
-              <Field label="Your name" placeholder="Alex" value={form.profile_name} onChange={set("profile_name")} />
-              <Field label="City / location" placeholder="New York, NY" value={form.profile_city} onChange={set("profile_city")} />
-            </div>
-            <Field label="What you do" placeholder="Product designer, student, startup founder..."
-              value={form.profile_occupation} onChange={set("profile_occupation")} />
-            <Field label="Preferences" description="anything Portiere should always know"
-              placeholder="morning flights, vegetarian, concise answers, prefer email over phone..."
-              value={form.profile_preferences} onChange={set("profile_preferences")} />
-          </div>
-        </div>
+          <Field label="What you do" placeholder="Product designer, student, startup founder..."
+            value={form.profile_occupation} onChange={set("profile_occupation")} />
+          <Field label="Preferences" description="anything Portiere should always know"
+            placeholder="morning flights, vegetarian, concise answers, prefer email over phone..."
+            value={form.profile_preferences} onChange={set("profile_preferences")} />
+        </SectionCard>
 
         {/* Your AI */}
-        <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "hsl(240 18% 9%)", border: "1px solid hsl(240 24% 13%)" }}>
-          <div className="flex items-center gap-3 px-5 py-3.5" style={{ borderBottom: "1px solid hsl(240 24% 12%)" }}>
-            <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ backgroundColor: "rgba(124,111,247,0.14)", color: primary }}>
-              <span className="text-[11px] font-bold">◈</span>
-            </div>
-            <div>
-              <h3 className="text-[13px] font-semibold text-foreground">Your AI</h3>
-              <p className="text-[11px] mt-0.5" style={{ color: dim }}>The Brain that routes all your requests</p>
-            </div>
-          </div>
-          <div className="p-5 space-y-4">
-            <Field label="Provider" value={provider} onChange={set("brain_provider")}
-              options={[
-                { value: "ollama",    label: "Ollama — free, runs on your machine" },
-                { value: "lmstudio", label: "LM Studio — free, desktop app" },
-                { value: "openai",   label: "OpenAI — GPT-4o" },
-                { value: "anthropic",label: "Anthropic — Claude as Brain" },
-              ]} />
-            <Field label="Model" placeholder="llama3.2 / gpt-4o / claude-3-5-sonnet-20241022"
-              value={form.brain_model} onChange={set("brain_model")} />
-            {(provider === "ollama" || provider === "lmstudio") ? (
-              <Field label="Local endpoint" placeholder="http://localhost:11434/v1"
-                value={form.brain_base_url} onChange={set("brain_base_url")} />
-            ) : (
-              <Field label="API Key" secret placeholder="sk-..."
-                value={form.brain_api_key} onChange={set("brain_api_key")} />
-            )}
-          </div>
-        </div>
+        <SectionCard
+          title="Your AI Brain"
+          icon={<span className="text-[12px] font-bold">◈</span>}
+          iconColor={primary}
+          iconBg="rgba(124,111,247,0.16)"
+          statusLabel={provider === "ollama" || provider === "lmstudio" ? "Local" : "Cloud"}
+          statusOk={true}
+        >
+          <Field label="Provider" value={provider} onChange={set("brain_provider")}
+            options={[
+              { value: "ollama",     label: "Ollama — free, runs on your machine" },
+              { value: "lmstudio",   label: "LM Studio — free, desktop app" },
+              { value: "openai",     label: "OpenAI — GPT-4o" },
+              { value: "anthropic",  label: "Anthropic — Claude as Brain" },
+            ]}
+          />
+          <Field label="Model" placeholder="llama3.2 / gpt-4o / claude-3-5-sonnet-20241022"
+            value={form.brain_model} onChange={set("brain_model")} />
+          {(provider === "ollama" || provider === "lmstudio") ? (
+            <Field label="Local endpoint" placeholder="http://localhost:11434/v1"
+              value={form.brain_base_url} onChange={set("brain_base_url")} />
+          ) : (
+            <Field label="API Key" secret placeholder="sk-..."
+              value={form.brain_api_key} onChange={set("brain_api_key")} />
+          )}
+        </SectionCard>
 
-        {/* Capabilities heading */}
-        <p className="text-[12px] font-semibold tracking-widest uppercase px-1" style={{ color: dim }}>Capabilities</p>
+        {/* Capabilities label */}
+        <p
+          className="text-[10px] font-semibold px-1"
+          style={{ color: "hsl(242 17% 34%)", letterSpacing: "0.06em", textTransform: "uppercase" }}
+        >
+          Capabilities
+        </p>
 
         {/* Claude */}
-        <CapabilityCard title="Claude — Coding & Deep Writing"
-          icon={<Sparkles size={13} />} iconColor="hsl(270 70% 72%)" iconBg="rgba(167,139,250,0.14)"
-          statusLabel={hasClaudeKey ? "Connected" : "Not configured"} statusOk={hasClaudeKey}>
+        <SectionCard
+          title="Claude — Writing & Coding"
+          icon={<Sparkles size={13} />}
+          iconColor="hsl(270 70% 72%)"
+          iconBg="rgba(167,139,250,0.14)"
+          statusLabel={hasClaudeKey ? "Connected" : "Not configured"}
+          statusOk={hasClaudeKey}
+        >
           <Field label="Anthropic API Key" secret placeholder="sk-ant-..."
             value={form.claude_api_key} onChange={set("claude_api_key")} />
           <Field label="Model" value={form.claude_model} onChange={set("claude_model")} options={[
-            { value: "claude-3-5-sonnet-20241022", label: "Claude 3.5 Sonnet" },
-            { value: "claude-3-5-haiku-20241022",  label: "Claude 3.5 Haiku (faster)" },
-            { value: "claude-3-opus-20240229",     label: "Claude 3 Opus (most powerful)" },
+            { value: "claude-3-5-sonnet-20241022", label: "Claude 3.5 Sonnet — best overall" },
+            { value: "claude-3-5-haiku-20241022",  label: "Claude 3.5 Haiku — faster" },
+            { value: "claude-3-opus-20240229",     label: "Claude 3 Opus — most powerful" },
           ]} />
-        </CapabilityCard>
+        </SectionCard>
 
-        {/* Email / SMTP */}
-        <CapabilityCard title="Email — Send via SMTP"
-          icon={<Mail size={13} />} iconColor="hsl(38 90% 60%)" iconBg="rgba(245,158,11,0.14)"
-          statusLabel={hasSmtp ? "Configured" : "Not configured"} statusOk={hasSmtp}>
-          <p className="text-[13px] leading-relaxed" style={{ color: muted }}>
+        {/* Email */}
+        <SectionCard
+          title="Email — Send via SMTP"
+          icon={<Mail size={13} />}
+          iconColor="hsl(38 90% 60%)"
+          iconBg="rgba(245,158,11,0.14)"
+          statusLabel={hasSmtp ? "Configured" : "Not configured"}
+          statusOk={hasSmtp}
+        >
+          <p className="text-[13px] leading-relaxed" style={{ color: muted, letterSpacing: "-0.005em" }}>
             Without this, Portiere drafts emails with a mailto link to open your email app. With SMTP, it sends them directly.
           </p>
-          <Field label="SMTP Host" placeholder="smtp.gmail.com · smtp.mail.yahoo.com · smtp.office365.com"
+          <Field label="SMTP Host" placeholder="smtp.gmail.com · smtp.office365.com"
             value={form.smtp_host} onChange={set("smtp_host")} />
           <div className="grid grid-cols-2 gap-4">
             <Field label="Port" placeholder="587" value={form.smtp_port} onChange={set("smtp_port")} />
@@ -276,57 +336,85 @@ export default function SettingsPage() {
           <div className="grid grid-cols-2 gap-4">
             <Field label="Email / Username" placeholder="you@gmail.com"
               value={form.smtp_user} onChange={set("smtp_user")} />
-            <Field label="Password" secret placeholder="App password (not main password)"
+            <Field label="Password" secret placeholder="App password"
               value={form.smtp_password} onChange={set("smtp_password")} />
           </div>
           <Field label="From address" placeholder="Alex Smith <alex@gmail.com>"
             value={form.smtp_from} onChange={set("smtp_from")} />
-          <p className="text-[12px] p-3 rounded-xl" style={{ color: dim, backgroundColor: "hsl(240 22% 7%)", border: "1px solid hsl(240 24% 12%)" }}>
-            <strong className="text-foreground/60">Gmail tip:</strong> Enable 2-step verification, then create an App Password at myaccount.google.com/apppasswords — use that instead of your main password.
+          <p
+            className="text-[12px] p-3.5 rounded-xl leading-relaxed"
+            style={{ color: dim, backgroundColor: "hsl(240 22% 6%)", border: "1px solid hsl(240 20% 11%)" }}
+          >
+            <strong style={{ color: "hsl(244 30% 70%)" }}>Gmail tip:</strong> Enable 2-step verification, then create an App Password at myaccount.google.com/apppasswords — use that instead of your main password.
           </p>
-        </CapabilityCard>
+        </SectionCard>
 
         {/* Video */}
-        <CapabilityCard title="Video Generation"
-          icon={<Film size={13} />} iconColor="hsl(328 80% 68%)" iconBg="rgba(244,114,182,0.14)"
-          statusLabel={hasFalKey ? "Connected" : "Not configured"} statusOk={hasFalKey}>
+        <SectionCard
+          title="Video Generation"
+          icon={<Film size={13} />}
+          iconColor="hsl(328 80% 68%)"
+          iconBg="rgba(244,114,182,0.14)"
+          statusLabel={hasFalKey ? "Connected" : "Not configured"}
+          statusOk={hasFalKey}
+        >
           <Field label="FAL API Key" secret placeholder="fal_..."
             value={form.fal_api_key} onChange={set("fal_api_key")} />
           <Field label="Seedance API Key" secret placeholder="sk-..."
             value={form.seedance_api_key} onChange={set("seedance_api_key")} />
-        </CapabilityCard>
+        </SectionCard>
 
-        {/* System access */}
-        <CapabilityCard title="System Access"
-          icon={<Monitor size={13} />} iconColor="hsl(142 60% 55%)" iconBg="rgba(34,197,94,0.14)"
-          statusLabel="Built-in" statusOk={true}>
-          <Field label="Shell Commands" description="Lets Portiere run terminal commands"
-            value={form.allow_shell_commands} onChange={set("allow_shell_commands")}
+        {/* System */}
+        <SectionCard
+          title="System Access"
+          icon={<Monitor size={13} />}
+          iconColor="hsl(142 60% 55%)"
+          iconBg="rgba(34,197,94,0.14)"
+          statusLabel="Built-in"
+          statusOk={true}
+        >
+          <Field
+            label="Shell Commands"
+            description="lets Portiere run terminal commands"
+            value={form.allow_shell_commands}
+            onChange={set("allow_shell_commands")}
             options={[
               { value: "false", label: "Disabled — monitoring only (safe)" },
               { value: "true",  label: "Enabled — can run shell commands" },
-            ]} />
+            ]}
+          />
           {form.allow_shell_commands === "true" && (
             <Field label="Allowed Commands" description="Leave blank to allow all"
-              placeholder="ls, cat, echo, python3" value={form.shell_command_allowlist} onChange={set("shell_command_allowlist")} />
+              placeholder="ls, cat, echo, python3"
+              value={form.shell_command_allowlist} onChange={set("shell_command_allowlist")} />
           )}
-        </CapabilityCard>
+        </SectionCard>
 
         {/* Advanced */}
         <details className="group">
-          <summary className="cursor-pointer text-[12px] font-medium list-none flex items-center gap-2 py-1 px-1 select-none" style={{ color: dim }}>
+          <summary
+            className="cursor-pointer text-[12px] font-medium list-none flex items-center gap-2 py-1 px-1 select-none transition-colors"
+            style={{ color: dim }}
+            onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "hsl(242 18% 52%)"}
+            onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = dim}
+          >
             <ChevronRight size={13} className="transition-transform group-open:rotate-90" />
             Advanced — Local AI endpoints
           </summary>
-          <div className="mt-3 rounded-2xl overflow-hidden" style={{ backgroundColor: "hsl(240 18% 9%)", border: "1px solid hsl(240 24% 13%)" }}>
+          <div className="mt-3 section-card">
             <div className="p-5 space-y-4">
-              <Field label="Ollama Base URL" placeholder="http://localhost:11434" value={form.ollama_base_url} onChange={set("ollama_base_url")} />
-              <Field label="LM Studio Base URL" placeholder="http://localhost:1234/v1" value={form.lmstudio_base_url} onChange={set("lmstudio_base_url")} />
+              <Field label="Ollama Base URL" placeholder="http://localhost:11434"
+                value={form.ollama_base_url} onChange={set("ollama_base_url")} />
+              <Field label="LM Studio Base URL" placeholder="http://localhost:1234/v1"
+                value={form.lmstudio_base_url} onChange={set("lmstudio_base_url")} />
             </div>
           </div>
         </details>
 
-        <p className="text-[11px] text-center pb-6 tracking-wide" style={{ color: "hsl(242 17% 30%)" }}>
+        <p
+          className="text-[11px] text-center pb-6"
+          style={{ color: "hsl(242 17% 28%)", letterSpacing: "0.02em" }}
+        >
           Everything stored locally — nothing leaves your device
         </p>
       </div>
