@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import {
-  ArrowUp, Paperclip, X, Loader2, Brain,
-  Film, Globe, HardDrive, Cpu, ChevronRight,
-  Sparkles, Search as SearchIcon, Monitor, Check, Copy,
+  ArrowUp, Paperclip, X, Loader2,
+  Film, Globe, Cpu, ChevronRight,
+  Sparkles, Search as SearchIcon, Monitor, Check, Copy, RotateCcw,
 } from "lucide-react";
 import { streamOrchestrate, type OrchestrateEvent } from "@/lib/api";
 import { saveSession } from "@/lib/sessions";
 import { useSession } from "@/lib/SessionContext";
+import { MarkdownContent } from "@/components/MarkdownContent";
 
 interface FeedEntry { id: number; event: OrchestrateEvent & { _elapsed?: number }; ts: string; }
 
@@ -42,14 +43,14 @@ const ALL_SUGGESTIONS = [
   "Plan a weekend trip to Milan",
   "Help me write a cold pitch email",
   "Build a to-do app in Python",
-  "Find a therapist near Brooklyn who takes insurance",
+  "Find a therapist near me who takes insurance",
   "What's trending in AI today?",
   "Check my computer's performance",
   "Find flights to Barcelona next Friday",
   "Help me write my resume summary",
 ];
 
-// ─── Pipeline step indicator ────────────────────────────────────────────────
+// ─── Pipeline step ────────────────────────────────────────────────────────
 function PipelineStep({ label, status }: { label: string; status: "pending" | "active" | "done" }) {
   return (
     <div className="flex flex-col items-center gap-1.5">
@@ -91,7 +92,7 @@ function PipelineStep({ label, status }: { label: string; status: "pending" | "a
   );
 }
 
-// ─── Progress / activity card ────────────────────────────────────────────────
+// ─── Activity card (progress pipeline) ───────────────────────────────────
 function ActivityCard({ activity, elapsed }: { activity: ActivityState; elapsed: number }) {
   const { message, pipeline, brainStatus, progress } = activity;
   const allDone = pipeline.length > 0 && pipeline.every(s => s.status === "done");
@@ -105,25 +106,17 @@ function ActivityCard({ activity, elapsed }: { activity: ActivityState; elapsed:
         boxShadow: "0 0 0 1px rgba(124,111,247,0.05), 0 4px 20px rgba(0,0,0,0.3)",
       }}
     >
-      {/* Header row */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Loader2 size={13} className="animate-spin" style={{ color: "hsl(246 89% 70%)" }} />
           <span className="text-[13px] font-semibold text-foreground">Portiere is working</span>
         </div>
-        <span
-          className="text-[12px] tabular-nums font-medium"
-          style={{ color: "hsl(242 17% 40%)" }}
-        >
+        <span className="text-[12px] tabular-nums font-medium" style={{ color: "hsl(242 17% 40%)" }}>
           {elapsed}s
         </span>
       </div>
 
-      {/* Progress bar */}
-      <div
-        className="h-1 rounded-full mb-4 overflow-hidden"
-        style={{ backgroundColor: "hsl(240 24% 13%)" }}
-      >
+      <div className="h-1 rounded-full mb-4 overflow-hidden" style={{ backgroundColor: "hsl(240 24% 13%)" }}>
         <div
           className="h-full rounded-full transition-all duration-700 ease-out"
           style={{
@@ -134,46 +127,34 @@ function ActivityCard({ activity, elapsed }: { activity: ActivityState; elapsed:
         />
       </div>
 
-      {/* Pipeline steps */}
       <div className="flex items-end justify-center gap-1 mb-3">
         <PipelineStep label="Brain" status={brainStatus === "done" ? "done" : "active"} />
-        {pipeline.map((step, i) => (
+        {pipeline.map(step => (
           <div key={step.worker} className="flex items-center gap-1">
             <div
               className="h-px w-6 transition-colors duration-500"
-              style={{
-                backgroundColor:
-                  step.status !== "pending" ? "rgba(124,111,247,0.35)" : "hsl(240 24% 16%)",
-              }}
+              style={{ backgroundColor: step.status !== "pending" ? "rgba(124,111,247,0.35)" : "hsl(240 24% 16%)" }}
             />
             <PipelineStep label={step.label} status={step.status} />
           </div>
         ))}
         <div className="flex items-center gap-1">
-          <div
-            className="h-px w-6 transition-colors duration-500"
-            style={{ backgroundColor: allDone ? "rgba(34,197,94,0.3)" : "hsl(240 24% 16%)" }}
-          />
+          <div className="h-px w-6" style={{ backgroundColor: allDone ? "rgba(34,197,94,0.3)" : "hsl(240 24% 16%)" }} />
           <PipelineStep label="Done" status={allDone ? "done" : "pending"} />
         </div>
       </div>
 
-      {/* Status text */}
-      <p className="text-[12px] text-center" style={{ color: "hsl(242 18% 52%)" }}>
-        {message}
-      </p>
+      <p className="text-[12px] text-center" style={{ color: "hsl(242 18% 52%)" }}>{message}</p>
     </div>
   );
 }
 
-// ─── Worker result card ────────────────────────────────────────────────────
+// ─── Worker result card (with markdown) ───────────────────────────────────
 function WorkerResultCard({ event }: { event: OrchestrateEvent }) {
   const k = (event.worker || "brain").toLowerCase();
   const meta = CARD_META[k] || { label: "Result", Icon: Cpu, color: "hsl(242 18% 55%)" };
   const content = event.content || "";
   const videoUrl = (event.data as Record<string, unknown>)?.video_url as string | undefined;
-  const isCode = content.includes("```") ||
-    (content.split("\n").some(l => l.startsWith("    ") || l.startsWith("\t")) && content.split("\n").length > 4);
 
   const [copied, setCopied] = useState(false);
   const copy = () => {
@@ -191,7 +172,6 @@ function WorkerResultCard({ event }: { event: OrchestrateEvent }) {
         boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
       }}
     >
-      {/* Card header */}
       <div
         className="flex items-center justify-between px-4 py-3"
         style={{ borderBottom: "1px solid hsl(240 24% 12%)" }}
@@ -217,32 +197,12 @@ function WorkerResultCard({ event }: { event: OrchestrateEvent }) {
           {copied ? "Copied" : "Copy"}
         </button>
       </div>
-
-      {/* Content */}
       <div className="px-5 py-4">
-        {isCode ? (
-          <pre
-            className="mono-output whitespace-pre-wrap break-words"
-            style={{ color: "hsl(244 100% 97% / 0.82)", fontSize: "13px", lineHeight: "1.7" }}
-          >
-            {content}
-          </pre>
-        ) : (
-          <p
-            className="whitespace-pre-wrap break-words leading-relaxed"
-            style={{ color: "hsl(244 100% 97% / 0.82)", fontSize: "14px" }}
-          >
-            {content}
-          </p>
-        )}
+        <MarkdownContent content={content} />
         {videoUrl && (
-          <a
-            href={videoUrl}
-            target="_blank"
-            rel="noreferrer"
+          <a href={videoUrl} target="_blank" rel="noreferrer"
             className="inline-flex items-center gap-1.5 mt-3 text-[13px] font-medium"
-            style={{ color: "hsl(246 89% 72%)" }}
-          >
+            style={{ color: "hsl(246 89% 72%)" }}>
             View generated video →
           </a>
         )}
@@ -251,62 +211,45 @@ function WorkerResultCard({ event }: { event: OrchestrateEvent }) {
   );
 }
 
-// ─── Streaming card ───────────────────────────────────────────────────────
+// ─── Streaming card ────────────────────────────────────────────────────────
 function StreamingCard({ worker, text }: { worker: string; text: string }) {
   const k = worker.toLowerCase();
   const meta = CARD_META[k] || { label: "Working", Icon: Cpu, color: "hsl(242 18% 55%)" };
   return (
-    <div
-      className="mx-5 my-2.5 rounded-2xl overflow-hidden"
-      style={{ backgroundColor: "hsl(240 18% 9%)", border: "1px solid hsl(240 24% 13%)" }}
-    >
-      <div
-        className="flex items-center gap-2.5 px-4 py-3"
-        style={{ borderBottom: "1px solid hsl(240 24% 12%)" }}
-      >
-        <div
-          className="w-6 h-6 rounded-lg flex items-center justify-center"
-          style={{ backgroundColor: `${meta.color}18`, color: meta.color }}
-        >
+    <div className="mx-5 my-2.5 rounded-2xl overflow-hidden"
+      style={{ backgroundColor: "hsl(240 18% 9%)", border: "1px solid hsl(240 24% 13%)" }}>
+      <div className="flex items-center gap-2.5 px-4 py-3" style={{ borderBottom: "1px solid hsl(240 24% 12%)" }}>
+        <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${meta.color}18`, color: meta.color }}>
           <meta.Icon size={13} />
         </div>
         <span className="text-[13px] font-semibold text-foreground">{meta.label}</span>
         <Loader2 size={11} className="animate-spin ml-0.5" style={{ color: meta.color }} />
       </div>
       <div className="px-5 py-4">
-        <pre
-          className="mono-output whitespace-pre-wrap break-words"
-          style={{ color: "hsl(244 100% 97% / 0.72)", fontSize: "13px", lineHeight: "1.7" }}
-        >
-          {text}
-          <span className="cursor-blink" />
+        <pre className="mono-output whitespace-pre-wrap break-words text-[13px] leading-[1.7]"
+          style={{ color: "hsl(244 100% 97% / 0.72)" }}>
+          {text}<span className="cursor-blink" />
         </pre>
       </div>
     </div>
   );
 }
 
-// ─── Complete row ─────────────────────────────────────────────────────────
+// ─── Complete divider ──────────────────────────────────────────────────────
 function CompleteRow({ elapsed }: { elapsed?: number }) {
   return (
     <div className="flex items-center gap-3 py-5 px-5 animate-feed-in">
-      <div
-        className="flex-1 h-px"
-        style={{ background: "linear-gradient(90deg, transparent, hsl(240 24% 14%) 40%)" }}
-      />
+      <div className="flex-1 h-px" style={{ background: "linear-gradient(90deg, transparent, hsl(240 24% 14%) 40%)" }} />
       <div className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wide" style={{ color: "hsl(142 71% 45%)" }}>
         <Check size={11} />
         Done{elapsed !== undefined ? ` · ${elapsed}s` : ""}
       </div>
-      <div
-        className="flex-1 h-px"
-        style={{ background: "linear-gradient(90deg, hsl(240 24% 14%) 60%, transparent)" }}
-      />
+      <div className="flex-1 h-px" style={{ background: "linear-gradient(90deg, hsl(240 24% 14%) 60%, transparent)" }} />
     </div>
   );
 }
 
-// ─── Main page ────────────────────────────────────────────────────────────
+// ─── Main page ─────────────────────────────────────────────────────────────
 let idSeq = 0;
 
 export default function ConsolePage() {
@@ -320,6 +263,7 @@ export default function ConsolePage() {
   const [showFilePath, setShowFilePath] = useState(false);
   const [running, setRunning] = useState(false);
   const [elapsed, setElapsed] = useState(0);
+  const [lastContext, setLastContext] = useState<string | null>(null);
 
   const feedRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -332,7 +276,7 @@ export default function ConsolePage() {
     []
   );
 
-  // Load session from sidebar click
+  // Load session from sidebar
   useEffect(() => {
     if (loadedSession) {
       feedEventsRef.current = loadedSession.events;
@@ -340,16 +284,15 @@ export default function ConsolePage() {
       setActivity(null);
       setChunkBuffers({});
       setRunning(false);
+      setLastContext(null);
     }
   }, [loadedSession]);
 
-  // Elapsed timer while running
+  // Elapsed timer
   useEffect(() => {
     if (running) {
       startTimeRef.current = Date.now();
-      const t = setInterval(() => {
-        setElapsed(Math.floor((Date.now() - startTimeRef.current) / 1000));
-      }, 1000);
+      const t = setInterval(() => setElapsed(Math.floor((Date.now() - startTimeRef.current) / 1000)), 1000);
       return () => clearInterval(t);
     } else {
       setElapsed(0);
@@ -381,7 +324,6 @@ export default function ConsolePage() {
       if (event.type === "brain_thinking") {
         return { ...base, message: "Understanding your request...", progress: Math.max(base.progress, 15) };
       }
-
       if (event.type === "brain_decision") {
         const chain = (event.data as Record<string, unknown[]>)?.chain ?? [];
         const pipeline = (chain as Array<Record<string, string>>).map(s => ({
@@ -391,19 +333,15 @@ export default function ConsolePage() {
         }));
         return { ...base, brainStatus: "done", pipeline, message: "Planning the best approach...", progress: 28 };
       }
-
       if (event.type === "worker_start") {
         const w = (event.worker || "").toLowerCase();
         const pipeline = base.pipeline.map(s => s.worker === w ? { ...s, status: "active" as const } : s);
         const doneCount = pipeline.filter(s => s.status === "done").length;
-        const progress = 28 + (doneCount / Math.max(1, pipeline.length)) * 62;
-        return { ...base, pipeline, message: WORKER_MESSAGES[w] || "Working on it...", progress };
+        return { ...base, pipeline, message: WORKER_MESSAGES[w] || "Working on it...", progress: 28 + (doneCount / Math.max(1, pipeline.length)) * 62 };
       }
-
       if (event.type === "worker_thinking") {
         return { ...base, message: event.content || base.message };
       }
-
       return base;
     });
   }, []);
@@ -419,26 +357,28 @@ export default function ConsolePage() {
 
     const userEv: OrchestrateEvent = { type: "user_input", content: msg };
     feedEventsRef.current.push(userEv);
-    setFeed([{ id: idSeq++, event: userEv, ts: now() }]);
+    setFeed(prev => {
+      // If there are existing entries (continuing), keep them and add new user message
+      if (prev.length > 0 && lastContext) {
+        return [...prev, { id: idSeq++, event: userEv, ts: now() }];
+      }
+      return [{ id: idSeq++, event: userEv, ts: now() }];
+    });
 
     const cancel = streamOrchestrate(
       msg,
       filePath.trim() || null,
+      lastContext,
       (event) => {
-        // Brain and routing events → activity card only
         if (["brain_thinking", "brain_decision", "chain_step", "worker_start", "worker_thinking"].includes(event.type)) {
           updateActivity(event);
           return;
         }
-
-        // Streaming chunks → buffer
         if (event.type === "worker_chunk") {
           const key = event.worker || "unknown";
           setChunkBuffers(prev => ({ ...prev, [key]: (prev[key] || "") + (event.content || "") }));
           return;
         }
-
-        // Worker done → mark pipeline step, clear buffer, show result card
         if (event.type === "worker_done") {
           if (event.worker) {
             setChunkBuffers(prev => { const u = { ...prev }; delete u[event.worker!]; return u; });
@@ -448,17 +388,16 @@ export default function ConsolePage() {
                 s.worker === event.worker ? { ...s, status: "done" as const } : s
               );
               const doneCount = pipeline.filter(s => s.status === "done").length;
-              const progress = 28 + (doneCount / Math.max(1, pipeline.length)) * 62;
-              return { ...prev, pipeline, progress, message: "Finalizing..." };
+              return { ...prev, pipeline, progress: 28 + (doneCount / Math.max(1, pipeline.length)) * 62, message: "Finalizing..." };
             });
           }
           addEntry(event);
           return;
         }
-
-        // Complete → save session, hide activity card
         if (event.type === "complete") {
           const secs = Math.floor((Date.now() - startTimeRef.current) / 1000);
+          const ctx = (event.data as Record<string, unknown>)?.context as string | undefined;
+          if (ctx) setLastContext(ctx);
           const enriched = { ...event, _elapsed: secs };
           feedEventsRef.current.push(enriched);
           setFeed(prev => [...prev, { id: idSeq++, event: enriched, ts: now() }]);
@@ -467,24 +406,22 @@ export default function ConsolePage() {
           notifySessionSaved();
           return;
         }
-
         addEntry(event);
       },
       () => { setRunning(false); stopRef.current = null; setActivity(null); },
       (err) => { addEntry({ type: "error", error: err }); setRunning(false); setActivity(null); },
     );
     stopRef.current = cancel;
-  }, [input, filePath, running, addEntry, updateActivity, notifySessionSaved, setLoadedSession]);
+  }, [input, filePath, running, lastContext, addEntry, updateActivity, notifySessionSaved, setLoadedSession]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); }
-    if (e.key === "l" && e.ctrlKey) { e.preventDefault(); handleClear(); }
   };
 
   const handleClear = () => {
     setFeed([]); feedEventsRef.current = [];
     setActivity(null); setChunkBuffers({});
-    setLoadedSession(null);
+    setLoadedSession(null); setLastContext(null);
   };
 
   const isEmpty = feed.length === 0 && !running;
@@ -493,10 +430,8 @@ export default function ConsolePage() {
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden">
       {/* Header */}
-      <div
-        className="flex items-center justify-between px-6 flex-shrink-0"
-        style={{ height: "48px", borderBottom: "1px solid hsl(240 24% 12%)" }}
-      >
+      <div className="flex items-center justify-between px-6 flex-shrink-0"
+        style={{ height: "48px", borderBottom: "1px solid hsl(240 24% 12%)" }}>
         <div className="flex items-center gap-2 text-[14px]">
           <span className="font-medium text-foreground">Chat</span>
           {!isEmpty && (
@@ -517,16 +452,13 @@ export default function ConsolePage() {
           )}
           {isComplete && (
             <div className="flex items-center gap-1.5 text-[12px]" style={{ color: "hsl(142 71% 48%)" }}>
-              <Check size={11} />
-              Done
+              <Check size={11} /> Done
             </div>
           )}
           {!isEmpty && (
-            <button
-              onClick={handleClear}
+            <button onClick={handleClear}
               className="text-[12px] px-2.5 py-1 rounded-lg transition-all hover:bg-white/[0.04]"
-              style={{ color: "hsl(242 17% 40%)" }}
-            >
+              style={{ color: "hsl(242 17% 40%)" }}>
               Clear
             </button>
           )}
@@ -536,27 +468,20 @@ export default function ConsolePage() {
       {/* Feed */}
       <div ref={feedRef} className="flex-1 overflow-y-auto feed-scroll">
         {isEmpty ? (
-          /* ── Empty state ── */
           <div className="relative flex flex-col items-center justify-center h-full text-center gap-7 px-8 overflow-hidden">
-            <div
-              className="absolute inset-0 pointer-events-none"
-              style={{ background: "radial-gradient(ellipse 55% 38% at 50% 48%, rgba(124,111,247,0.07) 0%, transparent 72%)" }}
-            />
+            <div className="absolute inset-0 pointer-events-none"
+              style={{ background: "radial-gradient(ellipse 55% 38% at 50% 48%, rgba(124,111,247,0.07) 0%, transparent 72%)" }} />
             <div className="relative flex flex-col items-center gap-4">
-              <div
-                className="w-14 h-14 rounded-2xl flex items-center justify-center"
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center"
                 style={{
                   background: "linear-gradient(135deg, rgba(124,111,247,0.18) 0%, rgba(124,111,247,0.06) 100%)",
                   border: "1px solid rgba(124,111,247,0.22)",
                   boxShadow: "0 0 28px rgba(124,111,247,0.12)",
-                }}
-              >
+                }}>
                 <span className="text-[26px] leading-none" style={{ color: "hsl(246 89% 72%)" }}>◈</span>
               </div>
               <div>
-                <p className="text-[22px] font-semibold text-foreground tracking-tight">
-                  What should Portiere do?
-                </p>
+                <p className="text-[22px] font-semibold text-foreground tracking-tight">What should Portiere do?</p>
                 <p className="text-[14px] mt-1.5" style={{ color: "hsl(242 18% 52%)" }}>
                   Describe anything — flights, code, research, emails, planning.
                 </p>
@@ -564,23 +489,15 @@ export default function ConsolePage() {
             </div>
             <div className="relative flex flex-wrap gap-2 justify-center max-w-lg">
               {suggestions.map(s => (
-                <button
-                  key={s}
-                  onClick={() => { setInput(s); inputRef.current?.focus(); }}
+                <button key={s} onClick={() => { setInput(s); inputRef.current?.focus(); }}
                   className="suggestion-chip px-4 py-2 rounded-full text-[13px]"
-                  style={{
-                    backgroundColor: "hsl(240 18% 9%)",
-                    border: "1px solid hsl(240 24% 14%)",
-                    color: "hsl(242 18% 55%)",
-                  }}
-                >
+                  style={{ backgroundColor: "hsl(240 18% 9%)", border: "1px solid hsl(240 24% 14%)", color: "hsl(242 18% 55%)" }}>
                   {s}
                 </button>
               ))}
             </div>
           </div>
         ) : (
-          /* ── Feed entries ── */
           <div className="max-w-3xl mx-auto w-full py-5">
             {feed.map(entry => {
               const { event } = entry;
@@ -588,16 +505,11 @@ export default function ConsolePage() {
               if (event.type === "user_input") {
                 return (
                   <div key={entry.id} className="flex flex-col items-end px-5 mb-6 mt-4 animate-feed-in">
-                    <span
-                      className="text-[10px] uppercase tracking-widest font-semibold mb-1.5"
-                      style={{ color: "hsl(242 17% 34%)" }}
-                    >
+                    <span className="text-[10px] uppercase tracking-widest font-semibold mb-1.5" style={{ color: "hsl(242 17% 34%)" }}>
                       You
                     </span>
-                    <p
-                      className="text-[15px] font-medium leading-relaxed text-right"
-                      style={{ color: "hsl(244 100% 97%)", maxWidth: "68%" }}
-                    >
+                    <p className="text-[15px] font-medium leading-relaxed text-right"
+                      style={{ color: "hsl(244 100% 97%)", maxWidth: "68%" }}>
                       {event.content}
                     </p>
                   </div>
@@ -614,11 +526,9 @@ export default function ConsolePage() {
 
               if (event.type === "error" || event.type === "worker_error") {
                 return (
-                  <div
-                    key={entry.id}
+                  <div key={entry.id}
                     className="mx-5 my-2 p-4 rounded-2xl text-[13px] text-destructive animate-feed-in"
-                    style={{ backgroundColor: "hsl(347 87% 60% / 0.06)", border: "1px solid hsl(347 87% 60% / 0.18)" }}
-                  >
+                    style={{ backgroundColor: "hsl(347 87% 60% / 0.06)", border: "1px solid hsl(347 87% 60% / 0.18)" }}>
                     {event.error || event.content}
                   </div>
                 );
@@ -636,73 +546,63 @@ export default function ConsolePage() {
               return null;
             })}
 
-            {/* Streaming buffers */}
             {Object.entries(chunkBuffers).map(([worker, text]) =>
               text ? <StreamingCard key={worker} worker={worker} text={text} /> : null
             )}
 
-            {/* Activity / progress card */}
-            {activity && running && (
-              <ActivityCard activity={activity} elapsed={elapsed} />
-            )}
+            {activity && running && <ActivityCard activity={activity} elapsed={elapsed} />}
           </div>
         )}
       </div>
 
       {/* Input area */}
-      <div
-        className="flex-shrink-0 px-5 pb-5 pt-3"
-        style={{ borderTop: "1px solid hsl(240 24% 12%)" }}
-      >
+      <div className="flex-shrink-0 px-5 pb-5 pt-3" style={{ borderTop: "1px solid hsl(240 24% 12%)" }}>
+        {/* Context / follow-up indicator */}
+        {lastContext && !running && (
+          <div className="flex items-center gap-2 mb-3">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium"
+              style={{ backgroundColor: "rgba(124,111,247,0.1)", border: "1px solid rgba(124,111,247,0.2)", color: "hsl(246 89% 72%)" }}>
+              <RotateCcw size={11} />
+              Following up on previous result
+            </div>
+            <button onClick={() => setLastContext(null)}
+              className="text-[11px] px-2.5 py-1.5 rounded-full transition-colors hover:bg-white/[0.04]"
+              style={{ color: "hsl(242 17% 40%)" }}>
+              Start fresh
+            </button>
+          </div>
+        )}
+
         {/* Post-completion suggestion chips */}
-        {isComplete && (
+        {isComplete && !lastContext && (
           <div className="flex gap-2 mb-3 flex-wrap">
             {suggestions.slice(0, 3).map(s => (
-              <button
-                key={s}
-                onClick={() => { setInput(s); inputRef.current?.focus(); }}
+              <button key={s} onClick={() => { setInput(s); inputRef.current?.focus(); }}
                 className="suggestion-chip px-3 py-1.5 rounded-full text-[12px]"
-                style={{
-                  backgroundColor: "hsl(240 18% 9%)",
-                  border: "1px solid hsl(240 24% 14%)",
-                  color: "hsl(242 18% 52%)",
-                }}
-              >
+                style={{ backgroundColor: "hsl(240 18% 9%)", border: "1px solid hsl(240 24% 14%)", color: "hsl(242 18% 52%)" }}>
                 {s}
               </button>
             ))}
           </div>
         )}
 
-        {/* File path row */}
         {showFilePath && (
-          <div
-            className="flex items-center gap-2 mb-2 px-4 py-2 rounded-xl"
-            style={{ backgroundColor: "hsl(240 17% 8%)", border: "1px solid hsl(240 24% 14%)" }}
-          >
+          <div className="flex items-center gap-2 mb-2 px-4 py-2 rounded-xl"
+            style={{ backgroundColor: "hsl(240 17% 8%)", border: "1px solid hsl(240 24% 14%)" }}>
             <Paperclip size={11} style={{ color: "hsl(242 17% 40%)" }} />
-            <input
-              type="text"
-              value={filePath}
-              onChange={e => setFilePath(e.target.value)}
-              placeholder="/path/to/file"
-              className="flex-1 bg-transparent text-[13px] text-foreground outline-none"
-              style={{ caretColor: "hsl(246 89% 70%)" }}
-            />
+            <input type="text" value={filePath} onChange={e => setFilePath(e.target.value)}
+              placeholder="/path/to/file" className="flex-1 bg-transparent text-[13px] text-foreground outline-none"
+              style={{ caretColor: "hsl(246 89% 70%)" }} />
             <button onClick={() => { setShowFilePath(false); setFilePath(""); }}>
               <X size={13} style={{ color: "hsl(242 17% 40%)" }} />
             </button>
           </div>
         )}
 
-        {/* Command bar */}
         <div className="command-bar flex items-end gap-2 px-4 py-3">
-          <button
-            onClick={() => setShowFilePath(v => !v)}
-            title="Attach file path"
+          <button onClick={() => setShowFilePath(v => !v)} title="Attach file path"
             className="flex-shrink-0 mb-0.5 transition-opacity hover:opacity-70"
-            style={{ color: showFilePath || filePath ? "hsl(246 89% 70%)" : "hsl(242 17% 38%)" }}
-          >
+            style={{ color: showFilePath || filePath ? "hsl(246 89% 70%)" : "hsl(242 17% 38%)" }}>
             <Paperclip size={15} />
           </button>
           <textarea
@@ -710,7 +610,7 @@ export default function ConsolePage() {
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="What should Portiere do next?"
+            placeholder={lastContext ? "Ask a follow-up question..." : "What should Portiere do next?"}
             disabled={running}
             rows={1}
             className="flex-1 bg-transparent text-[14px] text-foreground outline-none resize-none leading-relaxed max-h-36 overflow-y-auto disabled:opacity-40"
@@ -721,9 +621,7 @@ export default function ConsolePage() {
             disabled={!running && !input.trim()}
             className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-xl transition-all disabled:opacity-25 disabled:cursor-not-allowed"
             style={{
-              background: running
-                ? "transparent"
-                : "linear-gradient(135deg, hsl(246 89% 68%) 0%, hsl(258 75% 72%) 100%)",
+              background: running ? "transparent" : "linear-gradient(135deg, hsl(246 89% 68%) 0%, hsl(258 75% 72%) 100%)",
               color: running ? "hsl(347 87% 65%)" : "white",
               border: running ? "1px solid hsl(347 87% 60% / 0.35)" : "none",
               boxShadow: running ? "none" : "0 2px 8px rgba(124,111,247,0.35)",
@@ -733,10 +631,7 @@ export default function ConsolePage() {
           </button>
         </div>
 
-        <p
-          className="text-center text-[11px] mt-2.5 tracking-wide"
-          style={{ color: "hsl(242 17% 30%)" }}
-        >
+        <p className="text-center text-[11px] mt-2.5 tracking-wide" style={{ color: "hsl(242 17% 30%)" }}>
           Portiere uses AI — always verify important results
         </p>
       </div>

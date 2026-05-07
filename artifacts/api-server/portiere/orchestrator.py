@@ -1,5 +1,3 @@
-import asyncio
-import json
 from typing import AsyncIterator, Optional
 from portiere.brain import Brain
 from portiere.models import OrchestrateRequest, SettingsModel, BrainDecision
@@ -43,7 +41,11 @@ class Orchestrator:
                 yield {"type": "warning", "content": f"Could not load file: {e}"}
 
         decision: Optional[BrainDecision] = None
-        async for event in brain.analyze(request.message, file_content):
+        async for event in brain.analyze(
+            request.message,
+            file_content,
+            request.context or "",
+        ):
             yield event
             if event["type"] == "brain_done":
                 decision = BrainDecision(**event["data"])
@@ -90,7 +92,7 @@ class Orchestrator:
         yield {
             "type": "complete",
             "content": "Done.",
-            "data": {"context": context[:2000]},
+            "data": {"context": context[:3000]},
         }
 
     async def list_models(self) -> dict:

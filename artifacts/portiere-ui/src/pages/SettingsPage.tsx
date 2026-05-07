@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Save, Eye, EyeOff, CheckCircle, AlertCircle, Loader2, ChevronRight, ChevronDown, Sparkles, Film, Monitor, Shell } from "lucide-react";
+import { Save, Eye, EyeOff, CheckCircle, AlertCircle, Loader2, ChevronRight, ChevronDown, Sparkles, Film, Monitor, User } from "lucide-react";
 import { fetchSettings, saveSettings } from "@/lib/api";
 
 const dim = "hsl(242 17% 36%)";
@@ -67,8 +67,8 @@ function Field({ label, description, secret, value, onChange, placeholder, type,
   );
 }
 
-function Section({ title, icon, accentColor = primary, children }: {
-  title: string; icon?: React.ReactNode; accentColor?: string; children: React.ReactNode;
+function Section({ title, icon, accentColor = primary, description, children }: {
+  title: string; icon?: React.ReactNode; accentColor?: string; description?: string; children: React.ReactNode;
 }) {
   return (
     <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "hsl(240 18% 9%)", border: "1px solid hsl(240 24% 13%)", boxShadow: "0 1px 3px rgba(0,0,0,0.2)" }}>
@@ -79,7 +79,10 @@ function Section({ title, icon, accentColor = primary, children }: {
             {icon}
           </div>
         )}
-        <h3 className="text-[13px] font-semibold text-foreground tracking-tight">{title}</h3>
+        <div>
+          <h3 className="text-[13px] font-semibold text-foreground tracking-tight">{title}</h3>
+          {description && <p className="text-[11px] mt-0.5" style={{ color: dim }}>{description}</p>}
+        </div>
       </div>
       <div className="p-5 space-y-5">{children}</div>
     </div>
@@ -97,6 +100,7 @@ export default function SettingsPage() {
     ollama_base_url: "http://localhost:11434",
     lmstudio_base_url: "http://localhost:1234/v1",
     allow_shell_commands: "false", shell_command_allowlist: "",
+    profile_name: "", profile_city: "", profile_occupation: "", profile_preferences: "",
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -107,7 +111,9 @@ export default function SettingsPage() {
     fetchSettings()
       .then(data => setForm(prev => ({
         ...prev,
-        ...Object.fromEntries(Object.entries(data).map(([k, v]) => [k, Array.isArray(v) ? (v as string[]).join(", ") : String(v)])),
+        ...Object.fromEntries(
+          Object.entries(data).map(([k, v]) => [k, Array.isArray(v) ? (v as string[]).join(", ") : String(v === null || v === undefined ? "" : v)])
+        ),
       })))
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -123,6 +129,10 @@ export default function SettingsPage() {
         payload.shell_command_allowlist = (payload.shell_command_allowlist as string).split(",").map(s => s.trim()).filter(Boolean);
       }
       payload.allow_shell_commands = payload.allow_shell_commands === "true";
+      // Convert empty strings to null for optional profile fields
+      for (const key of ["profile_name", "profile_city", "profile_occupation", "profile_preferences"]) {
+        if (!payload[key]) payload[key] = null;
+      }
       await saveSettings(payload);
       setStatus("success");
       setTimeout(() => setStatus("idle"), 3000);
@@ -140,10 +150,10 @@ export default function SettingsPage() {
   const provider = form.brain_provider;
   const hasClaudeKey = form.claude_api_key.length > 5;
   const hasFalKey = form.fal_api_key.length > 5;
+  const hasProfile = form.profile_name || form.profile_city;
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden">
-      {/* Header */}
       <div className="flex items-center justify-between px-6 flex-shrink-0" style={{ height: "48px", borderBottom: "1px solid hsl(240 24% 12%)" }}>
         <div className="flex items-center gap-2 text-[14px]">
           <span className="font-medium text-foreground">Settings</span>
@@ -172,9 +182,34 @@ export default function SettingsPage() {
 
       <div className="flex-1 overflow-y-auto feed-scroll px-6 py-5 space-y-4 max-w-2xl w-full">
 
+        {/* About You — profile / memory */}
+        <Section
+          title="About You"
+          icon={<User size={13} />}
+          accentColor="hsl(142 60% 55%)"
+          description={hasProfile ? "Portiere knows your context" : "Tell Portiere about yourself so it can personalize every response"}
+        >
+          <p className="text-[13px] leading-relaxed" style={{ color: muted }}>
+            Portiere injects this into every request — so "find a therapist near me" works, and emails are signed with your name.
+          </p>
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="Your name" placeholder="Alex" value={form.profile_name} onChange={set("profile_name")} />
+            <Field label="City / location" placeholder="New York, NY" value={form.profile_city} onChange={set("profile_city")} />
+          </div>
+          <Field label="What you do" placeholder="Product designer, student, startup founder..."
+            value={form.profile_occupation} onChange={set("profile_occupation")} />
+          <Field
+            label="Preferences"
+            description="anything Portiere should always know"
+            placeholder="morning flights, vegetarian, concise answers, prefer email over phone..."
+            value={form.profile_preferences} onChange={set("profile_preferences")}
+          />
+        </Section>
+
         {/* Your AI */}
-        <Section title="Your AI" icon={<span className="text-[11px] font-bold">◈</span>} accentColor={primary}>
-          <Field label="Provider" description="The Brain that routes all your requests"
+        <Section title="Your AI" icon={<span className="text-[11px] font-bold">◈</span>} accentColor={primary}
+          description="The Brain that routes all your requests">
+          <Field label="Provider"
             value={provider} onChange={set("brain_provider")}
             options={[
               { value: "ollama",    label: "Ollama — free, runs on your machine" },
@@ -283,7 +318,7 @@ export default function SettingsPage() {
         </details>
 
         <p className="text-[11px] text-center pb-6 tracking-wide" style={{ color: "hsl(242 17% 30%)" }}>
-          Everything is stored locally — nothing is transmitted to third parties
+          Everything is stored locally on your machine — nothing leaves your device
         </p>
       </div>
     </div>

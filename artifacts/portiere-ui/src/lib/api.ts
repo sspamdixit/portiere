@@ -42,6 +42,7 @@ export async function probeLMStudio(): Promise<{ ok: boolean; models?: string[];
 export function streamOrchestrate(
   message: string,
   filePath: string | null,
+  prevContext: string | null,
   onEvent: (event: OrchestrateEvent) => void,
   onDone: () => void,
   onError: (err: string) => void,
@@ -52,7 +53,11 @@ export function streamOrchestrate(
       const r = await fetch(`${API}/orchestrate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message, file_path: filePath }),
+        body: JSON.stringify({
+          message,
+          file_path: filePath,
+          context: prevContext || undefined,
+        }),
         signal: ctrl.signal,
       });
       if (!r.ok) {
