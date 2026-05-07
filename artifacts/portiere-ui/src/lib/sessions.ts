@@ -4,16 +4,22 @@ export interface Session {
   id: string;
   title: string;
   timestamp: number;
+  pinned?: boolean;
   events: OrchestrateEvent[];
 }
 
 const KEY = "portiere_sessions";
-const MAX = 30;
+const MAX = 60;
 
 export function getSessions(): Session[] {
   try {
     const raw = localStorage.getItem(KEY);
-    return raw ? (JSON.parse(raw) as Session[]) : [];
+    const sessions = raw ? (JSON.parse(raw) as Session[]) : [];
+    return sessions.sort((a, b) => {
+      if (a.pinned && !b.pinned) return -1;
+      if (!a.pinned && b.pinned) return 1;
+      return b.timestamp - a.timestamp;
+    });
   } catch {
     return [];
   }
@@ -26,6 +32,7 @@ export function saveSession(events: OrchestrateEvent[]): Session {
     id: crypto.randomUUID(),
     title,
     timestamp: Date.now(),
+    pinned: false,
     events: events.filter(e =>
       ["user_input", "worker_done", "complete", "error", "worker_error"].includes(e.type)
     ),
@@ -37,6 +44,13 @@ export function saveSession(events: OrchestrateEvent[]): Session {
 
 export function deleteSession(id: string): void {
   localStorage.setItem(KEY, JSON.stringify(getSessions().filter(s => s.id !== id)));
+}
+
+export function togglePin(id: string): void {
+  const sessions = getSessions().map(s =>
+    s.id === id ? { ...s, pinned: !s.pinned } : s
+  );
+  localStorage.setItem(KEY, JSON.stringify(sessions));
 }
 
 export function clearAllSessions(): void {

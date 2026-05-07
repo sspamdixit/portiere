@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Link, useLocation } from "wouter";
-import { MessageSquare, Cpu, Settings, Plus, Trash2, Zap } from "lucide-react";
-import { getSessions, deleteSession, relativeTime, type Session } from "@/lib/sessions";
+import { MessageSquare, Cpu, Settings, Plus, Trash2, Zap, Search, Pin, PinOff } from "lucide-react";
+import { getSessions, deleteSession, togglePin, relativeTime, type Session } from "@/lib/sessions";
 import { useSession } from "@/lib/SessionContext";
 
 const nav = [
@@ -14,10 +14,17 @@ export default function Sidebar() {
   const [location, navigate] = useLocation();
   const { setLoadedSession, sidebarKey, notifySessionSaved } = useSession();
   const [sessions, setSessions] = useState<Session[]>([]);
+  const [search, setSearch] = useState("");
+  const [showSearch, setShowSearch] = useState(false);
+  const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setSessions(getSessions());
   }, [sidebarKey, notifySessionSaved]);
+
+  useEffect(() => {
+    if (showSearch) searchRef.current?.focus();
+  }, [showSearch]);
 
   const handleSessionClick = (s: Session) => {
     setLoadedSession(s);
@@ -30,10 +37,23 @@ export default function Sidebar() {
     setSessions(getSessions());
   };
 
+  const handlePin = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    togglePin(id);
+    setSessions(getSessions());
+  };
+
   const handleNewChat = () => {
     setLoadedSession(null);
     navigate("/");
   };
+
+  const filtered = search.trim()
+    ? sessions.filter(s => s.title.toLowerCase().includes(search.toLowerCase()))
+    : sessions;
+
+  const pinned = filtered.filter(s => s.pinned);
+  const recent = filtered.filter(s => !s.pinned);
 
   return (
     <aside
@@ -130,11 +150,11 @@ export default function Sidebar() {
         })}
       </nav>
 
-      {/* New chat button */}
-      <div className="px-2 mt-2 flex-shrink-0">
+      {/* New chat + search row */}
+      <div className="px-2 mt-2 flex items-center gap-1 flex-shrink-0">
         <button
           onClick={handleNewChat}
-          className="w-full flex items-center gap-2.5 h-8 px-3 rounded-xl text-[12.5px] font-medium transition-all duration-100"
+          className="flex-1 flex items-center gap-2 h-8 px-3 rounded-xl text-[12.5px] font-medium transition-all duration-100"
           style={{ color: "hsl(240 16% 40%)", letterSpacing: "-0.01em" }}
           onMouseEnter={e => {
             (e.currentTarget as HTMLElement).style.color = "hsl(240 20% 72%)";
@@ -148,48 +168,83 @@ export default function Sidebar() {
           <Plus size={13} style={{ opacity: 0.55, strokeWidth: 2.5 }} />
           New chat
         </button>
+        <button
+          onClick={() => setShowSearch(v => !v)}
+          className="flex items-center justify-center w-8 h-8 rounded-xl transition-all"
+          style={{ color: showSearch ? "hsl(248 90% 70%)" : "hsl(240 16% 36%)" }}
+          title="Search sessions"
+          onMouseEnter={e => { if (!showSearch) (e.currentTarget as HTMLElement).style.backgroundColor = "rgba(255,255,255,0.04)"; }}
+          onMouseLeave={e => { if (!showSearch) (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"; }}
+        >
+          <Search size={12} />
+        </button>
       </div>
+
+      {/* Search input */}
+      {showSearch && (
+        <div className="px-2 mt-1.5 flex-shrink-0 animate-feed-in">
+          <div className="relative">
+            <Search size={11} className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: "hsl(238 18% 34%)" }} />
+            <input
+              ref={searchRef}
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search history..."
+              className="w-full rounded-xl text-[12px] outline-none"
+              style={{
+                backgroundColor: "hsl(238 18% 7%)",
+                border: "1px solid hsl(238 18% 13%)",
+                color: "hsl(240 20% 88%)",
+                padding: "6px 10px 6px 26px",
+                caretColor: "hsl(248 90% 70%)",
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Session history */}
       {sessions.length > 0 && (
         <div className="flex-1 flex flex-col min-h-0 mt-3">
           <div className="mx-4 mb-2.5 h-px" style={{ background: "hsl(238 20% 8%)" }} />
-          <p
-            className="text-[10px] font-semibold px-5 pb-1"
-            style={{ color: "hsl(240 16% 28%)", letterSpacing: "0.08em", textTransform: "uppercase" }}
-          >
-            Recent
-          </p>
+
           <div className="flex-1 overflow-y-auto feed-scroll px-2 pb-3 flex flex-col gap-px">
-            {sessions.map(s => (
-              <button
-                key={s.id}
-                onClick={() => handleSessionClick(s)}
-                className="group relative flex flex-col text-left gap-0.5 px-3 py-2 rounded-xl w-full transition-all duration-100"
-                style={{ backgroundColor: "transparent" }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "rgba(255,255,255,0.03)"; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"; }}
-              >
-                <span
-                  className="text-[12px] truncate w-full pr-5 leading-snug font-medium"
-                  style={{ color: "hsl(240 20% 76% / 0.6)", letterSpacing: "-0.01em" }}
-                >
-                  {s.title}
-                </span>
-                <span className="text-[10.5px]" style={{ color: "hsl(240 16% 28%)" }}>
-                  {relativeTime(s.timestamp)}
-                </span>
-                <button
-                  onClick={e => handleDelete(e, s.id)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-lg"
-                  style={{ color: "hsl(240 16% 36%)" }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "rgba(255,255,255,0.06)"; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"; }}
-                >
-                  <Trash2 size={10} />
-                </button>
-              </button>
-            ))}
+            {/* Pinned section */}
+            {pinned.length > 0 && (
+              <>
+                <p className="text-[10px] font-semibold px-3 pb-1 flex items-center gap-1.5"
+                  style={{ color: "hsl(248 90% 60% / 0.7)", letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                  <Pin size={8} style={{ strokeWidth: 2.5 }} /> Pinned
+                </p>
+                {pinned.map(s => (
+                  <SessionItem key={s.id} s={s} onClick={handleSessionClick} onDelete={handleDelete} onPin={handlePin} />
+                ))}
+                {recent.length > 0 && (
+                  <div className="mx-1 my-1.5 h-px" style={{ background: "hsl(238 20% 9%)" }} />
+                )}
+              </>
+            )}
+
+            {/* Recent section */}
+            {recent.length > 0 && (
+              <>
+                {pinned.length === 0 && (
+                  <p className="text-[10px] font-semibold px-3 pb-1"
+                    style={{ color: "hsl(240 16% 28%)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                    Recent
+                  </p>
+                )}
+                {recent.map(s => (
+                  <SessionItem key={s.id} s={s} onClick={handleSessionClick} onDelete={handleDelete} onPin={handlePin} />
+                ))}
+              </>
+            )}
+
+            {search && filtered.length === 0 && (
+              <p className="text-[12px] text-center py-6" style={{ color: "hsl(238 18% 34%)" }}>
+                No sessions match
+              </p>
+            )}
           </div>
         </div>
       )}
@@ -214,5 +269,61 @@ export default function Sidebar() {
         </div>
       </div>
     </aside>
+  );
+}
+
+function SessionItem({
+  s,
+  onClick,
+  onDelete,
+  onPin,
+}: {
+  s: Session;
+  onClick: (s: Session) => void;
+  onDelete: (e: React.MouseEvent, id: string) => void;
+  onPin: (e: React.MouseEvent, id: string) => void;
+}) {
+  return (
+    <button
+      onClick={() => onClick(s)}
+      className="group relative flex flex-col text-left gap-0.5 px-3 py-2 rounded-xl w-full transition-all duration-100"
+      style={{ backgroundColor: "transparent" }}
+      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "rgba(255,255,255,0.03)"; }}
+      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"; }}
+    >
+      <span
+        className="text-[12px] truncate w-full pr-12 leading-snug font-medium"
+        style={{
+          color: s.pinned ? "hsl(240 20% 82% / 0.75)" : "hsl(240 20% 76% / 0.6)",
+          letterSpacing: "-0.01em",
+        }}
+      >
+        {s.title}
+      </span>
+      <span className="text-[10.5px]" style={{ color: "hsl(240 16% 28%)" }}>
+        {relativeTime(s.timestamp)}
+      </span>
+      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button
+          onClick={e => onPin(e, s.id)}
+          className="p-1 rounded-lg transition-colors"
+          style={{ color: s.pinned ? "hsl(248 90% 68%)" : "hsl(240 16% 36%)" }}
+          title={s.pinned ? "Unpin" : "Pin"}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "rgba(255,255,255,0.06)"; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"; }}
+        >
+          {s.pinned ? <PinOff size={10} /> : <Pin size={10} />}
+        </button>
+        <button
+          onClick={e => onDelete(e, s.id)}
+          className="p-1 rounded-lg transition-colors"
+          style={{ color: "hsl(240 16% 36%)" }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "rgba(220,53,69,0.12)"; (e.currentTarget as HTMLElement).style.color = "hsl(4 86% 62%)"; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"; (e.currentTarget as HTMLElement).style.color = "hsl(240 16% 36%)"; }}
+        >
+          <Trash2 size={10} />
+        </button>
+      </div>
+    </button>
   );
 }

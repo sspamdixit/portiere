@@ -5,12 +5,15 @@ import {
   Sparkles, Search as SearchIcon, Monitor, Check, Copy, RotateCcw,
   Cloud, Mail, Terminal, Download, ExternalLink,
   Image, Languages, Newspaper, TrendingUp, CalendarPlus,
-  Plane, Zap, PenLine,
+  Plane, PenLine, Mic, MicOff, FileDown, BookOpen, Keyboard,
+  Zap,
 } from "lucide-react";
 import { streamOrchestrate, type OrchestrateEvent } from "@/lib/api";
 import { saveSession } from "@/lib/sessions";
 import { useSession } from "@/lib/SessionContext";
 import { MarkdownContent } from "@/components/MarkdownContent";
+import KeyboardShortcutsModal from "@/components/KeyboardShortcutsModal";
+import TemplatesModal from "@/components/TemplatesModal";
 
 interface FeedEntry { id: number; event: OrchestrateEvent & { _elapsed?: number }; ts: string; }
 
@@ -120,20 +123,36 @@ const QUICK_ACTIONS = [
   },
 ];
 
-function downloadFile(content: string, worker: string) {
-  const ext = worker === "code_runner" ? "py" : "md";
-  const name = `portiere-${worker}-${Date.now()}.${ext}`;
-  const blob = new Blob([content], { type: "text/plain" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = name;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+// ── Export helpers ─────────────────────────────────────────────────────────
+function buildMarkdown(entries: FeedEntry[]): string {
+  const lines: string[] = ["# Portiere Conversation", "", `_Exported ${new Date().toLocaleString()}_`, ""];
+  for (const { event } of entries) {
+    if (event.type === "user_input") {
+      lines.push(`## You\n\n${event.content}\n`);
+    } else if (event.type === "worker_done") {
+      const k = (event.worker || "brain").toLowerCase();
+      const meta = CARD_META[k];
+      lines.push(`## ${meta?.label ?? "Result"}\n\n${event.content || ""}\n`);
+    }
+  }
+  return lines.join("\n");
 }
 
-// ─── Pipeline step ────────────────────────────────────────────────────────
+function downloadFile(content: string, filename: string, mime = "text/plain") {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+
+function downloadWorkerFile(content: string, worker: string) {
+  const ext = worker === "code_runner" ? "py" : "md";
+  downloadFile(content, `portiere-${worker}-${Date.now()}.${ext}`);
+}
+
+// ── Pipeline step ──────────────────────────────────────────────────────────
 function PipelineStep({ label, status }: { label: string; status: "pending" | "active" | "done" }) {
   return (
     <div className="flex flex-col items-center gap-1.5">
@@ -176,7 +195,7 @@ function PipelineStep({ label, status }: { label: string; status: "pending" | "a
   );
 }
 
-// ─── Activity card ────────────────────────────────────────────────────────
+// ── Activity card ──────────────────────────────────────────────────────────
 function ActivityCard({ activity, elapsed }: { activity: ActivityState; elapsed: number }) {
   const { message, pipeline, brainStatus, progress } = activity;
   const allDone = pipeline.length > 0 && pipeline.every(s => s.status === "done");
@@ -235,7 +254,7 @@ function ActivityCard({ activity, elapsed }: { activity: ActivityState; elapsed:
   );
 }
 
-// ─── Search result cards ─────────────────────────────────────────────────
+// ── Search result cards ────────────────────────────────────────────────────
 interface SearchResultItem { title: string; snippet: string; url: string; }
 interface SearchData { answer?: string; abstract?: string; abstract_url?: string; results?: SearchResultItem[]; }
 
@@ -272,10 +291,7 @@ function SearchResultCards({ data }: { data: SearchData }) {
               target="_blank"
               rel="noreferrer"
               className="flex items-start justify-between gap-3 p-3.5 rounded-xl transition-all group"
-              style={{
-                backgroundColor: "hsl(238 20% 6%)",
-                border: "1px solid hsl(238 18% 11%)",
-              }}
+              style={{ backgroundColor: "hsl(238 20% 6%)", border: "1px solid hsl(238 18% 11%)" }}
               onClick={!r.url ? e => e.preventDefault() : undefined}
               onMouseEnter={e => {
                 (e.currentTarget as HTMLElement).style.borderColor = "rgba(109,95,234,0.28)";
@@ -313,7 +329,7 @@ function SearchResultCards({ data }: { data: SearchData }) {
   );
 }
 
-// ─── Worker result card ───────────────────────────────────────────────────
+// ── Worker result card ─────────────────────────────────────────────────────
 function WorkerResultCard({ event }: { event: OrchestrateEvent }) {
   const k = (event.worker || "brain").toLowerCase();
   const meta = CARD_META[k] || { label: "Result", Icon: Cpu, color: "hsl(238 18% 55%)" };
@@ -359,7 +375,7 @@ function WorkerResultCard({ event }: { event: OrchestrateEvent }) {
         </div>
         <div className="flex items-center gap-1">
           <button
-            onClick={() => downloadFile(content, k)}
+            onClick={() => downloadWorkerFile(content, k)}
             className="flex items-center gap-1 text-[11px] font-medium transition-all px-2 py-1 rounded-lg"
             style={{ color: "hsl(238 18% 36%)" }}
             title="Save to file"
@@ -423,7 +439,7 @@ function WorkerResultCard({ event }: { event: OrchestrateEvent }) {
   );
 }
 
-// ─── Streaming card ────────────────────────────────────────────────────────
+// ── Streaming card ─────────────────────────────────────────────────────────
 function StreamingCard({ worker, text }: { worker: string; text: string }) {
   const k = worker.toLowerCase();
   const meta = CARD_META[k] || { label: "Working", Icon: Cpu, color: "hsl(238 18% 55%)" };
@@ -458,7 +474,7 @@ function StreamingCard({ worker, text }: { worker: string; text: string }) {
   );
 }
 
-// ─── Complete divider ──────────────────────────────────────────────────────
+// ── Complete divider ───────────────────────────────────────────────────────
 function CompleteRow({ elapsed }: { elapsed?: number }) {
   return (
     <div className="flex items-center gap-3 py-5 px-6 animate-feed-in">
@@ -479,7 +495,54 @@ function CompleteRow({ elapsed }: { elapsed?: number }) {
   );
 }
 
-// ─── Main page ─────────────────────────────────────────────────────────────
+// ── Voice input hook ───────────────────────────────────────────────────────
+type AnySpeechRecognition = {
+  lang: string;
+  interimResults: boolean;
+  maxAlternatives: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onresult: ((e: any) => void) | null;
+  onerror: (() => void) | null;
+  onend: (() => void) | null;
+  start(): void;
+  stop(): void;
+};
+
+function useVoiceInput(onTranscript: (text: string) => void) {
+  const [listening, setListening] = useState(false);
+  const recognitionRef = useRef<AnySpeechRecognition | null>(null);
+  const supported = typeof window !== "undefined" && ("SpeechRecognition" in window || "webkitSpeechRecognition" in window);
+
+  const toggle = useCallback(() => {
+    if (!supported) return;
+    if (listening) {
+      recognitionRef.current?.stop();
+      setListening(false);
+      return;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const win = window as any;
+    const SR = win.SpeechRecognition || win.webkitSpeechRecognition;
+    const rec: AnySpeechRecognition = new SR();
+    rec.lang = "en-US";
+    rec.interimResults = false;
+    rec.maxAlternatives = 1;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    rec.onresult = (e: any) => {
+      const transcript = e.results[0]?.[0]?.transcript ?? "";
+      if (transcript) onTranscript(transcript);
+    };
+    rec.onerror = () => setListening(false);
+    rec.onend = () => setListening(false);
+    rec.start();
+    recognitionRef.current = rec;
+    setListening(true);
+  }, [listening, supported, onTranscript]);
+
+  return { listening, toggle, supported };
+}
+
+// ── Main page ──────────────────────────────────────────────────────────────
 let idSeq = 0;
 
 export default function ConsolePage() {
@@ -495,12 +558,19 @@ export default function ConsolePage() {
   const [elapsed, setElapsed] = useState(0);
   const [lastContext, setLastContext] = useState<string | null>(null);
   const [lastWorker, setLastWorker] = useState<string | null>(null);
+  const [showShortcuts, setShowShortcuts] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
 
   const feedRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const stopRef = useRef<(() => void) | null>(null);
   const feedEventsRef = useRef<OrchestrateEvent[]>([]);
   const startTimeRef = useRef<number>(0);
+
+  const { listening, toggle: toggleVoice, supported: voiceSupported } = useVoiceInput((text) => {
+    setInput(prev => prev ? prev + " " + text : text);
+    inputRef.current?.focus();
+  });
 
   const followUpChips = useMemo(() => {
     if (!lastWorker) return [];
@@ -618,17 +688,31 @@ export default function ConsolePage() {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); }
   };
 
+  // Global keyboard shortcuts
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") { e.preventDefault(); inputRef.current?.focus(); }
+      const target = e.target as HTMLElement;
+      const inInput = target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.tagName === "SELECT";
+
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") { e.preventDefault(); inputRef.current?.focus(); return; }
+      if ((e.metaKey || e.ctrlKey) && e.key === "e") { e.preventDefault(); if (!isEmpty) handleExport(); return; }
+      if ((e.metaKey || e.ctrlKey) && e.key === "t") { e.preventDefault(); setShowTemplates(true); return; }
+      if ((e.metaKey || e.ctrlKey) && e.key === "/") { e.preventDefault(); toggleVoice(); return; }
+      if (!inInput && e.key === "?") { e.preventDefault(); setShowShortcuts(true); return; }
+      if (e.key === "Escape") { setShowShortcuts(false); setShowTemplates(false); }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, []);
+  }, [toggleVoice]);
 
   const handleClear = () => {
     setFeed([]); feedEventsRef.current = []; setActivity(null);
     setChunkBuffers({}); setLoadedSession(null); setLastContext(null); setLastWorker(null);
+  };
+
+  const handleExport = () => {
+    const md = buildMarkdown(feed);
+    downloadFile(md, `portiere-${Date.now()}.md`);
   };
 
   const isEmpty = feed.length === 0 && !running;
@@ -641,9 +725,18 @@ export default function ConsolePage() {
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden">
+      {/* Modals */}
+      {showShortcuts && <KeyboardShortcutsModal onClose={() => setShowShortcuts(false)} />}
+      {showTemplates && (
+        <TemplatesModal
+          onUse={(content) => { setInput(content); inputRef.current?.focus(); }}
+          onClose={() => setShowTemplates(false)}
+        />
+      )}
+
       {/* Header */}
       <div
-        className="flex items-center justify-between px-6 flex-shrink-0"
+        className="flex items-center justify-between px-5 flex-shrink-0"
         style={{ height: "48px", borderBottom: "1px solid hsl(238 18% 8%)" }}
       >
         <div className="flex items-center gap-2">
@@ -659,23 +752,63 @@ export default function ConsolePage() {
             </>
           )}
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1.5">
           {running && (
-            <div className="flex items-center gap-1.5 text-[12px]" style={{ color: "hsl(248 90% 70%)" }}>
+            <div className="flex items-center gap-1.5 text-[12px] mr-2" style={{ color: "hsl(248 90% 70%)" }}>
               <Loader2 size={11} className="animate-spin" />
               <span style={{ letterSpacing: "-0.01em" }}>{elapsed}s</span>
             </div>
           )}
           {isComplete && !running && (
-            <div className="flex items-center gap-1.5 text-[12px]" style={{ color: "hsl(152 64% 50%)" }}>
+            <div className="flex items-center gap-1.5 text-[12px] mr-1" style={{ color: "hsl(152 64% 50%)" }}>
               <Check size={11} />
               <span style={{ letterSpacing: "-0.01em" }}>Done</span>
             </div>
           )}
+          {/* Export button */}
+          {!isEmpty && (
+            <button
+              onClick={handleExport}
+              title="Export chat (⌘E)"
+              className="flex items-center gap-1.5 text-[12px] px-2.5 py-1.5 rounded-lg transition-all"
+              style={{ color: "hsl(238 18% 38%)" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "rgba(255,255,255,0.04)"; (e.currentTarget as HTMLElement).style.color = "hsl(238 18% 58%)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"; (e.currentTarget as HTMLElement).style.color = "hsl(238 18% 38%)"; }}
+            >
+              <FileDown size={13} />
+              <span className="hidden sm:inline">Export</span>
+            </button>
+          )}
+          {/* Templates button */}
+          <button
+            onClick={() => setShowTemplates(true)}
+            title="Prompt templates (⌘T)"
+            className="flex items-center gap-1.5 text-[12px] px-2.5 py-1.5 rounded-lg transition-all"
+            style={{ color: "hsl(238 18% 38%)" }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "rgba(255,255,255,0.04)"; (e.currentTarget as HTMLElement).style.color = "hsl(238 18% 58%)"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"; (e.currentTarget as HTMLElement).style.color = "hsl(238 18% 38%)"; }}
+          >
+            <BookOpen size={13} />
+          </button>
+          {/* Shortcuts button */}
+          <button
+            onClick={() => setShowShortcuts(true)}
+            title="Keyboard shortcuts (?)"
+            className="flex items-center justify-center w-6 h-6 rounded-md text-[11px] font-bold transition-all"
+            style={{
+              color: "hsl(238 18% 36%)",
+              border: "1px solid hsl(238 18% 14%)",
+              backgroundColor: "hsl(238 18% 8%)",
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "hsl(238 18% 22%)"; (e.currentTarget as HTMLElement).style.color = "hsl(238 18% 55%)"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "hsl(238 18% 14%)"; (e.currentTarget as HTMLElement).style.color = "hsl(238 18% 36%)"; }}
+          >
+            ?
+          </button>
           {!isEmpty && (
             <button
               onClick={handleClear}
-              className="text-[12px] px-2.5 py-1 rounded-lg transition-all"
+              className="text-[12px] px-2.5 py-1 rounded-lg transition-all ml-1"
               style={{ color: "hsl(238 18% 36%)" }}
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "rgba(255,255,255,0.04)"; (e.currentTarget as HTMLElement).style.color = "hsl(238 18% 52%)"; }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"; (e.currentTarget as HTMLElement).style.color = "hsl(238 18% 36%)"; }}
@@ -689,33 +822,71 @@ export default function ConsolePage() {
       {/* Feed */}
       <div ref={feedRef} className="flex-1 overflow-y-auto feed-scroll">
         {isEmpty ? (
-          <div className="flex flex-col items-center h-full px-6 pt-10 pb-4 overflow-y-auto feed-scroll">
+          <div className="relative flex flex-col items-center h-full px-6 pt-10 pb-4 overflow-y-auto feed-scroll">
+            {/* Dot grid background */}
+            <div
+              className="absolute inset-0 pointer-events-none dot-grid"
+              style={{ opacity: 0.4 }}
+            />
+            {/* Radial glow */}
+            <div
+              className="absolute pointer-events-none"
+              style={{
+                top: 0, left: "50%", transform: "translateX(-50%)",
+                width: "600px", height: "400px",
+                background: "radial-gradient(ellipse 60% 50% at 50% 0%, rgba(109,95,234,0.08) 0%, transparent 70%)",
+              }}
+            />
+
             {/* Hero */}
-            <div className="flex flex-col items-center text-center mb-8 animate-slide-up">
+            <div className="relative flex flex-col items-center text-center mb-8 animate-slide-up">
               <div
-                className="w-14 h-14 rounded-2xl flex items-center justify-center mb-5"
+                className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5"
                 style={{
-                  background: "linear-gradient(135deg, rgba(109,95,234,0.2) 0%, rgba(109,95,234,0.07) 100%)",
-                  border: "1px solid rgba(109,95,234,0.22)",
-                  boxShadow: "0 0 40px rgba(109,95,234,0.12)",
+                  background: "linear-gradient(135deg, rgba(109,95,234,0.22) 0%, rgba(109,95,234,0.06) 100%)",
+                  border: "1px solid rgba(109,95,234,0.28)",
+                  boxShadow: "0 0 60px rgba(109,95,234,0.14), 0 0 0 1px rgba(255,255,255,0.03) inset",
                 }}
               >
-                <span className="text-[26px] leading-none select-none" style={{ color: "hsl(248 90% 72%)" }}>◈</span>
+                <span className="text-[30px] leading-none select-none" style={{ color: "hsl(248 90% 72%)" }}>◈</span>
               </div>
               <h1
-                className="text-[26px] font-semibold mb-2"
-                style={{ color: "hsl(240 20% 96%)", letterSpacing: "-0.035em", lineHeight: 1.2 }}
+                className="text-[28px] font-semibold mb-2.5"
+                style={{ color: "hsl(240 20% 96%)", letterSpacing: "-0.04em", lineHeight: 1.15 }}
               >
                 What can I do for you?
               </h1>
-              <p className="text-[14px]" style={{ color: "hsl(238 18% 46%)", letterSpacing: "-0.01em" }}>
+              <p className="text-[14px] max-w-sm" style={{ color: "hsl(238 18% 46%)", letterSpacing: "-0.01em", lineHeight: 1.6 }}>
                 Your personal AI concierge — from flights to finance, code to creativity.
               </p>
+
+              {/* Feature pills */}
+              <div className="flex flex-wrap items-center justify-center gap-2 mt-5">
+                {[
+                  { label: "Voice input", icon: Mic },
+                  { label: "Templates", icon: BookOpen },
+                  { label: "13 capabilities", icon: Zap },
+                  { label: "Local & cloud AI", icon: Cpu },
+                ].map(({ label, icon: Icon }) => (
+                  <div
+                    key={label}
+                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium"
+                    style={{
+                      backgroundColor: "rgba(109,95,234,0.08)",
+                      border: "1px solid rgba(109,95,234,0.16)",
+                      color: "hsl(248 90% 72% / 0.8)",
+                    }}
+                  >
+                    <Icon size={10} />
+                    {label}
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Quick action grid */}
             <div
-              className="grid gap-2.5 w-full mb-6 animate-slide-up"
+              className="relative grid gap-2.5 w-full mb-6 animate-slide-up"
               style={{ gridTemplateColumns: "repeat(4, 1fr)", maxWidth: "720px", animationDelay: "0.05s" }}
             >
               {QUICK_ACTIONS.map((action) => (
@@ -743,10 +914,10 @@ export default function ConsolePage() {
             </div>
 
             <p
-              className="text-[11px] animate-slide-up"
+              className="relative text-[11px] animate-slide-up"
               style={{ color: "hsl(238 18% 28%)", letterSpacing: "0.02em", animationDelay: "0.1s" }}
             >
-              ⌘K to focus · Shift+Enter for new line
+              ⌘K to focus · ⌘T for templates · ? for shortcuts
             </p>
           </div>
         ) : (
@@ -835,6 +1006,30 @@ export default function ConsolePage() {
           </div>
         )}
 
+        {/* Voice listening indicator */}
+        {listening && (
+          <div className="flex items-center gap-2 mb-3 animate-feed-in">
+            <div
+              className="flex items-center gap-2 px-3 py-1.5 rounded-full text-[12px] font-medium"
+              style={{
+                backgroundColor: "rgba(220,53,69,0.08)",
+                border: "1px solid rgba(220,53,69,0.22)",
+                color: "hsl(4 86% 64%)",
+              }}
+            >
+              <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: "hsl(4 86% 56%)" }} />
+              Listening... speak now
+            </div>
+            <button
+              onClick={toggleVoice}
+              className="text-[11px] px-2.5 py-1.5 rounded-full"
+              style={{ color: "hsl(238 18% 40%)" }}
+            >
+              Cancel
+            </button>
+          </div>
+        )}
+
         {/* Smart follow-up chips */}
         {isComplete && followUpChips.length > 0 && (
           <div className="flex gap-2 mb-3 flex-wrap">
@@ -874,6 +1069,7 @@ export default function ConsolePage() {
 
         {/* Command bar */}
         <div className="command-bar flex items-end gap-2 px-4 py-3">
+          {/* Attach file */}
           <button
             onClick={() => setShowFilePath(v => !v)}
             title="Attach file path"
@@ -884,12 +1080,43 @@ export default function ConsolePage() {
           >
             <Paperclip size={15} />
           </button>
+
+          {/* Voice input */}
+          {voiceSupported && (
+            <button
+              onClick={toggleVoice}
+              title="Voice input (⌘/)"
+              className="flex-shrink-0 mb-0.5 transition-all rounded-lg p-1"
+              style={{
+                color: listening ? "hsl(4 86% 60%)" : "hsl(238 18% 34%)",
+                backgroundColor: listening ? "rgba(220,53,69,0.1)" : "transparent",
+              }}
+              onMouseEnter={e => { if (!listening) (e.currentTarget as HTMLElement).style.color = "hsl(238 18% 52%)"; }}
+              onMouseLeave={e => { if (!listening) (e.currentTarget as HTMLElement).style.color = "hsl(238 18% 34%)"; }}
+            >
+              {listening ? <MicOff size={15} /> : <Mic size={15} />}
+            </button>
+          )}
+
+          {/* Templates shortcut */}
+          <button
+            onClick={() => setShowTemplates(true)}
+            title="Prompt templates (⌘T)"
+            className="flex-shrink-0 mb-0.5 transition-all rounded-lg p-1"
+            style={{ color: "hsl(238 18% 34%)" }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "hsl(238 18% 52%)"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "hsl(238 18% 34%)"; }}
+          >
+            <BookOpen size={15} />
+          </button>
+
+          {/* Textarea */}
           <textarea
             ref={inputRef}
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={lastContext ? "Ask a follow-up..." : "Ask me anything..."}
+            placeholder={lastContext ? "Ask a follow-up..." : listening ? "Listening..." : "Ask me anything..."}
             disabled={running}
             rows={1}
             className="flex-1 bg-transparent text-[14px] text-foreground outline-none resize-none leading-relaxed max-h-36 overflow-y-auto disabled:opacity-40"
@@ -900,6 +1127,8 @@ export default function ConsolePage() {
               color: "hsl(240 20% 92%)",
             }}
           />
+
+          {/* Send / stop */}
           <button
             onClick={running ? () => stopRef.current?.() : submit}
             disabled={!running && !input.trim()}
