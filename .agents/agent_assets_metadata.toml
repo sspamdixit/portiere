@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "tpQdZN9nvBVoayKi-XxZJ"
+uri = "file://README.md"
+type = "text"
+title = "Portiere README"
