@@ -8,6 +8,7 @@ from portiere.workers.claude_worker import ClaudeWorker
 from portiere.workers.video_worker import VideoWorker
 from portiere.workers.local_worker import LocalWorker
 from portiere.workers.osint_worker import OSINTWorker
+from portiere.workers.search_worker import SearchWorker
 import httpx
 
 
@@ -17,14 +18,15 @@ class Orchestrator:
 
     def _get_worker(self, name: str, settings: SettingsModel):
         workers = {
-            "claude": ClaudeWorker,
-            "video": VideoWorker,
-            "local": LocalWorker,
-            "osint": OSINTWorker,
+            "claude":  ClaudeWorker,
+            "video":   VideoWorker,
+            "local":   LocalWorker,
+            "osint":   OSINTWorker,
+            "search":  SearchWorker,
         }
         cls = workers.get(name.lower())
         if not cls:
-            raise ValueError(f"Unknown worker: '{name}'. Valid workers: {list(workers.keys())}")
+            raise ValueError(f"Unknown worker: '{name}'. Available: {list(workers.keys())}")
         return cls(settings)
 
     async def run(self, request: OrchestrateRequest) -> AsyncIterator[dict]:
@@ -36,7 +38,7 @@ class Orchestrator:
             try:
                 with open(request.file_path, "r", errors="replace") as f:
                     file_content = f.read()
-                yield {"type": "file_loaded", "content": f"Loaded file: {request.file_path}"}
+                yield {"type": "file_loaded", "content": f"Loaded: {request.file_path}"}
             except Exception as e:
                 yield {"type": "warning", "content": f"Could not load file: {e}"}
 
@@ -44,7 +46,6 @@ class Orchestrator:
         async for event in brain.analyze(request.message, file_content):
             yield event
             if event["type"] == "brain_done":
-                from portiere.models import BrainDecision
                 decision = BrainDecision(**event["data"])
 
         if not decision:
@@ -60,7 +61,7 @@ class Orchestrator:
                 "step": step.step,
                 "total_steps": total_steps,
                 "worker": step.worker,
-                "content": f"Step {step.step}/{total_steps}: Routing to [{step.worker.upper()}] worker",
+                "content": f"Step {step.step}/{total_steps}: {step.worker}",
             }
             yield {
                 "type": "worker_start",
@@ -86,24 +87,27 @@ class Orchestrator:
             if worker_output:
                 context = worker_output
 
-        yield {"type": "complete", "content": "Orchestration complete.", "data": {"context": context[:2000]}}
+        yield {
+            "type": "complete",
+            "content": "Done.",
+            "data": {"context": context[:2000]},
+        }
 
     async def list_models(self) -> dict:
         settings = self.settings_store.get_raw()
-        result = {"ollama": [], "lmstudio": [], "error": None}
+        result: dict = {"ollama": [], "lmstudio": []}
 
         try:
             async with httpx.AsyncClient(timeout=3) as client:
                 resp = await client.get(f"{settings.ollama_base_url}/api/tags")
                 if resp.status_code == 200:
-                    data = resp.json()
                     result["ollama"] = [
                         {
                             "name": m.get("name"),
                             "size_gb": round(m.get("size", 0) / 1e9, 2),
                             "modified": m.get("modified_at", ""),
                         }
-                        for m in data.get("models", [])
+                        for m in resp.json().get("models", [])
                     ]
         except Exception as e:
             result["ollama_error"] = str(e)
@@ -112,8 +116,10 @@ class Orchestrator:
             async with httpx.AsyncClient(timeout=3) as client:
                 resp = await client.get(f"{settings.lmstudio_base_url}/models")
                 if resp.status_code == 200:
-                    data = resp.json()
-                    result["lmstudio"] = [{"name": m.get("id"), "object": m.get("object")} for m in data.get("data", [])]
+                    result["lmstudio"] = [
+                        {"name": m.get("id"), "object": m.get("object")}
+                        for m in resp.json().get("data", [])
+                    ]
         except Exception as e:
             result["lmstudio_error"] = str(e)
 

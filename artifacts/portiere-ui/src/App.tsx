@@ -6,6 +6,7 @@ import SettingsPage from "@/pages/SettingsPage";
 import ModelsPage from "@/pages/ModelsPage";
 import Sidebar from "@/components/Sidebar";
 import OnboardingModal from "@/components/OnboardingModal";
+import { SessionProvider } from "@/lib/SessionContext";
 import { fetchSettings } from "@/lib/api";
 
 const queryClient = new QueryClient({
@@ -28,15 +29,15 @@ function AppShell() {
         <Switch>
           <Route path="/" component={ConsolePage} />
           <Route path="/settings" component={SettingsPage} />
+          <Route path="/capabilities" component={ModelsPage} />
           <Route path="/models" component={ModelsPage} />
           <Route>
             <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">
-              404 — route not found
+              404 — page not found
             </div>
           </Route>
         </Switch>
       </main>
-
       {showOnboarding === true && (
         <OnboardingModal onDone={() => setShowOnboarding(false)} />
       )}
@@ -44,14 +45,14 @@ function AppShell() {
   );
 }
 
-function App() {
+export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-        <AppShell />
-      </WouterRouter>
+      <SessionProvider>
+        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+          <AppShell />
+        </WouterRouter>
+      </SessionProvider>
     </QueryClientProvider>
   );
 }
-
-export default App;

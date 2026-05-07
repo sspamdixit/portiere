@@ -4,39 +4,44 @@ from typing import AsyncIterator
 from portiere.models import BrainDecision, ChainStep, SettingsModel
 
 
-SYSTEM_PROMPT = """You are the Brain of Portiere — an AI orchestration system.
-Analyze the user's request and route it to the correct specialized workers.
+SYSTEM_PROMPT = """You are the Brain of Portiere — a personal AI concierge.
+Your job: analyze what the user wants and route it to the best specialized workers to GET IT DONE.
 
 Available workers:
-- "claude"  — Deep coding, logic, text analysis, debugging, complex reasoning (requires Claude API key)
-- "video"   — Video generation and manipulation via FAL.ai / Seedance (requires video API key)
-- "local"   — File system operations, PC monitoring (CPU/RAM/disk), shell commands
-- "osint"   — Domain/IP WHOIS, DNS lookup, HTTP probing, email analysis, digital footprinting
+- "search"  — Real-time web search: current info, news, flights, hotels, therapists, products, prices, people
+- "claude"  — Deep reasoning, coding, writing, drafting emails/resumes, analysis, multi-step logic (needs Claude key)
+- "local"   — PC monitoring (CPU/RAM/disk/battery), file system, shell commands
+- "osint"   — Domain/IP investigation, WHOIS, DNS, digital footprinting, web recon
+- "video"   — AI video generation via FAL.ai / Seedance (needs video API key)
 
-You MUST respond with ONLY a valid JSON object. No prose, no markdown, just JSON:
+Routing rules:
+- "search" for: anything needing current/real data — flights, therapists, restaurants, news, prices, trends, people
+- "claude" for: writing, coding, analysis, drafting, emails, resumes, explanations, complex reasoning
+- chain [search → claude] for: "find X and write Y about it", "research X then summarize"
+- "local" for: system monitoring, file operations
+- "osint" for: domain/IP investigation, company digital footprint
+
+You MUST respond with ONLY a valid JSON object — no markdown, no prose, just JSON:
 {
   "chain": [
     {
       "step": 1,
       "worker": "<worker_name>",
-      "task": "<specific task description for the worker>",
+      "task": "<specific task for the worker, written as a clear instruction>",
       "parameters": {}
     }
   ],
-  "reasoning": "<one sentence explaining routing decision>"
+  "reasoning": "<one short sentence explaining your routing>"
 }
 
-For chained tasks (e.g. "summarize this script and generate a video preview"):
-- Use multiple steps in the chain array
-- Each step's output is passed as "context" to the next step
-- Order steps logically
-
 Examples:
-- "What is my CPU usage?" → local worker, action: monitor
-- "Write a Python function to parse JSON" → claude worker
-- "Generate a 5-second video of a sunset" → video worker
-- "Look up information about google.com" → osint worker
-- "Summarize this file and make a video" → chain: [claude, video]"""
+- "Find a therapist in Brooklyn who takes insurance" → search, task: "therapist brooklyn ny accepts insurance"
+- "Plan a trip to Milan for next weekend" → chain: [search (flights + hotels milan), claude (write full itinerary)]
+- "Write a cold email to a startup founder" → claude
+- "Build a to-do app in Python" → claude
+- "What's trending in AI today?" → search, task: "AI news trending today"
+- "Check my CPU and RAM usage" → local
+- "Scan the footprint of competitor.com" → osint"""
 
 
 class Brain:
@@ -44,15 +49,15 @@ class Brain:
         self.settings = settings
 
     async def analyze(self, user_input: str, file_content: str = "") -> AsyncIterator[dict]:
-        yield {"type": "brain_thinking", "content": "Analyzing request..."}
+        yield {"type": "brain_thinking", "content": "Understanding your request..."}
 
         prompt = user_input
         if file_content:
-            prompt = f"User request: {user_input}\n\nFile content provided:\n{file_content[:3000]}"
+            prompt = f"User request: {user_input}\n\nFile content:\n{file_content[:3000]}"
 
         try:
             decision_json = await self._call_llm(prompt)
-            yield {"type": "brain_thinking", "content": "Parsing routing decision..."}
+            yield {"type": "brain_thinking", "content": "Routing to the right tools..."}
 
             decision = self._parse_decision(decision_json)
             yield {
@@ -70,7 +75,7 @@ class Brain:
 
         if provider == "anthropic":
             return await self._call_anthropic(prompt)
-        elif provider in ("openai",):
+        elif provider == "openai":
             return await self._call_openai_compat(
                 prompt,
                 base_url="https://api.openai.com/v1",
@@ -78,14 +83,11 @@ class Brain:
             )
         elif provider == "lmstudio":
             return await self._call_openai_compat(
-                prompt,
-                base_url=self.settings.lmstudio_base_url,
-                api_key="lm-studio",
+                prompt, base_url=self.settings.lmstudio_base_url, api_key="lm-studio",
             )
         else:
             return await self._call_openai_compat(
-                prompt,
-                base_url=self.settings.brain_base_url,
+                prompt, base_url=self.settings.brain_base_url,
                 api_key=self.settings.brain_api_key or "ollama",
             )
 
@@ -119,7 +121,6 @@ class Brain:
         json_match = re.search(r'\{.*\}', raw, re.DOTALL)
         if json_match:
             raw = json_match.group(0)
-
         data = json.loads(raw)
         chain = [ChainStep(**step) for step in data.get("chain", [])]
         if not chain:
