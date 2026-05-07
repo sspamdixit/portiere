@@ -5,6 +5,7 @@ import {
   Sparkles, Search as SearchIcon, Monitor, Check, Copy, RotateCcw,
   Cloud, Mail, Terminal, Download, ExternalLink,
   Image, Languages, Newspaper, TrendingUp, CalendarPlus,
+  Plane, Zap, PenLine,
 } from "lucide-react";
 import { streamOrchestrate, type OrchestrateEvent } from "@/lib/api";
 import { saveSession } from "@/lib/sessions";
@@ -46,7 +47,7 @@ const WORKER_MESSAGES: Record<string, string> = {
 
 const CARD_META: Record<string, { label: string; Icon: React.FC<{ size?: number }>; color: string }> = {
   claude:      { label: "Response",    Icon: Sparkles,    color: "hsl(270 70% 72%)" },
-  search:      { label: "Web Results", Icon: SearchIcon,  color: "hsl(246 89% 70%)" },
+  search:      { label: "Web Results", Icon: SearchIcon,  color: "hsl(248 90% 70%)" },
   osint:       { label: "Research",    Icon: Globe,       color: "hsl(38 90% 60%)"  },
   local:       { label: "System Info", Icon: Monitor,     color: "hsl(142 60% 55%)" },
   video:       { label: "Video",       Icon: Film,        color: "hsl(328 80% 68%)" },
@@ -57,42 +58,66 @@ const CARD_META: Record<string, { label: string; Icon: React.FC<{ size?: number 
   translator:  { label: "Translation", Icon: Languages,   color: "hsl(185 70% 58%)" },
   news:        { label: "News",        Icon: Newspaper,   color: "hsl(25 90% 62%)"  },
   finance:     { label: "Markets",     Icon: TrendingUp,  color: "hsl(142 60% 55%)" },
-  reminder:    { label: "Calendar",    Icon: CalendarPlus,color: "hsl(246 89% 70%)" },
+  reminder:    { label: "Calendar",    Icon: CalendarPlus,color: "hsl(248 90% 70%)" },
 };
 
 const FOLLOW_UP_CHIPS: Record<string, string[]> = {
-  search:      ["Summarize these results", "Make a detailed plan from this", "Find more information"],
-  claude:      ["Make this shorter", "Turn into bullet points", "Draft this as an email"],
-  weather:     ["What should I pack?", "Best activities for this weather", "Plan around the forecast"],
-  email:       ["Adjust the tone", "Write a follow-up email", "Make it more formal"],
-  osint:       ["What are the risks here?", "Write a report on this", "Check related domains"],
-  local:       ["What does this mean?", "How can I improve this?", "Run a full diagnostic"],
+  search:      ["Summarize these results", "Make a detailed plan", "Find more"],
+  claude:      ["Make this shorter", "Turn into bullet points", "Draft as email"],
+  weather:     ["What should I pack?", "Best activities for this weather", "Plan around forecast"],
+  email:       ["Adjust the tone", "Write a follow-up", "Make it more formal"],
+  osint:       ["What are the risks?", "Write a report", "Check related domains"],
+  local:       ["What does this mean?", "How can I improve this?", "Full diagnostic"],
   code_runner: ["Fix any errors", "Add more features", "Explain what this does"],
-  video:       ["Generate a variation", "Write a script for this", "Make it longer"],
-  image_gen:   ["Generate a variation", "Try a different style", "Make it more detailed"],
-  translator:  ["Translate to another language", "Explain the grammar", "Make it more formal"],
-  news:        ["Summarize into a report", "What does this mean for me?", "Find related news"],
-  finance:     ["Should I buy or sell?", "Compare with competitors", "Show me the trend"],
+  video:       ["Generate a variation", "Write a script", "Make it longer"],
+  image_gen:   ["Generate a variation", "Try a different style", "More detail"],
+  translator:  ["Translate to another language", "Explain the grammar", "More formal"],
+  news:        ["Summarize into a report", "What does this mean for me?", "Related news"],
+  finance:     ["Should I buy or sell?", "Compare with competitors", "Show the trend"],
   reminder:    ["Add another event", "Set a follow-up", "Email myself this"],
 };
 
-const ALL_SUGGESTIONS = [
-  "Plan a weekend trip to Milan",
-  "Help me write a cold pitch email",
-  "Build a to-do app in Python",
-  "Find a therapist near me who takes insurance",
-  "What's the weather this weekend?",
-  "Check my computer's performance",
-  "Find flights to Barcelona next Friday",
-  "Help me write my resume summary",
-  "What's the latest news on AI?",
-  "How is Bitcoin doing today?",
-  "Generate an image of a cyberpunk city at night",
-  "Translate 'I love you' to 10 different languages",
-  "Schedule a dentist appointment for tomorrow at 10am",
-  "How is Tesla stock doing?",
-  "What's trending in tech right now?",
-  "Summarize the latest SpaceX news",
+const QUICK_ACTIONS = [
+  {
+    icon: Plane, color: "hsl(248 90% 70%)", bg: "rgba(109,95,234,0.12)",
+    label: "Travel", sub: "Plan trips, find flights & hotels",
+    prompt: "Plan a weekend trip to Milan — flights, hotels, and itinerary",
+  },
+  {
+    icon: Newspaper, color: "hsl(25 90% 62%)", bg: "rgba(249,115,22,0.12)",
+    label: "News", sub: "Latest headlines on any topic",
+    prompt: "What's happening in AI and tech today?",
+  },
+  {
+    icon: TrendingUp, color: "hsl(142 60% 55%)", bg: "rgba(34,197,94,0.12)",
+    label: "Finance", sub: "Stocks, crypto & market data",
+    prompt: "How is Bitcoin doing today?",
+  },
+  {
+    icon: Image, color: "hsl(310 70% 68%)", bg: "rgba(192,132,252,0.12)",
+    label: "Create", sub: "Generate images & videos",
+    prompt: "Generate an image of a futuristic city at sunset",
+  },
+  {
+    icon: PenLine, color: "hsl(270 70% 72%)", bg: "rgba(167,139,250,0.12)",
+    label: "Write", sub: "Emails, resumes, essays & more",
+    prompt: "Help me write a professional bio for LinkedIn",
+  },
+  {
+    icon: Languages, color: "hsl(185 70% 58%)", bg: "rgba(20,184,166,0.12)",
+    label: "Translate", sub: "50+ languages, free & instant",
+    prompt: "Say 'I love you' in 10 different languages",
+  },
+  {
+    icon: CalendarPlus, color: "hsl(248 90% 70%)", bg: "rgba(109,95,234,0.12)",
+    label: "Schedule", sub: "Calendar events & reminders",
+    prompt: "Schedule a dentist appointment for tomorrow at 10am",
+  },
+  {
+    icon: SearchIcon, color: "hsl(200 80% 65%)", bg: "rgba(96,165,250,0.12)",
+    label: "Search", sub: "Find anything on the web",
+    prompt: "Find a highly-rated therapist near me who takes insurance",
+  },
 ];
 
 function downloadFile(content: string, worker: string) {
@@ -115,21 +140,33 @@ function PipelineStep({ label, status }: { label: string; status: "pending" | "a
       <div
         className="w-6 h-6 rounded-full flex items-center justify-center transition-all duration-400"
         style={{
-          backgroundColor: status === "done" ? "rgba(34,197,94,0.15)" : status === "active" ? "rgba(124,111,247,0.22)" : "hsl(240 20% 11%)",
-          border: `1.5px solid ${status === "done" ? "rgba(34,197,94,0.45)" : status === "active" ? "rgba(124,111,247,0.6)" : "hsl(240 20% 16%)"}`,
-          boxShadow: status === "active" ? "0 0 10px rgba(124,111,247,0.28)" : "none",
+          backgroundColor: status === "done"
+            ? "rgba(34,197,94,0.14)"
+            : status === "active"
+            ? "rgba(109,95,234,0.2)"
+            : "hsl(238 18% 10%)",
+          border: `1.5px solid ${status === "done"
+            ? "rgba(34,197,94,0.4)"
+            : status === "active"
+            ? "rgba(109,95,234,0.55)"
+            : "hsl(238 18% 15%)"}`,
+          boxShadow: status === "active" ? "0 0 10px rgba(109,95,234,0.25)" : "none",
         }}
       >
         {status === "done"
-          ? <Check size={11} style={{ color: "hsl(142 68% 50%)" }} />
+          ? <Check size={10} style={{ color: "hsl(152 64% 52%)" }} />
           : status === "active"
-          ? <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: "hsl(246 89% 74%)" }} />
-          : <div className="w-1 h-1 rounded-full" style={{ backgroundColor: "hsl(242 17% 32%)" }} />}
+          ? <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: "hsl(248 90% 72%)" }} />
+          : <div className="w-1 h-1 rounded-full" style={{ backgroundColor: "hsl(238 18% 30%)" }} />}
       </div>
       <span
         className="text-[10px] font-semibold tracking-wide"
         style={{
-          color: status === "done" ? "hsl(142 68% 52%)" : status === "active" ? "hsl(246 89% 76%)" : "hsl(242 17% 34%)",
+          color: status === "done"
+            ? "hsl(152 64% 52%)"
+            : status === "active"
+            ? "hsl(248 90% 75%)"
+            : "hsl(238 18% 32%)",
           letterSpacing: "0.02em",
         }}
       >
@@ -143,53 +180,57 @@ function PipelineStep({ label, status }: { label: string; status: "pending" | "a
 function ActivityCard({ activity, elapsed }: { activity: ActivityState; elapsed: number }) {
   const { message, pipeline, brainStatus, progress } = activity;
   const allDone = pipeline.length > 0 && pipeline.every(s => s.status === "done");
+
   return (
     <div
       className="mx-5 mt-3 mb-2 p-4 rounded-2xl animate-feed-in"
       style={{
-        background: "hsl(240 22% 7%)",
-        border: "1px solid hsl(240 20% 12%)",
-        boxShadow: "0 0 0 1px rgba(124,111,247,0.04), 0 4px 24px rgba(0,0,0,0.28)",
+        background: "hsl(238 18% 7%)",
+        border: "1px solid hsl(238 18% 11%)",
+        boxShadow: "0 4px 24px rgba(0,0,0,0.22)",
       }}
     >
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <Loader2 size={12} className="animate-spin" style={{ color: "hsl(246 89% 70%)" }} />
-          <span className="text-[13px] font-semibold" style={{ color: "hsl(244 30% 88%)", letterSpacing: "-0.01em" }}>
+          <Loader2 size={12} className="animate-spin" style={{ color: "hsl(248 90% 68%)" }} />
+          <span className="text-[13px] font-semibold" style={{ color: "hsl(240 20% 88%)", letterSpacing: "-0.01em" }}>
             Working on it
           </span>
         </div>
-        <span className="text-[11px] tabular-nums" style={{ color: "hsl(242 17% 38%)", fontVariantNumeric: "tabular-nums" }}>
+        <span className="text-[11px] tabular-nums" style={{ color: "hsl(238 18% 36%)", fontVariantNumeric: "tabular-nums" }}>
           {elapsed}s
         </span>
       </div>
-      <div className="h-[3px] rounded-full mb-4 overflow-hidden" style={{ backgroundColor: "hsl(240 20% 12%)" }}>
+
+      <div className="h-[3px] rounded-full mb-4 overflow-hidden" style={{ backgroundColor: "hsl(238 18% 12%)" }}>
         <div
           className="h-full rounded-full transition-all duration-700 ease-out"
           style={{
             width: `${progress}%`,
-            background: "linear-gradient(90deg, hsl(246 89% 65%) 0%, hsl(258 72% 72%) 100%)",
-            boxShadow: "0 0 8px rgba(124,111,247,0.5)",
+            background: "linear-gradient(90deg, hsl(248 82% 62%) 0%, hsl(264 68% 68%) 100%)",
+            boxShadow: "0 0 8px rgba(109,95,234,0.5)",
           }}
         />
       </div>
+
       <div className="flex items-end justify-center gap-1 mb-3">
         <PipelineStep label="Brain" status={brainStatus === "done" ? "done" : "active"} />
         {pipeline.map(step => (
           <div key={step.worker} className="flex items-center gap-1">
             <div
-              className="h-px w-5 transition-colors duration-500"
-              style={{ backgroundColor: step.status !== "pending" ? "rgba(124,111,247,0.35)" : "hsl(240 20% 15%)" }}
+              className="h-px w-4 transition-colors duration-500"
+              style={{ backgroundColor: step.status !== "pending" ? "rgba(109,95,234,0.3)" : "hsl(238 18% 14%)" }}
             />
             <PipelineStep label={step.label} status={step.status} />
           </div>
         ))}
         <div className="flex items-center gap-1">
-          <div className="h-px w-5" style={{ backgroundColor: allDone ? "rgba(34,197,94,0.35)" : "hsl(240 20% 15%)" }} />
+          <div className="h-px w-4" style={{ backgroundColor: allDone ? "rgba(34,197,94,0.3)" : "hsl(238 18% 14%)" }} />
           <PipelineStep label="Done" status={allDone ? "done" : "pending"} />
         </div>
       </div>
-      <p className="text-[12px] text-center" style={{ color: "hsl(242 18% 48%)" }}>{message}</p>
+
+      <p className="text-[12px] text-center" style={{ color: "hsl(238 18% 44%)" }}>{message}</p>
     </div>
   );
 }
@@ -205,18 +246,18 @@ function SearchResultCards({ data }: { data: SearchData }) {
       {data.answer && (
         <div
           className="px-4 py-3 rounded-xl mb-3"
-          style={{ backgroundColor: "rgba(124,111,247,0.09)", border: "1px solid rgba(124,111,247,0.2)" }}
+          style={{ backgroundColor: "rgba(109,95,234,0.08)", border: "1px solid rgba(109,95,234,0.18)" }}
         >
-          <p className="text-[14px] font-semibold" style={{ color: "hsl(244 30% 95%)", letterSpacing: "-0.01em" }}>{data.answer}</p>
+          <p className="text-[14px] font-semibold" style={{ color: "hsl(240 20% 95%)", letterSpacing: "-0.01em" }}>{data.answer}</p>
         </div>
       )}
       {data.abstract && (
-        <p className="text-[13.5px] leading-relaxed mb-3" style={{ color: "hsl(244 30% 82%)" }}>
+        <p className="text-[13.5px] leading-relaxed mb-3" style={{ color: "hsl(240 16% 80%)" }}>
           {data.abstract}
           {data.abstract_url && (
             <a href={data.abstract_url} target="_blank" rel="noreferrer"
               className="inline-flex items-center gap-1 ml-2 text-[12px] underline underline-offset-2"
-              style={{ color: "hsl(246 89% 72%)" }}>
+              style={{ color: "hsl(248 90% 72%)" }}>
               Source <ExternalLink size={10} />
             </a>
           )}
@@ -232,41 +273,41 @@ function SearchResultCards({ data }: { data: SearchData }) {
               rel="noreferrer"
               className="flex items-start justify-between gap-3 p-3.5 rounded-xl transition-all group"
               style={{
-                backgroundColor: "hsl(240 24% 6%)",
-                border: "1px solid hsl(240 20% 11%)",
+                backgroundColor: "hsl(238 20% 6%)",
+                border: "1px solid hsl(238 18% 11%)",
               }}
               onClick={!r.url ? e => e.preventDefault() : undefined}
               onMouseEnter={e => {
-                (e.currentTarget as HTMLElement).style.borderColor = "hsl(246 89% 70% / 0.3)";
-                (e.currentTarget as HTMLElement).style.backgroundColor = "hsl(240 22% 7%)";
+                (e.currentTarget as HTMLElement).style.borderColor = "rgba(109,95,234,0.28)";
+                (e.currentTarget as HTMLElement).style.backgroundColor = "hsl(238 18% 7%)";
               }}
               onMouseLeave={e => {
-                (e.currentTarget as HTMLElement).style.borderColor = "hsl(240 20% 11%)";
-                (e.currentTarget as HTMLElement).style.backgroundColor = "hsl(240 24% 6%)";
+                (e.currentTarget as HTMLElement).style.borderColor = "hsl(238 18% 11%)";
+                (e.currentTarget as HTMLElement).style.backgroundColor = "hsl(238 20% 6%)";
               }}
             >
               <div className="flex-1 min-w-0">
-                <p className="text-[13px] font-semibold leading-snug" style={{ color: "hsl(244 30% 93%)", letterSpacing: "-0.01em" }}>
+                <p className="text-[13px] font-semibold leading-snug" style={{ color: "hsl(240 20% 93%)", letterSpacing: "-0.01em" }}>
                   {r.title || r.snippet.slice(0, 70)}
                 </p>
                 {r.snippet && r.snippet !== r.title && (
-                  <p className="text-[12px] mt-0.5 leading-relaxed line-clamp-2" style={{ color: "hsl(242 18% 52%)" }}>
+                  <p className="text-[12px] mt-0.5 leading-relaxed line-clamp-2" style={{ color: "hsl(238 18% 50%)" }}>
                     {r.snippet.slice(0, 180)}
                   </p>
                 )}
                 {r.url && (
-                  <p className="text-[11px] mt-1 truncate font-mono" style={{ color: "hsl(246 89% 66%)" }}>
+                  <p className="text-[11px] mt-1 truncate font-mono" style={{ color: "hsl(248 90% 64%)" }}>
                     {r.url.replace(/^https?:\/\//, "").slice(0, 60)}
                   </p>
                 )}
               </div>
-              {r.url && <ExternalLink size={11} className="flex-shrink-0 mt-0.5 opacity-30 group-hover:opacity-60 transition-opacity" style={{ color: "hsl(246 89% 70%)" }} />}
+              {r.url && <ExternalLink size={11} className="flex-shrink-0 mt-0.5 opacity-25 group-hover:opacity-55 transition-opacity" style={{ color: "hsl(248 90% 70%)" }} />}
             </a>
           ))}
         </div>
       )}
       {results.length === 0 && !data.answer && !data.abstract && (
-        <p className="text-[14px]" style={{ color: "hsl(242 18% 48%)" }}>No results found. Try a different search.</p>
+        <p className="text-[14px]" style={{ color: "hsl(238 18% 46%)" }}>No results found. Try a different search.</p>
       )}
     </div>
   );
@@ -275,7 +316,7 @@ function SearchResultCards({ data }: { data: SearchData }) {
 // ─── Worker result card ───────────────────────────────────────────────────
 function WorkerResultCard({ event }: { event: OrchestrateEvent }) {
   const k = (event.worker || "brain").toLowerCase();
-  const meta = CARD_META[k] || { label: "Result", Icon: Cpu, color: "hsl(242 18% 55%)" };
+  const meta = CARD_META[k] || { label: "Result", Icon: Cpu, color: "hsl(238 18% 55%)" };
   const content = event.content || "";
   const data = event.data as Record<string, unknown> | undefined;
   const videoUrl = data?.video_url as string | undefined;
@@ -295,35 +336,35 @@ function WorkerResultCard({ event }: { event: OrchestrateEvent }) {
       style={{
         borderRadius: "16px",
         overflow: "hidden",
-        background: "hsl(240 20% 8%)",
-        borderTop: "1px solid hsl(240 20% 12%)",
-        borderRight: "1px solid hsl(240 20% 12%)",
-        borderBottom: "1px solid hsl(240 20% 12%)",
-        borderLeft: `3px solid ${meta.color}70`,
-        boxShadow: "0 2px 20px rgba(0,0,0,0.24), 0 1px 4px rgba(0,0,0,0.12)",
+        background: "hsl(238 18% 7%)",
+        border: "1px solid hsl(238 18% 11%)",
+        borderLeft: `3px solid ${meta.color}60`,
+        boxShadow: "0 2px 16px rgba(0,0,0,0.18)",
       }}
     >
       <div
         className="flex items-center justify-between px-4 py-2.5"
-        style={{ borderBottom: "1px solid hsl(240 20% 11%)", background: "hsl(240 22% 7%)" }}
+        style={{ borderBottom: "1px solid hsl(238 18% 10%)", background: "hsl(238 20% 6%)" }}
       >
         <div className="flex items-center gap-2.5">
           <div
             className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{ backgroundColor: `${meta.color}1a`, color: meta.color }}
+            style={{ backgroundColor: `${meta.color}18`, color: meta.color }}
           >
             <meta.Icon size={13} />
           </div>
-          <span className="text-[13px] font-semibold" style={{ color: "hsl(244 30% 92%)", letterSpacing: "-0.01em" }}>
+          <span className="text-[13px] font-semibold" style={{ color: "hsl(240 20% 92%)", letterSpacing: "-0.01em" }}>
             {meta.label}
           </span>
         </div>
         <div className="flex items-center gap-1">
           <button
             onClick={() => downloadFile(content, k)}
-            className="flex items-center gap-1 text-[11px] font-medium transition-all px-2 py-1 rounded-lg hover:bg-white/[0.05]"
-            style={{ color: "hsl(242 17% 38%)" }}
+            className="flex items-center gap-1 text-[11px] font-medium transition-all px-2 py-1 rounded-lg"
+            style={{ color: "hsl(238 18% 36%)" }}
             title="Save to file"
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "rgba(255,255,255,0.05)"; (e.currentTarget as HTMLElement).style.color = "hsl(238 18% 52%)"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"; (e.currentTarget as HTMLElement).style.color = "hsl(238 18% 36%)"; }}
           >
             <Download size={11} />
           </button>
@@ -331,7 +372,7 @@ function WorkerResultCard({ event }: { event: OrchestrateEvent }) {
             onClick={copy}
             className="flex items-center gap-1.5 text-[11px] font-medium transition-all px-2.5 py-1 rounded-lg"
             style={{
-              color: copied ? "hsl(142 68% 52%)" : "hsl(242 17% 42%)",
+              color: copied ? "hsl(152 64% 52%)" : "hsl(238 18% 40%)",
               backgroundColor: copied ? "rgba(34,197,94,0.08)" : "transparent",
             }}
           >
@@ -340,6 +381,7 @@ function WorkerResultCard({ event }: { event: OrchestrateEvent }) {
           </button>
         </div>
       </div>
+
       <div className="px-5 py-4">
         {imageUrl ? (
           <div className="space-y-3">
@@ -347,15 +389,15 @@ function WorkerResultCard({ event }: { event: OrchestrateEvent }) {
               src={imageUrl}
               alt={content}
               className="w-full rounded-xl object-cover"
-              style={{ maxHeight: "380px", border: "1px solid hsl(240 20% 14%)" }}
+              style={{ maxHeight: "380px", border: "1px solid hsl(238 18% 13%)" }}
             />
-            <p className="text-[12px]" style={{ color: "hsl(242 18% 50%)" }}>{content}</p>
+            <p className="text-[12px]" style={{ color: "hsl(238 18% 46%)" }}>{content}</p>
             <a
               href={imageUrl}
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-1.5 text-[13px] font-medium"
-              style={{ color: "hsl(246 89% 72%)" }}
+              style={{ color: "hsl(248 90% 70%)" }}
             >
               <ExternalLink size={12} /> Open full size
             </a>
@@ -371,7 +413,7 @@ function WorkerResultCard({ event }: { event: OrchestrateEvent }) {
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center gap-1.5 mt-4 text-[13px] font-medium"
-            style={{ color: "hsl(246 89% 72%)" }}
+            style={{ color: "hsl(248 90% 72%)" }}
           >
             View generated video →
           </a>
@@ -384,33 +426,31 @@ function WorkerResultCard({ event }: { event: OrchestrateEvent }) {
 // ─── Streaming card ────────────────────────────────────────────────────────
 function StreamingCard({ worker, text }: { worker: string; text: string }) {
   const k = worker.toLowerCase();
-  const meta = CARD_META[k] || { label: "Working", Icon: Cpu, color: "hsl(242 18% 55%)" };
+  const meta = CARD_META[k] || { label: "Working", Icon: Cpu, color: "hsl(238 18% 55%)" };
   return (
     <div
       className="mx-5 my-2.5"
       style={{
         borderRadius: "16px",
         overflow: "hidden",
-        background: "hsl(240 20% 8%)",
-        borderTop: "1px solid hsl(240 20% 12%)",
-        borderRight: "1px solid hsl(240 20% 12%)",
-        borderBottom: "1px solid hsl(240 20% 12%)",
-        borderLeft: `3px solid ${meta.color}70`,
-        boxShadow: "0 2px 20px rgba(0,0,0,0.24)",
+        background: "hsl(238 18% 7%)",
+        border: "1px solid hsl(238 18% 11%)",
+        borderLeft: `3px solid ${meta.color}60`,
+        boxShadow: "0 2px 16px rgba(0,0,0,0.18)",
       }}
     >
       <div
         className="flex items-center gap-2.5 px-4 py-2.5"
-        style={{ borderBottom: "1px solid hsl(240 20% 11%)", background: "hsl(240 22% 7%)" }}
+        style={{ borderBottom: "1px solid hsl(238 18% 10%)", background: "hsl(238 20% 6%)" }}
       >
-        <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${meta.color}1a`, color: meta.color }}>
+        <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${meta.color}18`, color: meta.color }}>
           <meta.Icon size={13} />
         </div>
-        <span className="text-[13px] font-semibold" style={{ color: "hsl(244 30% 92%)", letterSpacing: "-0.01em" }}>{meta.label}</span>
-        <Loader2 size={11} className="animate-spin ml-auto" style={{ color: meta.color, opacity: 0.7 }} />
+        <span className="text-[13px] font-semibold" style={{ color: "hsl(240 20% 92%)", letterSpacing: "-0.01em" }}>{meta.label}</span>
+        <Loader2 size={11} className="animate-spin ml-auto" style={{ color: meta.color, opacity: 0.65 }} />
       </div>
       <div className="px-5 py-4">
-        <pre className="mono-output" style={{ color: "hsl(244 30% 82% / 0.75)" }}>
+        <pre className="mono-output" style={{ color: "hsl(240 16% 78% / 0.7)" }}>
           {text}<span className="cursor-blink" />
         </pre>
       </div>
@@ -421,20 +461,20 @@ function StreamingCard({ worker, text }: { worker: string; text: string }) {
 // ─── Complete divider ──────────────────────────────────────────────────────
 function CompleteRow({ elapsed }: { elapsed?: number }) {
   return (
-    <div className="flex items-center gap-3 py-5 px-5 animate-feed-in">
-      <div className="flex-1 h-px" style={{ background: "linear-gradient(90deg, transparent, hsl(240 20% 12%) 50%)" }} />
+    <div className="flex items-center gap-3 py-5 px-6 animate-feed-in">
+      <div className="flex-1 h-px" style={{ background: "linear-gradient(90deg, transparent, hsl(238 18% 11%) 50%)" }} />
       <div
         className="flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1 rounded-full"
         style={{
-          color: "hsl(142 68% 48%)",
+          color: "hsl(152 64% 48%)",
           backgroundColor: "rgba(34,197,94,0.07)",
-          border: "1px solid rgba(34,197,94,0.18)",
+          border: "1px solid rgba(34,197,94,0.15)",
           letterSpacing: "0.02em",
         }}
       >
         <Check size={10} /> Done{elapsed !== undefined ? ` · ${elapsed}s` : ""}
       </div>
-      <div className="flex-1 h-px" style={{ background: "linear-gradient(90deg, hsl(240 20% 12%) 50%, transparent)" }} />
+      <div className="flex-1 h-px" style={{ background: "linear-gradient(90deg, hsl(238 18% 11%) 50%, transparent)" }} />
     </div>
   );
 }
@@ -461,11 +501,6 @@ export default function ConsolePage() {
   const stopRef = useRef<(() => void) | null>(null);
   const feedEventsRef = useRef<OrchestrateEvent[]>([]);
   const startTimeRef = useRef<number>(0);
-
-  const suggestions = useMemo(
-    () => [...ALL_SUGGESTIONS].sort(() => Math.random() - 0.5).slice(0, 4),
-    []
-  );
 
   const followUpChips = useMemo(() => {
     if (!lastWorker) return [];
@@ -599,21 +634,26 @@ export default function ConsolePage() {
   const isEmpty = feed.length === 0 && !running;
   const isComplete = !running && feed.some(e => e.event.type === "complete");
 
+  const handleQuickAction = (prompt: string) => {
+    setInput(prompt);
+    setTimeout(() => inputRef.current?.focus(), 50);
+  };
+
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden">
       {/* Header */}
       <div
         className="flex items-center justify-between px-6 flex-shrink-0"
-        style={{ height: "46px", borderBottom: "1px solid hsl(240 20% 9%)" }}
+        style={{ height: "48px", borderBottom: "1px solid hsl(238 18% 8%)" }}
       >
         <div className="flex items-center gap-2">
-          <span className="text-[13.5px] font-semibold" style={{ color: "hsl(244 30% 85%)", letterSpacing: "-0.01em" }}>
+          <span className="text-[13.5px] font-semibold" style={{ color: "hsl(240 20% 84%)", letterSpacing: "-0.015em" }}>
             Chat
           </span>
           {!isEmpty && (
             <>
-              <ChevronRight size={12} style={{ color: "hsl(242 17% 28%)" }} />
-              <span className="text-[12.5px] max-w-xs truncate" style={{ color: "hsl(242 18% 46%)" }}>
+              <ChevronRight size={12} style={{ color: "hsl(238 18% 26%)" }} />
+              <span className="text-[12.5px] max-w-xs truncate" style={{ color: "hsl(238 18% 42%)" }}>
                 {feed.find(e => e.event.type === "user_input")?.event.content?.slice(0, 55) ?? "session"}
               </span>
             </>
@@ -621,13 +661,13 @@ export default function ConsolePage() {
         </div>
         <div className="flex items-center gap-3">
           {running && (
-            <div className="flex items-center gap-1.5 text-[12px]" style={{ color: "hsl(246 89% 72%)" }}>
+            <div className="flex items-center gap-1.5 text-[12px]" style={{ color: "hsl(248 90% 70%)" }}>
               <Loader2 size={11} className="animate-spin" />
-              <span style={{ letterSpacing: "-0.01em" }}>Working · {elapsed}s</span>
+              <span style={{ letterSpacing: "-0.01em" }}>{elapsed}s</span>
             </div>
           )}
           {isComplete && !running && (
-            <div className="flex items-center gap-1.5 text-[12px]" style={{ color: "hsl(142 68% 50%)" }}>
+            <div className="flex items-center gap-1.5 text-[12px]" style={{ color: "hsl(152 64% 50%)" }}>
               <Check size={11} />
               <span style={{ letterSpacing: "-0.01em" }}>Done</span>
             </div>
@@ -635,8 +675,10 @@ export default function ConsolePage() {
           {!isEmpty && (
             <button
               onClick={handleClear}
-              className="text-[12px] px-2.5 py-1 rounded-lg transition-all hover:bg-white/[0.04]"
-              style={{ color: "hsl(242 17% 38%)" }}
+              className="text-[12px] px-2.5 py-1 rounded-lg transition-all"
+              style={{ color: "hsl(238 18% 36%)" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "rgba(255,255,255,0.04)"; (e.currentTarget as HTMLElement).style.color = "hsl(238 18% 52%)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"; (e.currentTarget as HTMLElement).style.color = "hsl(238 18% 36%)"; }}
             >
               Clear
             </button>
@@ -647,59 +689,63 @@ export default function ConsolePage() {
       {/* Feed */}
       <div ref={feedRef} className="flex-1 overflow-y-auto feed-scroll">
         {isEmpty ? (
-          <div className="relative flex flex-col items-center justify-center h-full text-center gap-8 px-8 overflow-hidden">
-            {/* Dot grid background */}
-            <div
-              className="absolute inset-0 pointer-events-none dot-grid"
-              style={{ opacity: 0.45 }}
-            />
-            {/* Radial glow */}
-            <div
-              className="absolute inset-0 pointer-events-none"
-              style={{ background: "radial-gradient(ellipse 52% 36% at 50% 48%, rgba(124,111,247,0.09) 0%, transparent 72%)" }}
-            />
-            <div className="relative flex flex-col items-center gap-5">
-              {/* Icon */}
+          <div className="flex flex-col items-center h-full px-6 pt-10 pb-4 overflow-y-auto feed-scroll">
+            {/* Hero */}
+            <div className="flex flex-col items-center text-center mb-8 animate-slide-up">
               <div
-                className="w-16 h-16 rounded-2xl flex items-center justify-center"
+                className="w-14 h-14 rounded-2xl flex items-center justify-center mb-5"
                 style={{
-                  background: "linear-gradient(135deg, rgba(124,111,247,0.18) 0%, rgba(124,111,247,0.07) 100%)",
-                  border: "1px solid rgba(124,111,247,0.25)",
-                  boxShadow: "0 0 40px rgba(124,111,247,0.14), 0 0 0 1px rgba(255,255,255,0.03) inset",
+                  background: "linear-gradient(135deg, rgba(109,95,234,0.2) 0%, rgba(109,95,234,0.07) 100%)",
+                  border: "1px solid rgba(109,95,234,0.22)",
+                  boxShadow: "0 0 40px rgba(109,95,234,0.12)",
                 }}
               >
-                <span className="text-[30px] leading-none select-none" style={{ color: "hsl(246 89% 74%)" }}>◈</span>
+                <span className="text-[26px] leading-none select-none" style={{ color: "hsl(248 90% 72%)" }}>◈</span>
               </div>
-              <div>
-                <p
-                  className="text-[24px] font-semibold tracking-tight"
-                  style={{ color: "hsl(244 30% 96%)", letterSpacing: "-0.03em" }}
-                >
-                  What should Portiere do?
-                </p>
-                <p className="text-[14px] mt-2" style={{ color: "hsl(242 18% 50%)", letterSpacing: "-0.01em" }}>
-                  Describe anything — flights, code, research, emails, planning.
-                </p>
-              </div>
+              <h1
+                className="text-[26px] font-semibold mb-2"
+                style={{ color: "hsl(240 20% 96%)", letterSpacing: "-0.035em", lineHeight: 1.2 }}
+              >
+                What can I do for you?
+              </h1>
+              <p className="text-[14px]" style={{ color: "hsl(238 18% 46%)", letterSpacing: "-0.01em" }}>
+                Your personal AI concierge — from flights to finance, code to creativity.
+              </p>
             </div>
-            {/* Suggestion chips */}
-            <div className="relative flex flex-wrap gap-2 justify-center max-w-lg">
-              {suggestions.map(s => (
+
+            {/* Quick action grid */}
+            <div
+              className="grid gap-2.5 w-full mb-6 animate-slide-up"
+              style={{ gridTemplateColumns: "repeat(4, 1fr)", maxWidth: "720px", animationDelay: "0.05s" }}
+            >
+              {QUICK_ACTIONS.map((action) => (
                 <button
-                  key={s}
-                  onClick={() => { setInput(s); inputRef.current?.focus(); }}
-                  className="suggestion-chip px-4 py-2 rounded-full text-[13px]"
-                  style={{
-                    backgroundColor: "hsl(240 20% 8%)",
-                    border: "1px solid hsl(240 20% 13%)",
-                    color: "hsl(242 18% 52%)",
-                  }}
+                  key={action.label}
+                  onClick={() => handleQuickAction(action.prompt)}
+                  className="quick-action-card"
                 >
-                  {s}
+                  <div
+                    className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style={{ backgroundColor: action.bg, color: action.color }}
+                  >
+                    <action.icon size={15} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[12.5px] font-semibold leading-snug" style={{ color: "hsl(240 20% 92%)", letterSpacing: "-0.01em" }}>
+                      {action.label}
+                    </p>
+                    <p className="text-[11px] mt-0.5 leading-relaxed" style={{ color: "hsl(238 18% 42%)" }}>
+                      {action.sub}
+                    </p>
+                  </div>
                 </button>
               ))}
             </div>
-            <p className="text-[11px] absolute bottom-6" style={{ color: "hsl(242 17% 26%)", letterSpacing: "0.02em" }}>
+
+            <p
+              className="text-[11px] animate-slide-up"
+              style={{ color: "hsl(238 18% 28%)", letterSpacing: "0.02em", animationDelay: "0.1s" }}
+            >
               ⌘K to focus · Shift+Enter for new line
             </p>
           </div>
@@ -728,9 +774,9 @@ export default function ConsolePage() {
                     key={entry.id}
                     className="mx-5 my-2 p-4 rounded-2xl text-[13px] animate-feed-in"
                     style={{
-                      backgroundColor: "hsl(347 87% 60% / 0.06)",
-                      border: "1px solid hsl(347 87% 60% / 0.2)",
-                      color: "hsl(347 87% 68%)",
+                      backgroundColor: "rgba(220,53,69,0.06)",
+                      border: "1px solid rgba(220,53,69,0.18)",
+                      color: "hsl(4 86% 62%)",
                     }}
                   >
                     {event.error || event.content}
@@ -741,8 +787,8 @@ export default function ConsolePage() {
               if (event.type === "file_loaded") {
                 return (
                   <div key={entry.id} className="flex items-center gap-2 px-6 py-1.5 animate-feed-in">
-                    <Paperclip size={11} style={{ color: "hsl(242 17% 34%)" }} />
-                    <span className="text-[12px]" style={{ color: "hsl(242 17% 36%)" }}>{event.content}</span>
+                    <Paperclip size={11} style={{ color: "hsl(238 18% 32%)" }} />
+                    <span className="text-[12px]" style={{ color: "hsl(238 18% 34%)" }}>{event.content}</span>
                   </div>
                 );
               }
@@ -762,7 +808,7 @@ export default function ConsolePage() {
       {/* Input area */}
       <div
         className="flex-shrink-0 px-5 pb-5 pt-3"
-        style={{ borderTop: "1px solid hsl(240 20% 9%)" }}
+        style={{ borderTop: "1px solid hsl(238 18% 8%)" }}
       >
         {/* Context indicator */}
         {lastContext && !running && (
@@ -770,17 +816,19 @@ export default function ConsolePage() {
             <div
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium"
               style={{
-                backgroundColor: "rgba(124,111,247,0.1)",
-                border: "1px solid rgba(124,111,247,0.22)",
-                color: "hsl(246 89% 74%)",
+                backgroundColor: "rgba(109,95,234,0.09)",
+                border: "1px solid rgba(109,95,234,0.2)",
+                color: "hsl(248 90% 72%)",
               }}
             >
               <RotateCcw size={10} /> Following up on previous result
             </div>
             <button
               onClick={() => { setLastContext(null); setLastWorker(null); }}
-              className="text-[11px] px-2.5 py-1.5 rounded-full transition-colors hover:bg-white/[0.04]"
-              style={{ color: "hsl(242 17% 40%)" }}
+              className="text-[11px] px-2.5 py-1.5 rounded-full transition-colors"
+              style={{ color: "hsl(238 18% 38%)" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "rgba(255,255,255,0.04)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"; }}
             >
               Start fresh
             </button>
@@ -795,11 +843,7 @@ export default function ConsolePage() {
                 key={s}
                 onClick={() => { setInput(s); inputRef.current?.focus(); }}
                 className="suggestion-chip px-3 py-1.5 rounded-full text-[12px]"
-                style={{
-                  backgroundColor: "hsl(240 20% 8%)",
-                  border: "1px solid hsl(240 20% 13%)",
-                  color: "hsl(242 18% 50%)",
-                }}
+                style={{ color: "hsl(238 18% 46%)" }}
               >
                 {s}
               </button>
@@ -811,19 +855,19 @@ export default function ConsolePage() {
         {showFilePath && (
           <div
             className="flex items-center gap-2 mb-2.5 px-4 py-2.5 rounded-2xl"
-            style={{ backgroundColor: "hsl(240 22% 7%)", border: "1.5px solid hsl(240 20% 13%)" }}
+            style={{ backgroundColor: "hsl(238 18% 7%)", border: "1.5px solid hsl(238 18% 13%)" }}
           >
-            <Paperclip size={11} style={{ color: "hsl(242 17% 40%)" }} />
+            <Paperclip size={11} style={{ color: "hsl(238 18% 38%)" }} />
             <input
               type="text"
               value={filePath}
               onChange={e => setFilePath(e.target.value)}
               placeholder="/path/to/file"
               className="flex-1 bg-transparent text-[13px] text-foreground outline-none"
-              style={{ caretColor: "hsl(246 89% 70%)" }}
+              style={{ caretColor: "hsl(248 90% 70%)" }}
             />
             <button onClick={() => { setShowFilePath(false); setFilePath(""); }}>
-              <X size={13} style={{ color: "hsl(242 17% 42%)" }} />
+              <X size={13} style={{ color: "hsl(238 18% 40%)" }} />
             </button>
           </div>
         )}
@@ -833,8 +877,10 @@ export default function ConsolePage() {
           <button
             onClick={() => setShowFilePath(v => !v)}
             title="Attach file path"
-            className="flex-shrink-0 mb-0.5 transition-all rounded-lg p-0.5 hover:bg-white/[0.05]"
-            style={{ color: showFilePath || filePath ? "hsl(246 89% 72%)" : "hsl(242 17% 36%)" }}
+            className="flex-shrink-0 mb-0.5 transition-all rounded-lg p-1"
+            style={{ color: showFilePath || filePath ? "hsl(248 90% 70%)" : "hsl(238 18% 34%)" }}
+            onMouseEnter={e => { if (!showFilePath && !filePath) (e.currentTarget as HTMLElement).style.color = "hsl(238 18% 52%)"; }}
+            onMouseLeave={e => { if (!showFilePath && !filePath) (e.currentTarget as HTMLElement).style.color = "hsl(238 18% 34%)"; }}
           >
             <Paperclip size={15} />
           </button>
@@ -843,14 +889,15 @@ export default function ConsolePage() {
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={lastContext ? "Ask a follow-up question..." : "What should Portiere do next?"}
+            placeholder={lastContext ? "Ask a follow-up..." : "Ask me anything..."}
             disabled={running}
             rows={1}
             className="flex-1 bg-transparent text-[14px] text-foreground outline-none resize-none leading-relaxed max-h-36 overflow-y-auto disabled:opacity-40"
             style={{
               minHeight: "1.5rem",
-              caretColor: "hsl(246 89% 70%)",
+              caretColor: "hsl(248 90% 70%)",
               letterSpacing: "-0.01em",
+              color: "hsl(240 20% 92%)",
             }}
           />
           <button
@@ -860,17 +907,17 @@ export default function ConsolePage() {
             style={{
               background: running
                 ? "transparent"
-                : "linear-gradient(135deg, hsl(246 89% 64%) 0%, hsl(258 72% 68%) 100%)",
-              color: running ? "hsl(347 87% 65%)" : "white",
-              border: running ? "1.5px solid hsl(347 87% 60% / 0.35)" : "none",
-              boxShadow: running ? "none" : "0 2px 12px rgba(124,111,247,0.4)",
+                : "linear-gradient(135deg, hsl(248 82% 60%) 0%, hsl(264 70% 64%) 100%)",
+              color: running ? "hsl(4 86% 62%)" : "white",
+              border: running ? "1.5px solid hsl(4 86% 56% / 0.35)" : "none",
+              boxShadow: running ? "none" : "0 2px 12px rgba(109,95,234,0.4)",
             }}
           >
             {running ? <X size={13} /> : <ArrowUp size={14} />}
           </button>
         </div>
 
-        <p className="text-center text-[11px] mt-2" style={{ color: "hsl(242 17% 27%)", letterSpacing: "0.01em" }}>
+        <p className="text-center text-[11px] mt-2" style={{ color: "hsl(238 18% 24%)", letterSpacing: "0.01em" }}>
           Portiere uses AI — always verify important results
         </p>
       </div>

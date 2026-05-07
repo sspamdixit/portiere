@@ -2,10 +2,10 @@ import { useState, useEffect } from "react";
 import { Save, Eye, EyeOff, CheckCircle, AlertCircle, Loader2, ChevronRight, ChevronDown, Sparkles, Film, Monitor, User, Mail } from "lucide-react";
 import { fetchSettings, saveSettings } from "@/lib/api";
 
-const dim = "hsl(242 17% 36%)";
-const muted = "hsl(242 18% 56%)";
-const primary = "hsl(246 89% 70%)";
-const green = "hsl(142 68% 48%)";
+const dim = "hsl(238 18% 32%)";
+const muted = "hsl(238 18% 50%)";
+const primary = "hsl(248 90% 68%)";
+const green = "hsl(152 64% 48%)";
 
 function SelectField({ value, onChange, options }: {
   value: string; onChange: (v: string) => void;

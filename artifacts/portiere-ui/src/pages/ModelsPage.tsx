@@ -2,10 +2,10 @@ import { useState } from "react";
 import { RefreshCw, Cpu, HardDrive, Loader2, AlertCircle, Box, ChevronRight, Sparkles, Search, Globe, Film, Monitor, Check, Cloud, Mail, Terminal, Image, Languages, Newspaper, TrendingUp, CalendarPlus } from "lucide-react";
 import { fetchModels, fetchSettings } from "@/lib/api";
 
-const dim = "hsl(242 17% 36%)";
-const muted = "hsl(242 18% 56%)";
-const green = "hsl(142 68% 48%)";
-const primary = "hsl(246 89% 70%)";
+const dim = "hsl(238 18% 32%)";
+const muted = "hsl(238 18% 50%)";
+const green = "hsl(152 64% 48%)";
+const primary = "hsl(248 90% 68%)";
 
 interface OllamaModel { name: string; size_gb: number; modified: string; }
 interface LMStudioModel { name: string; object: string; }
