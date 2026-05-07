@@ -66,26 +66,35 @@ export default function Sidebar() {
       {/* Brand */}
       <div className="px-4 pt-5 pb-3 flex-shrink-0">
         <div className="flex items-center gap-3 px-1">
-          <div
-            className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 relative"
-            style={{
-              background: "linear-gradient(135deg, hsl(248 82% 62%) 0%, hsl(264 70% 66%) 100%)",
-              boxShadow: "0 0 16px rgba(109,95,234,0.45), 0 2px 8px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.08) inset",
-            }}
-          >
-            <span className="text-white text-[15px] font-bold leading-none select-none">◈</span>
+          <div className="relative flex-shrink-0">
+            {/* Ambient glow corona */}
+            <div
+              className="absolute rounded-full pointer-events-none animate-logo-breathe"
+              style={{
+                inset: "-6px",
+                background: "rgba(109,95,234,0.3)",
+                filter: "blur(10px)",
+              }}
+            />
+            <div
+              className="relative w-8 h-8 rounded-xl flex items-center justify-center"
+              style={{
+                background: "linear-gradient(140deg, hsl(248 78% 64%) 0%, hsl(264 68% 60%) 100%)",
+                boxShadow: "0 2px 10px rgba(109,95,234,0.5), 0 0 0 1px rgba(255,255,255,0.1) inset",
+              }}
+            >
+              <span className="text-white text-[15px] font-bold leading-none select-none">◈</span>
+            </div>
           </div>
           <div className="min-w-0">
-            <div className="flex items-center gap-1.5">
-              <span
-                className="text-[15px] font-semibold"
-                style={{ color: "hsl(240 20% 97%)", letterSpacing: "-0.025em" }}
-              >
-                Portiere
-              </span>
-            </div>
-            <p className="text-[10px] font-medium leading-none mt-0.5 tracking-widest uppercase" style={{ color: "hsl(240 16% 36%)" }}>
-              Concierge
+            <span
+              className="text-[15px] font-semibold block"
+              style={{ color: "hsl(240 20% 97%)", letterSpacing: "-0.03em" }}
+            >
+              Portiere
+            </span>
+            <p className="text-[10px] font-medium leading-none mt-0.5" style={{ color: "hsl(240 16% 32%)", letterSpacing: "0.06em", textTransform: "uppercase" }}>
+              AI Concierge
             </p>
           </div>
         </div>
@@ -260,12 +269,12 @@ export default function Sidebar() {
         <div className="flex items-center gap-2">
           <div
             className="relative h-1.5 w-1.5 flex-shrink-0 rounded-full"
-            style={{ background: "hsl(var(--accent))", boxShadow: "0 0 6px hsl(var(--accent))" }}
+            style={{ background: "hsl(var(--accent))", boxShadow: "0 0 5px hsl(var(--accent))" }}
           />
-          <span className="text-[11px] font-medium" style={{ color: "hsl(240 16% 34%)", letterSpacing: "0.01em" }}>
-            13 capabilities
+          <span className="text-[11px]" style={{ color: "hsl(240 16% 30%)", letterSpacing: "-0.005em" }}>
+            13 capabilities ready
           </span>
-          <Zap size={9} style={{ color: "hsl(240 16% 30%)", marginLeft: "auto" }} />
+          <Zap size={8} style={{ color: "hsl(240 16% 26%)", marginLeft: "auto", opacity: 0.7 }} />
         </div>
       </div>
     </aside>

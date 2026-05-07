@@ -478,19 +478,21 @@ function StreamingCard({ worker, text }: { worker: string; text: string }) {
 function CompleteRow({ elapsed }: { elapsed?: number }) {
   return (
     <div className="flex items-center gap-3 py-5 px-6 animate-feed-in">
-      <div className="flex-1 h-px" style={{ background: "linear-gradient(90deg, transparent, hsl(238 18% 11%) 50%)" }} />
+      <div className="flex-1 h-px" style={{ background: "linear-gradient(90deg, transparent, hsl(238 18% 12%) 60%)" }} />
       <div
-        className="flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1 rounded-full"
+        className="flex items-center gap-1.5 text-[11px] font-medium px-3.5 py-1.5 rounded-full"
         style={{
-          color: "hsl(152 64% 48%)",
-          backgroundColor: "rgba(34,197,94,0.07)",
-          border: "1px solid rgba(34,197,94,0.15)",
-          letterSpacing: "0.02em",
+          color: "hsl(152 60% 50%)",
+          backgroundColor: "rgba(34,197,94,0.06)",
+          border: "1px solid rgba(34,197,94,0.14)",
+          letterSpacing: "-0.005em",
+          boxShadow: "0 1px 8px rgba(34,197,94,0.08)",
         }}
       >
-        <Check size={10} /> Done{elapsed !== undefined ? ` · ${elapsed}s` : ""}
+        <Check size={10} strokeWidth={2.5} />
+        {elapsed !== undefined ? `Finished in ${elapsed}s` : "Done"}
       </div>
-      <div className="flex-1 h-px" style={{ background: "linear-gradient(90deg, hsl(238 18% 11%) 50%, transparent)" }} />
+      <div className="flex-1 h-px" style={{ background: "linear-gradient(90deg, hsl(238 18% 12%) 40%, transparent)" }} />
     </div>
   );
 }
@@ -540,6 +542,16 @@ function useVoiceInput(onTranscript: (text: string) => void) {
   }, [listening, supported, onTranscript]);
 
   return { listening, toggle, supported };
+}
+
+// ── Greeting ───────────────────────────────────────────────────────────────
+function getGreeting(): string {
+  const h = new Date().getHours();
+  if (h < 5)  return "Still up?";
+  if (h < 12) return "Good morning.";
+  if (h < 17) return "Good afternoon.";
+  if (h < 21) return "Good evening.";
+  return "Working late?";
 }
 
 // ── Main page ──────────────────────────────────────────────────────────────
@@ -841,27 +853,31 @@ export default function ConsolePage() {
             {/* Hero */}
             <div className="relative flex flex-col items-center text-center mb-8 animate-slide-up">
               <div
-                className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5"
+                className="relative w-16 h-16 rounded-2xl flex items-center justify-center mb-5 animate-float"
                 style={{
-                  background: "linear-gradient(135deg, rgba(109,95,234,0.22) 0%, rgba(109,95,234,0.06) 100%)",
-                  border: "1px solid rgba(109,95,234,0.28)",
-                  boxShadow: "0 0 60px rgba(109,95,234,0.14), 0 0 0 1px rgba(255,255,255,0.03) inset",
+                  background: "linear-gradient(145deg, rgba(109,95,234,0.24) 0%, rgba(109,95,234,0.07) 100%)",
+                  border: "1px solid rgba(109,95,234,0.3)",
+                  boxShadow: "0 0 48px rgba(109,95,234,0.16), 0 8px 32px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.04) inset",
                 }}
               >
-                <span className="text-[30px] leading-none select-none" style={{ color: "hsl(248 90% 72%)" }}>◈</span>
+                <div
+                  className="absolute inset-0 rounded-2xl pointer-events-none animate-logo-breathe"
+                  style={{ background: "rgba(109,95,234,0.2)", filter: "blur(14px)", transform: "scale(1.3)" }}
+                />
+                <span className="relative text-[30px] leading-none select-none" style={{ color: "hsl(248 90% 74%)" }}>◈</span>
               </div>
               <h1
-                className="text-[28px] font-semibold mb-2.5"
-                style={{ color: "hsl(240 20% 96%)", letterSpacing: "-0.04em", lineHeight: 1.15 }}
+                className="text-[30px] font-semibold mb-3"
+                style={{ color: "hsl(240 20% 97%)", letterSpacing: "-0.045em", lineHeight: 1.12 }}
               >
-                What can I do for you?
+                {getGreeting()}
               </h1>
-              <p className="text-[14px] max-w-sm" style={{ color: "hsl(238 18% 46%)", letterSpacing: "-0.01em", lineHeight: 1.6 }}>
-                Your personal AI concierge — from flights to finance, code to creativity.
+              <p className="text-[14px] max-w-[300px]" style={{ color: "hsl(238 18% 44%)", letterSpacing: "-0.01em", lineHeight: 1.65 }}>
+                Search, write, code, run numbers — or just ask a question.
               </p>
 
               {/* Feature pills */}
-              <div className="flex flex-wrap items-center justify-center gap-2 mt-5">
+              <div className="flex flex-wrap items-center justify-center gap-1.5 mt-5">
                 {[
                   { label: "Voice input", icon: Mic },
                   { label: "Templates", icon: BookOpen },
@@ -870,11 +886,11 @@ export default function ConsolePage() {
                 ].map(({ label, icon: Icon }) => (
                   <div
                     key={label}
-                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium"
+                    className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[11.5px] font-medium"
                     style={{
-                      backgroundColor: "rgba(109,95,234,0.08)",
-                      border: "1px solid rgba(109,95,234,0.16)",
-                      color: "hsl(248 90% 72% / 0.8)",
+                      backgroundColor: "rgba(109,95,234,0.07)",
+                      border: "1px solid rgba(109,95,234,0.14)",
+                      color: "hsl(248 80% 70%)",
                     }}
                   >
                     <Icon size={10} />
@@ -914,10 +930,14 @@ export default function ConsolePage() {
             </div>
 
             <p
-              className="relative text-[11px] animate-slide-up"
-              style={{ color: "hsl(238 18% 28%)", letterSpacing: "0.02em", animationDelay: "0.1s" }}
+              className="relative text-[11.5px] animate-slide-up"
+              style={{ color: "hsl(238 18% 30%)", letterSpacing: "-0.005em", animationDelay: "0.1s" }}
             >
-              ⌘K to focus · ⌘T for templates · ? for shortcuts
+              <span style={{ opacity: 0.6 }}>⌘K</span>
+              <span style={{ opacity: 0.3, margin: "0 6px" }}>·</span>
+              <span style={{ opacity: 0.6 }}>⌘T</span> <span style={{ opacity: 0.4 }}>templates</span>
+              <span style={{ opacity: 0.3, margin: "0 6px" }}>·</span>
+              <span style={{ opacity: 0.6 }}>?</span> <span style={{ opacity: 0.4 }}>shortcuts</span>
             </p>
           </div>
         ) : (
@@ -1116,7 +1136,7 @@ export default function ConsolePage() {
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={lastContext ? "Ask a follow-up..." : listening ? "Listening..." : "Ask me anything..."}
+            placeholder={lastContext ? "Ask a follow-up..." : listening ? "Listening..." : "What's on your mind?"}
             disabled={running}
             rows={1}
             className="flex-1 bg-transparent text-[14px] text-foreground outline-none resize-none leading-relaxed max-h-36 overflow-y-auto disabled:opacity-40"
@@ -1132,22 +1152,34 @@ export default function ConsolePage() {
           <button
             onClick={running ? () => stopRef.current?.() : submit}
             disabled={!running && !input.trim()}
-            className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-xl transition-all duration-150 disabled:opacity-20 disabled:cursor-not-allowed"
+            className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-xl transition-all duration-200 disabled:opacity-20 disabled:cursor-not-allowed"
             style={{
               background: running
                 ? "transparent"
-                : "linear-gradient(135deg, hsl(248 82% 60%) 0%, hsl(264 70% 64%) 100%)",
+                : "linear-gradient(148deg, hsl(248 82% 64%) 0%, hsl(264 68% 58%) 100%)",
               color: running ? "hsl(4 86% 62%)" : "white",
               border: running ? "1.5px solid hsl(4 86% 56% / 0.35)" : "none",
-              boxShadow: running ? "none" : "0 2px 12px rgba(109,95,234,0.4)",
+              boxShadow: running ? "none" : "0 2px 14px rgba(109,95,234,0.42), inset 0 1px 0 rgba(255,255,255,0.16)",
+            }}
+            onMouseEnter={e => {
+              if (!running && input.trim()) {
+                (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 22px rgba(109,95,234,0.6), inset 0 1px 0 rgba(255,255,255,0.2)";
+                (e.currentTarget as HTMLElement).style.transform = "scale(1.06)";
+              }
+            }}
+            onMouseLeave={e => {
+              if (!running) {
+                (e.currentTarget as HTMLElement).style.boxShadow = "0 2px 14px rgba(109,95,234,0.42), inset 0 1px 0 rgba(255,255,255,0.16)";
+                (e.currentTarget as HTMLElement).style.transform = "scale(1)";
+              }
             }}
           >
             {running ? <X size={13} /> : <ArrowUp size={14} />}
           </button>
         </div>
 
-        <p className="text-center text-[11px] mt-2" style={{ color: "hsl(238 18% 24%)", letterSpacing: "0.01em" }}>
-          Portiere uses AI — always verify important results
+        <p className="text-center text-[11px] mt-2" style={{ color: "hsl(238 18% 22%)", letterSpacing: "-0.005em" }}>
+          AI can make mistakes — verify anything that matters
         </p>
       </div>
     </div>
