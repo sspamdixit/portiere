@@ -8,7 +8,7 @@ const B = "#141414";          // background
 const SURFACE = "#0F0E0C";    // sidebar (slightly deeper)
 const BORDER = "#242018";     // border
 const AMBER = "#CC7722";      // burnt amber
-const OXBLOOD = "#600000";    // active state
+const ACTIVE_AMBER = "#B8831C"; // active nav accent — burnished brass
 const TEXT = "#E2D0B4";       // primary text
 const MUTED = "#7A6A54";      // muted text
 const DIM = "#4A3A28";        // dim text
@@ -88,15 +88,15 @@ export default function Sidebar() {
           <div className="relative flex-shrink-0">
             <div
               className="absolute rounded-full pointer-events-none animate-logo-breathe"
-              style={{ inset: "-6px", background: "rgba(96,0,0,0.35)", filter: "blur(10px)" }}
+              style={{ inset: "-6px", background: "rgba(180,120,20,0.18)", filter: "blur(10px)" }}
             />
             <div
               className="relative w-8 h-8 flex items-center justify-center"
               style={{
-                background: "linear-gradient(140deg, #7A0000 0%, #400000 100%)",
-                border: "1px solid rgba(204,119,34,0.3)",
+                background: "linear-gradient(140deg, #2C1F08 0%, #181208 100%)",
+                border: "1px solid rgba(204,119,34,0.35)",
                 borderRadius: "3px",
-                boxShadow: "0 2px 10px rgba(96,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05) inset",
+                boxShadow: "0 2px 10px rgba(140,80,0,0.3), 0 0 0 1px rgba(255,255,255,0.05) inset",
               }}
             >
               <span className="text-[15px] leading-none select-none" style={{ color: AMBER }}>◈</span>
@@ -136,8 +136,8 @@ export default function Sidebar() {
                 style={{
                   borderRadius: "2px",
                   color: active ? TEXT : MUTED,
-                  backgroundColor: active ? "rgba(96,0,0,0.16)" : "transparent",
-                  borderLeft: active ? `2px solid ${OXBLOOD}` : "2px solid transparent",
+                  backgroundColor: active ? "rgba(180,120,20,0.1)" : "transparent",
+                  borderLeft: active ? `2px solid ${ACTIVE_AMBER}` : "2px solid transparent",
                   letterSpacing: "-0.005em",
                 }}
                 onMouseEnter={e => {

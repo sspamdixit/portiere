@@ -461,3 +461,148 @@ body.light-mode canvas,
 body.light-mode [data-no-invert] {
   filter: invert(1) hue-rotate(180deg);
 }
+
+/* ═══════════════════════════════════════════════════════
+   NIXIE TUBE DISPLAY — Analog digit glow
+═══════════════════════════════════════════════════════ */
+@keyframes nixie-flicker {
+  0%,  85%, 100% { opacity: 1; }
+  86%  { opacity: 0.65; }
+  87%  { opacity: 1; }
+  90%  { opacity: 0.45; }
+  91%  { opacity: 0.9; }
+  94%  { opacity: 0.7; }
+  95%  { opacity: 1; }
+}
+
+@keyframes nixie-flicker-fast {
+  0%,  78%, 100% { opacity: 1; }
+  79%  { opacity: 0.55; }
+  80%  { opacity: 0.95; }
+  83%  { opacity: 0.4; }
+  84%  { opacity: 0.88; }
+  88%  { opacity: 0.6; }
+  89%  { opacity: 1; }
+}
+
+.nixie-digit {
+  font-family: var(--app-font-mono);
+  color: #E8940A;
+  text-shadow:
+    0 0 6px rgba(232, 148, 10, 0.95),
+    0 0 14px rgba(232, 148, 10, 0.55),
+    0 0 28px rgba(200, 100, 0, 0.3);
+  animation: nixie-flicker 9s infinite;
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+}
+
+.nixie-digit-active {
+  animation: nixie-flicker-fast 4s infinite;
+  text-shadow:
+    0 0 8px rgba(232, 148, 10, 1),
+    0 0 18px rgba(232, 148, 10, 0.7),
+    0 0 36px rgba(200, 100, 0, 0.45);
+}
+
+/* Nixie tube background "envelope" */
+.nixie-tube {
+  background: rgba(10, 7, 2, 0.8);
+  border: 1px solid rgba(180, 100, 10, 0.25);
+  border-radius: 3px;
+  padding: 2px 7px;
+  position: relative;
+  box-shadow:
+    inset 0 0 8px rgba(200, 100, 0, 0.12),
+    0 1px 3px rgba(0, 0, 0, 0.5);
+}
+.nixie-tube::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 3px;
+  background: linear-gradient(180deg, rgba(255,180,40,0.04) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+/* ═══════════════════════════════════════════════════════
+   VU METER — Audio-deck style bars
+═══════════════════════════════════════════════════════ */
+@keyframes vu-a { 0%,100%{height:12%} 25%{height:78%} 60%{height:38%} 80%{height:90%} }
+@keyframes vu-b { 0%,100%{height:35%} 30%{height:20%} 55%{height:82%} 75%{height:45%} }
+@keyframes vu-c { 0%,100%{height:60%} 20%{height:88%} 50%{height:22%} 85%{height:72%} }
+@keyframes vu-d { 0%,100%{height:20%} 35%{height:55%} 65%{height:95%} 90%{height:30%} }
+@keyframes vu-e { 0%,100%{height:75%} 15%{height:40%} 45%{height:68%} 70%{height:15%} }
+@keyframes vu-f { 0%,100%{height:45%} 20%{height:88%} 50%{height:30%} 80%{height:62%} }
+@keyframes vu-g { 0%,100%{height:18%} 30%{height:72%} 60%{height:50%} 85%{height:88%} }
+
+.vu-bar { border-radius: 1px; transition: background-color 0.35s ease; align-self: flex-end; }
+.vu-bar-active-0 { animation: vu-a 0.45s ease-in-out infinite alternate; }
+.vu-bar-active-1 { animation: vu-b 0.52s ease-in-out 0.04s infinite alternate; }
+.vu-bar-active-2 { animation: vu-c 0.38s ease-in-out 0.09s infinite alternate; }
+.vu-bar-active-3 { animation: vu-d 0.60s ease-in-out 0.02s infinite alternate; }
+.vu-bar-active-4 { animation: vu-e 0.43s ease-in-out 0.07s infinite alternate; }
+.vu-bar-active-5 { animation: vu-f 0.55s ease-in-out 0.12s infinite alternate; }
+.vu-bar-active-6 { animation: vu-g 0.48s ease-in-out 0.05s infinite alternate; }
+
+/* ═══════════════════════════════════════════════════════
+   VOICE PANEL — Right side of split layout
+═══════════════════════════════════════════════════════ */
+.voice-panel {
+  background: linear-gradient(180deg, #0A0804 0%, #070504 100%);
+  border-left: 1px solid #242018;
+  position: relative;
+}
+.voice-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 50% at 50% 30%, rgba(200,120,0,0.05) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* Scan-line overlay for analog feel */
+.scanlines {
+  position: relative;
+  overflow: hidden;
+}
+.scanlines::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.06) 2px,
+    rgba(0,0,0,0.06) 4px
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Thinking block accordion */
+.thinking-block {
+  background: rgba(12, 9, 4, 0.55);
+  border: 1px solid rgba(165, 124, 0, 0.16);
+  border-radius: 3px;
+  backdrop-filter: blur(12px);
+  overflow: hidden;
+}
+.thinking-block-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  user-select: none;
+}
+.thinking-block-header:hover {
+  background: rgba(165, 124, 0, 0.06);
+}
+.thinking-block-body {
+  padding: 12px 14px;
+  border-top: 1px solid rgba(165, 124, 0, 0.1);
+  background: rgba(8, 6, 3, 0.4);
+}

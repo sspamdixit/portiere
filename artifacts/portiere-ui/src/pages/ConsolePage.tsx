@@ -5,8 +5,8 @@ import {
   Sparkles, Search as SearchIcon, Monitor, Check, Copy, RotateCcw,
   Cloud, Mail, Terminal, Download, ExternalLink,
   Image, Languages, Newspaper, TrendingUp, CalendarPlus,
-  Plane, PenLine, Mic, MicOff, FileDown, BookOpen, Keyboard,
-  Zap, Edit3, ArrowDown,
+  Plane, PenLine, Mic, MicOff, FileDown, BookOpen,
+  Zap, Edit3, ArrowDown, ChevronDown, Brain, Volume2, VolumeX, Headphones,
 } from "lucide-react";
 import { streamOrchestrate, fetchSettings, type OrchestrateEvent } from "@/lib/api";
 import { saveSession } from "@/lib/sessions";
@@ -475,6 +475,184 @@ function CompleteRow({ elapsed }: { elapsed?: number }) {
   );
 }
 
+// ── Nixie clock (analog elapsed timer) ────────────────────────────────────
+function NixieClock({ seconds, active }: { seconds: number; active: boolean }) {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  const display = mins > 0 ? `${mins}:${String(secs).padStart(2, "0")}` : String(secs).padStart(2, "0");
+  return (
+    <div className="nixie-tube flex items-center">
+      <span className={`nixie-digit text-[11px] ${active ? "nixie-digit-active" : ""}`}>
+        {display}s
+      </span>
+    </div>
+  );
+}
+
+// ── Thinking block (brain routing accordion) ────────────────────────────────
+interface BrainRouting { reasoning: string; chain: Array<{ step: number; worker: string; task: string }> }
+
+function ThinkingBlock({ routing }: { routing: BrainRouting }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="mx-5 my-2 animate-feed-in thinking-block">
+      <div className="thinking-block-header" onClick={() => setOpen(v => !v)}>
+        <Brain size={10} style={{ color: "#A57C00", flexShrink: 0 }} />
+        <span className="text-[10px] font-semibold uppercase" style={{ color: "#7A6A4A", letterSpacing: "0.08em" }}>
+          Brain Routing
+        </span>
+        {routing.reasoning && (
+          <span className="text-[11px] italic ml-2 flex-1 truncate" style={{ color: "#5A4A38" }}>
+            {routing.reasoning}
+          </span>
+        )}
+        <ChevronDown
+          size={10}
+          style={{
+            color: "#5A4A38",
+            flexShrink: 0,
+            transform: open ? "rotate(180deg)" : "rotate(0deg)",
+            transition: "transform 0.2s ease",
+          }}
+        />
+      </div>
+      {open && (
+        <div className="thinking-block-body">
+          <div className="space-y-3">
+            {routing.chain.map((step, i) => (
+              <div key={i} className="flex items-start gap-3">
+                <div
+                  className="w-4 h-4 flex items-center justify-center flex-shrink-0 mt-0.5 text-[9px] font-bold"
+                  style={{
+                    background: "rgba(165,124,0,0.12)",
+                    border: "1px solid rgba(165,124,0,0.22)",
+                    borderRadius: "1px",
+                    color: "#A57C00",
+                    fontFamily: "var(--app-font-mono)",
+                  }}
+                >
+                  {step.step}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] font-semibold uppercase" style={{ color: "#8A7A5A", letterSpacing: "0.06em" }}>
+                    {step.worker}
+                  </p>
+                  <p className="text-[12px] mt-0.5 leading-relaxed" style={{ color: "#5A4A38" }}>
+                    {step.task}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── VU Meter panel ────────────────────────────────────────────────────────
+const VU_ANIMS = ["vu-bar-active-0","vu-bar-active-1","vu-bar-active-2","vu-bar-active-3","vu-bar-active-4","vu-bar-active-5","vu-bar-active-6"];
+const VU_HEIGHTS = [35,55,22,75,48,88,30,62,18,90,42,70,26,58,82,38,65,20,80,44];
+
+function VUMeterPanel({ speaking, listening, lastText, onClose }: {
+  speaking: boolean;
+  listening: boolean;
+  lastText: string;
+  onClose: () => void;
+}) {
+  const active = speaking || listening;
+  return (
+    <div className="voice-panel w-64 flex-shrink-0 flex flex-col scanlines">
+      <div className="flex items-center justify-between px-4 py-3 flex-shrink-0" style={{ borderBottom: "1px solid #1E1A12" }}>
+        <div className="flex items-center gap-2">
+          <Headphones size={11} style={{ color: "#A57C00", opacity: 0.8 }} />
+          <span className="text-[10px] font-semibold uppercase" style={{ color: "#7A6A4A", letterSpacing: "0.1em" }}>Voice Mode</span>
+          {active && <div className="w-1 h-1 rounded-full animate-pulse" style={{ backgroundColor: speaking ? "#E8940A" : "#6A9ABA" }} />}
+        </div>
+        <button onClick={onClose} style={{ color: "#4A3A28" }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#8A7A5A"; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "#4A3A28"; }}>
+          <X size={12} />
+        </button>
+      </div>
+
+      <div className="flex-1 flex flex-col items-center justify-center gap-6 px-6 py-6">
+        <p className="text-[9px] font-semibold uppercase" style={{ color: "#3A2E20", letterSpacing: "0.12em" }}>Signal Level</p>
+
+        <div className="flex items-end justify-center gap-[3px] w-full" style={{ height: "72px" }}>
+          {VU_HEIGHTS.map((h, i) => {
+            const animClass = active ? VU_ANIMS[i % VU_ANIMS.length] : "";
+            const barColor = speaking
+              ? i < VU_HEIGHTS.length * 0.65 ? "#C8882C" : "#E8B040"
+              : listening ? "#6A8AAA" : "#2A2018";
+            const glowColor = speaking
+              ? i < VU_HEIGHTS.length * 0.65 ? "rgba(200,136,44,0.35)" : "rgba(232,176,64,0.5)"
+              : "none";
+            return (
+              <div key={i} className={`vu-bar ${animClass}`} style={{
+                width: "6px",
+                height: active ? undefined : `${Math.max(h * 0.12, 4)}%`,
+                backgroundColor: barColor,
+                boxShadow: active ? `0 0 5px ${glowColor}` : "none",
+                flexShrink: 0,
+                minHeight: "2px",
+              }} />
+            );
+          })}
+        </div>
+
+        <div className="text-center space-y-2">
+          <div className="text-[11px] font-semibold uppercase px-3 py-1.5 inline-flex items-center gap-2"
+            style={{
+              color: speaking ? "#E8940A" : listening ? "#8AABCA" : "#4A3A28",
+              backgroundColor: speaking ? "rgba(232,148,10,0.08)" : listening ? "rgba(106,138,170,0.08)" : "transparent",
+              border: `1px solid ${speaking ? "rgba(232,148,10,0.2)" : listening ? "rgba(106,138,170,0.2)" : "rgba(74,58,40,0.25)"}`,
+              borderRadius: "2px",
+              letterSpacing: "0.1em",
+              transition: "all 0.3s ease",
+            }}
+          >
+            {speaking ? <><Volume2 size={10} /> Speaking</> : listening ? <><Mic size={10} /> Listening</> : <><VolumeX size={10} /> Standby</>}
+          </div>
+          {lastText && (
+            <p className="text-[11px] leading-relaxed italic max-w-[170px] mx-auto" style={{ color: "#5A4A38" }}>
+              "{lastText.length > 65 ? lastText.slice(0, 65) + "…" : lastText}"
+            </p>
+          )}
+        </div>
+
+        <div className="w-full space-y-1 opacity-25">
+          {[0,1,2].map(row => (
+            <div key={row} className="flex gap-0.5">
+              {Array.from({ length: 20 }, (_, j) => (
+                <div key={j} className="flex-1 rounded-sm" style={{
+                  height: "2px",
+                  backgroundColor: active
+                    ? `rgba(200,136,44,${0.12 + ((j * 3 + row * 7) % 10) * 0.07})`
+                    : "#1E1A12",
+                }} />
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex items-center justify-center gap-3 px-4 py-3 flex-shrink-0" style={{ borderTop: "1px solid #1E1A12" }}>
+        <div className="nixie-tube">
+          <span className={`nixie-digit text-[11px] ${active ? "nixie-digit-active" : ""}`}>
+            {speaking ? "OUT" : listening ? " IN " : "---"}
+          </span>
+        </div>
+        <div className="nixie-tube">
+          <span className={`nixie-digit text-[11px] ${active ? "nixie-digit-active" : ""}`}>
+            {speaking ? "TALK" : listening ? " MIC" : "IDLE"}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Voice input hook ───────────────────────────────────────────────────────
 type AnySpeechRecognition = {
   lang: string;
@@ -553,6 +731,12 @@ export default function ConsolePage() {
   const [showScrollBtn, setShowScrollBtn] = useState(false);
   const [currentBrain, setCurrentBrain] = useState<{ provider: string; model: string } | null>(null);
   const [memories, setMemories] = useState<string[]>([]);
+  const [voiceMode, setVoiceMode] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [lastSpokenText, setLastSpokenText] = useState("");
+  const [brainRoutingMap, setBrainRoutingMap] = useState<Map<number, BrainRouting>>(new Map());
+  const runIdRef = useRef(0);
+  const ttsRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   const feedRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -633,8 +817,31 @@ export default function ConsolePage() {
     });
   }, []);
 
+  const speakText = useCallback((text: string) => {
+    if (!voiceMode || !("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
+    const stripped = text.replace(/#+\s/g, "").replace(/\*\*/g, "").replace(/`{1,3}[^`]*`{1,3}/g, "").slice(0, 500);
+    const utterance = new SpeechSynthesisUtterance(stripped);
+    utterance.rate = 0.92;
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
+    utterance.onstart = () => { setIsSpeaking(true); setLastSpokenText(stripped.slice(0, 90)); };
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+    ttsRef.current = utterance;
+    window.speechSynthesis.speak(utterance);
+  }, [voiceMode]);
+
+  useEffect(() => {
+    if (!voiceMode) {
+      window.speechSynthesis?.cancel();
+      setIsSpeaking(false);
+    }
+  }, [voiceMode]);
+
   const runOrchestration = useCallback((msg: string, filePathArg: string | null, contextArg: string | null) => {
     setRunning(true);
+    runIdRef.current += 1;
     setActivity({ message: "Waking up the Brain...", pipeline: [], brainStatus: "thinking", progress: 8 });
     const memoriesCurrent = loadMemory();
     const msgWithMemory = memoriesCurrent.length > 0
@@ -643,8 +850,21 @@ export default function ConsolePage() {
     const cancel = streamOrchestrate(
       msgWithMemory, filePathArg, contextArg,
       (event) => {
-        if (["brain_thinking", "brain_decision", "chain_step", "worker_start", "worker_thinking"].includes(event.type)) {
+        if (["brain_thinking", "chain_step", "worker_start", "worker_thinking"].includes(event.type)) {
           updateActivity(event); return;
+        }
+        if (event.type === "brain_decision") {
+          updateActivity(event);
+          const data = event.data as Record<string, unknown>;
+          const chain = (data?.chain as Array<Record<string, unknown>>) ?? [];
+          const routing: BrainRouting = {
+            reasoning: (data?.reasoning as string) || "",
+            chain: chain.map(s => ({ step: Number(s.step), worker: String(s.worker), task: String(s.task) })),
+          };
+          const runId = runIdRef.current;
+          setBrainRoutingMap(prev => { const m = new Map(prev); m.set(runId, routing); return m; });
+          addEntry({ type: "brain_routing", content: routing.reasoning, data: routing as unknown as Record<string, unknown> });
+          return;
         }
         if (event.type === "worker_chunk") {
           const key = event.worker || "unknown";
@@ -661,6 +881,7 @@ export default function ConsolePage() {
               const doneCount = pipeline.filter(s => s.status === "done").length;
               return { ...prev, pipeline, progress: 28 + (doneCount / Math.max(1, pipeline.length)) * 62, message: "Finalizing..." };
             });
+            if (event.content) speakText(event.content);
           }
           addEntry(event); return;
         }
@@ -685,7 +906,7 @@ export default function ConsolePage() {
       (err) => { addEntry({ type: "error", error: err }); setRunning(false); setActivity(null); },
     );
     stopRef.current = cancel;
-  }, [addEntry, updateActivity, notifySessionSaved]);
+  }, [addEntry, updateActivity, notifySessionSaved, speakText]);
 
   const submit = useCallback(() => {
     const msg = input.trim();
@@ -818,9 +1039,9 @@ export default function ConsolePage() {
             </div>
           )}
           {running && (
-            <div className="flex items-center gap-1.5 text-[12px] mr-2" style={{ color: "#CC7722" }}>
-              <Loader2 size={11} className="animate-spin" />
-              <span style={{ letterSpacing: "0.02em", fontVariantNumeric: "tabular-nums" }}>{elapsed}s</span>
+            <div className="flex items-center gap-2 mr-2">
+              <Loader2 size={11} className="animate-spin" style={{ color: "#CC7722" }} />
+              <NixieClock seconds={elapsed} active={true} />
             </div>
           )}
           {isComplete && !running && (
@@ -867,6 +1088,21 @@ export default function ConsolePage() {
           >
             ?
           </button>
+          <button
+            onClick={() => setVoiceMode(v => !v)}
+            title={voiceMode ? "Exit voice mode" : "Enter voice conversation mode"}
+            className="flex items-center justify-center w-7 h-7 transition-all"
+            style={{
+              color: voiceMode ? "#E8940A" : "#4A3A2C",
+              backgroundColor: voiceMode ? "rgba(232,148,10,0.1)" : "transparent",
+              border: voiceMode ? "1px solid rgba(232,148,10,0.25)" : "1px solid transparent",
+              borderRadius: "2px",
+            }}
+            onMouseEnter={e => { if (!voiceMode) { (e.currentTarget as HTMLElement).style.color = "#A57C00"; } }}
+            onMouseLeave={e => { if (!voiceMode) { (e.currentTarget as HTMLElement).style.color = "#4A3A2C"; } }}
+          >
+            <Headphones size={13} />
+          </button>
           {!isEmpty && (
             <button
               onClick={handleClear}
@@ -881,6 +1117,9 @@ export default function ConsolePage() {
         </div>
       </div>
 
+      {/* Content area: feed + input (+ voice panel if active) */}
+      <div className="flex-1 flex min-h-0">
+      <div className="flex-1 flex flex-col min-h-0">
       {/* Feed */}
       <div className="flex-1 relative min-h-0">
       <div ref={feedRef} className="h-full overflow-y-auto feed-scroll" onScroll={handleFeedScroll}>
@@ -891,13 +1130,13 @@ export default function ConsolePage() {
               className="absolute inset-0 pointer-events-none dot-grid"
               style={{ opacity: 0.5 }}
             />
-            {/* Radial glow — oxblood warmth */}
+            {/* Radial glow — warm amber warmth */}
             <div
               className="absolute pointer-events-none"
               style={{
                 top: 0, left: "50%", transform: "translateX(-50%)",
                 width: "600px", height: "400px",
-                background: "radial-gradient(ellipse 60% 50% at 50% 0%, rgba(96,0,0,0.07) 0%, transparent 70%)",
+                background: "radial-gradient(ellipse 60% 50% at 50% 0%, rgba(180,110,0,0.06) 0%, transparent 70%)",
               }}
             />
 
@@ -906,15 +1145,15 @@ export default function ConsolePage() {
               <div
                 className="relative w-16 h-16 flex items-center justify-center mb-5 animate-float"
                 style={{
-                  background: "linear-gradient(145deg, rgba(96,0,0,0.35) 0%, rgba(50,0,0,0.15) 100%)",
+                  background: "linear-gradient(145deg, rgba(44,30,8,0.7) 0%, rgba(20,14,4,0.5) 100%)",
                   border: "1px solid rgba(204,119,34,0.3)",
                   borderRadius: "4px",
-                  boxShadow: "0 0 36px rgba(96,0,0,0.2), 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(204,119,34,0.1)",
+                  boxShadow: "0 0 36px rgba(160,90,0,0.15), 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(204,119,34,0.1)",
                 }}
               >
                 <div
                   className="absolute inset-0 pointer-events-none animate-logo-breathe"
-                  style={{ background: "rgba(96,0,0,0.25)", filter: "blur(14px)", transform: "scale(1.3)", borderRadius: "4px" }}
+                  style={{ background: "rgba(160,90,0,0.18)", filter: "blur(14px)", transform: "scale(1.3)", borderRadius: "4px" }}
                 />
                 <span className="relative text-[30px] leading-none select-none" style={{ color: "#CC7722" }}>◈</span>
               </div>
@@ -1025,6 +1264,8 @@ export default function ConsolePage() {
                 );
               }
 
+              if (event.type === "brain_routing") return <ThinkingBlock key={entry.id} routing={event.data as unknown as BrainRouting} />;
+
               if (event.type === "worker_done") return <WorkerResultCard key={entry.id} event={event} />;
 
               if (event.type === "complete") return <CompleteRow key={entry.id} elapsed={(event as OrchestrateEvent & { _elapsed?: number })._elapsed} />;
@@ -1114,20 +1355,21 @@ export default function ConsolePage() {
         {listening && (
           <div className="flex items-center gap-2 mb-3 animate-feed-in">
             <div
-              className="flex items-center gap-2 px-3 py-1.5 rounded-full text-[12px] font-medium"
+              className="flex items-center gap-2 px-3 py-1.5 text-[12px] font-medium"
               style={{
-                backgroundColor: "rgba(220,53,69,0.08)",
-                border: "1px solid rgba(220,53,69,0.22)",
-                color: "hsl(4 86% 64%)",
+                backgroundColor: "rgba(106,138,170,0.08)",
+                border: "1px solid rgba(106,138,170,0.22)",
+                color: "#8AABCA",
+                borderRadius: "2px",
               }}
             >
-              <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: "hsl(4 86% 56%)" }} />
-              Listening... speak now
+              <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: "#6A9ABA" }} />
+              Listening — speak now
             </div>
             <button
               onClick={toggleVoice}
-              className="text-[11px] px-2.5 py-1.5 rounded-full"
-              style={{ color: "#6A5A48" }}
+              className="text-[11px] px-2.5 py-1.5"
+              style={{ color: "#6A5A48", borderRadius: "2px" }}
             >
               Cancel
             </button>
@@ -1254,8 +1496,8 @@ export default function ConsolePage() {
               background: running
                 ? "transparent"
                 : "linear-gradient(148deg, #7A5200 0%, #CC7722 100%)",
-              color: running ? "#8B4A4A" : "#E2D0B4",
-              border: running ? "1px solid rgba(139,74,74,0.4)" : "1px solid rgba(204,119,34,0.5)",
+              color: running ? "#6A5A48" : "#E2D0B4",
+              border: running ? "1px solid rgba(90,70,44,0.4)" : "1px solid rgba(204,119,34,0.5)",
               boxShadow: running ? "none" : "0 2px 12px rgba(165,124,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08)",
               borderRadius: "2px",
             }}
@@ -1278,6 +1520,16 @@ export default function ConsolePage() {
           AI can make mistakes — verify anything that matters
         </p>
       </div>
+      </div>{/* end flex-1 flex flex-col */}
+      {voiceMode && (
+        <VUMeterPanel
+          speaking={isSpeaking}
+          listening={listening}
+          lastText={lastSpokenText}
+          onClose={() => { setVoiceMode(false); window.speechSynthesis?.cancel(); setIsSpeaking(false); }}
+        />
+      )}
+      </div>{/* end flex-1 flex min-h-0 */}
     </div>
   );
 }
