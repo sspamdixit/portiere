@@ -90,7 +90,7 @@ const QUICK_ACTIONS = [
   {
     icon: Newspaper, color: "#A57C00", bg: "rgba(165,124,0,0.1)",
     label: "News", sub: "Latest headlines on any topic",
-    prompt: "What's happening in AI and tech today?",
+    prompt: "What's happening in tech today?",
   },
   {
     icon: TrendingUp, color: "#6A8A5A", bg: "rgba(106,138,90,0.1)",
@@ -1180,7 +1180,7 @@ export default function ConsolePage() {
                   { label: "Voice input", icon: Mic },
                   { label: "Templates", icon: BookOpen },
                   { label: "13 capabilities", icon: Zap },
-                  { label: "Local & cloud AI", icon: Cpu },
+                  { label: "Local & cloud", icon: Cpu },
                 ].map(({ label, icon: Icon }) => (
                   <div
                     key={label}
@@ -1517,7 +1517,7 @@ export default function ConsolePage() {
         </div>
 
         <p className="text-center text-[11px] mt-2" style={{ color: "#3A2E24", letterSpacing: "0em" }}>
-          AI makes mistakes. Double-check anything important.
+          These tools make mistakes. Double-check anything important.
         </p>
       </div>
       </div>{/* end flex-1 flex flex-col */}

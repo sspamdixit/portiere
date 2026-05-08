@@ -224,7 +224,7 @@ export default function SettingsPage() {
         <div className="flex items-center gap-2">
           <span className="text-[13.5px] font-semibold" style={{ color: "#E2D0B4", letterSpacing: "-0.01em" }}>Settings</span>
           <ChevronRight size={12} style={{ color: "#4A3A2C" }} />
-          <span className="text-[13px]" style={{ color: muted }}>AI & Capabilities</span>
+          <span className="text-[13px]" style={{ color: muted }}>Capabilities</span>
         </div>
         <div className="flex items-center gap-3">
           {status === "success" && (
@@ -283,7 +283,7 @@ export default function SettingsPage() {
 
         {/* AI Memory */}
         <SectionCard
-          title="AI Memory"
+          title="Memory"
           icon={<Brain size={13} />}
           iconColor="hsl(38 90% 62%)"
           iconBg="rgba(245,158,11,0.14)"
@@ -310,7 +310,7 @@ export default function SettingsPage() {
             }}
           />
           <div className="flex items-center justify-between">
-            <p className="text-[12px]" style={{ color: dim }}>Stored locally. Never sent anywhere except your AI.</p>
+            <p className="text-[12px]" style={{ color: dim }}>Stored locally. Never sent anywhere except your model.</p>
             <button
               onClick={handleSaveMemory}
               className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-semibold transition-all"
@@ -328,7 +328,7 @@ export default function SettingsPage() {
 
         {/* Your AI */}
         <SectionCard
-          title="Your AI Brain"
+          title="Brain"
           icon={<span className="text-[12px] font-bold">◈</span>}
           iconColor={primary}
           iconBg="rgba(204,119,34,0.12)"
@@ -337,7 +337,7 @@ export default function SettingsPage() {
         >
           <Field label="Provider" value={provider} onChange={set("brain_provider")}
             options={[
-              { value: "groq",       label: "Groq, free cloud AI (recommended)" },
+              { value: "groq",       label: "Groq, free cloud (recommended)" },
               { value: "ollama",     label: "Ollama, free, runs on your machine" },
               { value: "lmstudio",   label: "LM Studio, free, desktop app" },
               { value: "openai",     label: "OpenAI, GPT-4o" },
@@ -499,7 +499,7 @@ export default function SettingsPage() {
             onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = dim}
           >
             <ChevronRight size={13} className="transition-transform group-open:rotate-90" />
-            Advanced: Local AI endpoints
+            Advanced: Local endpoints
           </summary>
           <div className="mt-3 section-card">
             <div className="p-5 space-y-4">

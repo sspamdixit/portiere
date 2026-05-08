@@ -97,7 +97,7 @@ function RadioCard<T extends string>({ id, selected, onSelect, children }: {
 }
 
 const PROVIDER_OPTIONS: { id: Provider; label: string; sub: string; badge: string; badgeGreen?: boolean; Icon: React.FC<{ size?: number }> }[] = [
-  { id: "groq",      label: "Groq",      sub: "Free cloud AI · llama-3.3-70b · no install",  badge: "Free",  badgeGreen: true, Icon: Zap },
+  { id: "groq",      label: "Groq",      sub: "Free · llama-3.3-70b · no install",  badge: "Free",  badgeGreen: true, Icon: Zap },
   { id: "ollama",    label: "Ollama",    sub: "Free · Runs locally on your machine",           badge: "Local", badgeGreen: true, Icon: Monitor },
   { id: "lmstudio", label: "LM Studio", sub: "Free · GUI desktop app",                        badge: "Local",                  Icon: Cpu },
   { id: "openai",   label: "OpenAI",    sub: "GPT-4o · Requires paid API key",                badge: "Cloud",                  Icon: Server },
@@ -546,7 +546,7 @@ export default function OnboardingModal({ onDone }: { onDone: () => void }) {
             <div className="flex flex-col gap-5">
               <div>
                 <p className="text-[11px] uppercase tracking-widest font-semibold mb-1.5" style={{ color: dim }}>Step 1 of {totalSteps}</p>
-                <h2 className="text-[18px] font-semibold text-foreground" style={{ letterSpacing: "-0.02em" }}>Confirm your AI Brain</h2>
+                <h2 className="text-[18px] font-semibold text-foreground" style={{ letterSpacing: "-0.02em" }}>Confirm your Brain</h2>
                 <p className="text-[13px] mt-1" style={{ color: muted }}>
                   Pre-selected based on your hardware. Change if you prefer.
                 </p>
@@ -671,7 +671,7 @@ export default function OnboardingModal({ onDone }: { onDone: () => void }) {
               <div>
                 <p className="text-[11px] uppercase tracking-widest font-semibold mb-1.5" style={{ color: dim }}>Step 2 of {totalSteps}</p>
                 <h2 className="text-[18px] font-semibold text-foreground" style={{ letterSpacing: "-0.02em" }}>Get Ollama running</h2>
-                <p className="text-[13px] mt-1" style={{ color: muted }}>Free, private AI on your computer. No account, no usage limits.</p>
+                <p className="text-[13px] mt-1" style={{ color: muted }}>Free, private, runs on your computer. No account, no usage limits.</p>
               </div>
 
               <div className="p-4 rounded-2xl" style={{ background: bg2, border: `1px solid ${border}` }}>
@@ -780,7 +780,7 @@ export default function OnboardingModal({ onDone }: { onDone: () => void }) {
               <div>
                 <p className="text-[11px] uppercase tracking-widest font-semibold mb-1.5" style={{ color: dim }}>Step 2 of {totalSteps}</p>
                 <h2 className="text-[18px] font-semibold text-foreground" style={{ letterSpacing: "-0.02em" }}>Set up LM Studio</h2>
-                <p className="text-[13px] mt-1" style={{ color: muted }}>Desktop app for running AI models locally with a GUI.</p>
+                <p className="text-[13px] mt-1" style={{ color: muted }}>Desktop app for running models locally with a GUI.</p>
               </div>
               <div className="space-y-4">
                 {[

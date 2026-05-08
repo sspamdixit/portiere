@@ -303,7 +303,7 @@ export default function CapabilitiesPage() {
         {/* Local AI models */}
         <div>
           <p className="text-[10px] uppercase font-semibold mb-3 px-1" style={{ color: "#5A4A38", letterSpacing: "0.06em" }}>
-            Local AI models
+            Local models
           </p>
 
           {!modelData && !loading && (
@@ -337,7 +337,7 @@ export default function CapabilitiesPage() {
           {loading && (
             <div className="flex flex-col items-center justify-center py-16 gap-3">
               <Loader2 size={22} className="animate-spin" style={{ color: primary }} />
-              <p className="text-[13px]" style={{ color: muted }}>Probing local AI endpoints…</p>
+              <p className="text-[13px]" style={{ color: muted }}>Probing local endpoints…</p>
             </div>
           )}
 
@@ -565,7 +565,7 @@ export default function CapabilitiesPage() {
                                 border: `1px solid ${isSelected ? "rgba(106,138,90,0.2)" : "rgba(165,124,0,0.2)"}`,
                                 borderRadius: "2px",
                               }}
-                              title="Use this as AI brain"
+                              title="Use this as Brain"
                             >
                               {isSelected ? <Check size={10} /> : null}
                               {isSelected ? "In use" : "Use"}
