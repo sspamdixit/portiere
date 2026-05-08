@@ -290,7 +290,7 @@ function HardwareScanStep({
         <div>
           <h1 className="text-[20px] text-foreground" style={{ letterSpacing: "-0.01em", fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 500 }}>Welcome to Portiere</h1>
           <p className="text-[12px] mt-0.5" style={{ color: muted }}>
-            {phase === "scanning" ? "Scanning your machine to find the best AI setup" : "Pick the setup that works best for you"}
+            {phase === "scanning" ? "Scanning your machine" : "Pick a setup"}
           </p>
         </div>
       </div>
@@ -336,7 +336,7 @@ function HardwareScanStep({
             <p style={{ color: muted }}>{errMsg || "The API server may not be running yet."}</p>
           </div>
           <p className="text-[13px]" style={{ color: muted }}>
-            No worries — you can choose your AI setup manually on the next step.
+            Choose a setup manually on the next step.
           </p>
         </div>
       )}
@@ -357,7 +357,7 @@ function HardwareScanStep({
               </div>
               <div>
                 <p className="text-[14px] font-semibold text-foreground" style={{ letterSpacing: "-0.01em" }}>{autoDetected.label}</p>
-                <p className="text-[12px] mt-0.5" style={{ color: muted }}>Configured from your environment variables — no setup needed.</p>
+                <p className="text-[12px] mt-0.5" style={{ color: muted }}>Found in your environment. No setup needed.</p>
               </div>
               <button
                 onClick={handleAutoStart}
@@ -365,7 +365,7 @@ function HardwareScanStep({
                 className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-[13.5px] font-semibold transition-all disabled:opacity-50"
                 style={{ backgroundColor: "rgba(34,197,94,0.14)", border: "1px solid rgba(34,197,94,0.3)", color: green }}>
                 {applying ? <Loader2 size={13} className="animate-spin" /> : <Zap size={13} />}
-                {applying ? "Starting…" : "Start now — already configured ✓"}
+                {applying ? "Starting…" : "Start, already configured ✓"}
               </button>
               <button onClick={() => setShowAllRecs(true)}
                 className="text-[11.5px] text-center transition-colors"
@@ -395,7 +395,7 @@ function HardwareScanStep({
             <div>
               <p className="text-[11px] uppercase tracking-widest font-semibold mb-2.5 px-0.5"
                 style={{ color: dim }}>
-                Best AI setups for your machine
+                Setups for your machine
               </p>
               <div className="space-y-2.5">
                 {sysInfo.recommendations.map((rec, i) => (
@@ -596,7 +596,7 @@ export default function OnboardingModal({ onDone }: { onDone: () => void }) {
                 <p className="text-[11px] uppercase tracking-widest font-semibold mb-1.5" style={{ color: dim }}>Step 2 of {totalSteps}</p>
                 <h2 className="text-[18px] font-semibold text-foreground" style={{ letterSpacing: "-0.02em" }}>Connect Groq (Free)</h2>
                 <p className="text-[13px] mt-1" style={{ color: muted }}>
-                  One free API key — the fastest setup possible. No local installs, no monthly bill.
+                  One free API key. No local installs, no monthly bill.
                 </p>
               </div>
 
@@ -609,7 +609,7 @@ export default function OnboardingModal({ onDone }: { onDone: () => void }) {
                       <a href="https://console.groq.com/keys" target="_blank" rel="noreferrer"
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[12px] font-medium mt-1"
                         style={{ background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.25)", color: green }}>
-                        <ExternalLink size={10} /> console.groq.com — No credit card needed
+                        <ExternalLink size={10} /> console.groq.com, no credit card needed
                       </a>
                     ),
                   },
@@ -626,7 +626,7 @@ export default function OnboardingModal({ onDone }: { onDone: () => void }) {
                           value={groqKey}
                           onChange={setGroqKey}
                           placeholder="gsk_..."
-                          hint="Stored locally — never sent to third parties."
+                          hint="Stored locally. Never sent to third parties."
                         />
                       </div>
                     ),
@@ -647,7 +647,7 @@ export default function OnboardingModal({ onDone }: { onDone: () => void }) {
                 style={{ backgroundColor: "rgba(34,197,94,0.05)", border: "1px solid rgba(34,197,94,0.16)" }}>
                 <Wifi size={13} style={{ color: green, flexShrink: 0, marginTop: "2px" }} />
                 <p className="text-[12px] leading-relaxed" style={{ color: muted }}>
-                  With Groq, both the Brain <em>and</em> the Writing worker run via Groq — so you don't need an Anthropic key for most tasks.
+                  With Groq, both the Brain <em>and</em> the Writing worker run via Groq. No Anthropic key needed for most tasks.
                 </p>
               </div>
 
@@ -671,7 +671,7 @@ export default function OnboardingModal({ onDone }: { onDone: () => void }) {
               <div>
                 <p className="text-[11px] uppercase tracking-widest font-semibold mb-1.5" style={{ color: dim }}>Step 2 of {totalSteps}</p>
                 <h2 className="text-[18px] font-semibold text-foreground" style={{ letterSpacing: "-0.02em" }}>Get Ollama running</h2>
-                <p className="text-[13px] mt-1" style={{ color: muted }}>Free, private AI on your computer — no account, no usage limits.</p>
+                <p className="text-[13px] mt-1" style={{ color: muted }}>Free, private AI on your computer. No account, no usage limits.</p>
               </div>
 
               <div className="p-4 rounded-2xl" style={{ background: bg2, border: `1px solid ${border}` }}>
@@ -705,7 +705,7 @@ export default function OnboardingModal({ onDone }: { onDone: () => void }) {
                   <div className="flex-1">
                     <p className="text-[13px] font-semibold text-foreground mb-1">Open Ollama</p>
                     <p className="text-[12.5px] leading-relaxed" style={{ color: muted }}>
-                      <strong style={{ color: "#D4B896" }}>macOS / Windows:</strong> Open the app — look for the 🦙 icon in your menu bar or taskbar.
+                      <strong style={{ color: "#D4B896" }}>macOS / Windows:</strong> Open the app. Look for the 🦙 icon in your menu bar or taskbar.
                     </p>
                     <p className="text-[12px] mt-1.5" style={{ color: dim }}>
                       Linux: run <code className="px-1.5 py-0.5 rounded-md text-[11px]" style={{ background: "#0E0B07", border: `1px solid ${border}`, color: "#D4B896" }}>ollama serve</code> in a terminal window.
@@ -751,7 +751,7 @@ export default function OnboardingModal({ onDone }: { onDone: () => void }) {
                 {probing ? (
                   <><Loader2 size={15} className="animate-spin" /> Checking…</>
                 ) : probeResult?.ok ? (
-                  <><Check size={15} /> Ollama is running — {probeResult.models?.length ?? 0} model{(probeResult.models?.length ?? 0) !== 1 ? "s" : ""} ready</>
+                  <><Check size={15} /> Ollama is running, {probeResult.models?.length ?? 0} model{(probeResult.models?.length ?? 0) !== 1 ? "s" : ""} ready</>
                 ) : (
                   <>Done with the steps above? Test it</>
                 )}
@@ -761,7 +761,7 @@ export default function OnboardingModal({ onDone }: { onDone: () => void }) {
                 <div className="p-4 rounded-2xl text-[13px]" style={{ background: "rgba(220,53,69,0.06)", border: "1px solid rgba(220,53,69,0.18)" }}>
                   <p className="font-semibold mb-1.5" style={{ color: "hsl(4 86% 66%)" }}>Couldn't find Ollama</p>
                   <p className="leading-relaxed" style={{ color: muted }}>
-                    Make sure Ollama is open first — look for the 🦙 icon in your menu bar or taskbar. If you just installed it, try opening it now and clicking Test again.
+                    Make sure Ollama is open. Look for the 🦙 icon in your menu bar or taskbar. If you just installed it, open it now and click Test again.
                   </p>
                 </div>
               )}
@@ -806,7 +806,7 @@ export default function OnboardingModal({ onDone }: { onDone: () => void }) {
                 {probeResult && (
                   <div className="p-3 rounded-xl text-[13px]"
                     style={{ backgroundColor: probeResult.ok ? "rgba(34,197,94,0.07)" : "rgba(244,63,94,0.07)", border: `1px solid ${probeResult.ok ? "rgba(34,197,94,0.2)" : "rgba(244,63,94,0.2)"}`, color: probeResult.ok ? green : "hsl(4 86% 60%)" }}>
-                    {probeResult.ok ? `✓ Connected — ${probeResult.models?.length ?? 0} model(s) loaded` : `✗ ${probeResult.error ?? "Not reachable. Is the server running on port 1234?"}`}
+                    {probeResult.ok ? `✓ Connected, ${probeResult.models?.length ?? 0} model(s) loaded` : `✗ ${probeResult.error ?? "Not reachable. Is the server running on port 1234?"}`}
                   </div>
                 )}
               </div>
@@ -822,7 +822,7 @@ export default function OnboardingModal({ onDone }: { onDone: () => void }) {
                 <p className="text-[13px] mt-1" style={{ color: muted }}>Enter your API key to use GPT-4o as your Brain.</p>
               </div>
               <KeyInput label="OpenAI API Key" value={openaiKey} onChange={setOpenaiKey}
-                placeholder="sk-..." hint="Stored locally — never sent to third parties."
+                placeholder="sk-..." hint="Stored locally. Never sent to third parties."
                 link={{ href: "https://platform.openai.com/api-keys", label: "Get API key" }} />
               <div>
                 <label className="text-[13px] font-semibold text-foreground block mb-2">Model</label>
@@ -844,10 +844,10 @@ export default function OnboardingModal({ onDone }: { onDone: () => void }) {
               <div>
                 <p className="text-[11px] uppercase tracking-widest font-semibold mb-1.5" style={{ color: dim }}>Step 2 of {totalSteps}</p>
                 <h2 className="text-[18px] font-semibold text-foreground" style={{ letterSpacing: "-0.02em" }}>Connect Anthropic</h2>
-                <p className="text-[13px] mt-1" style={{ color: muted }}>Use Claude as your Brain — best overall quality.</p>
+                <p className="text-[13px] mt-1" style={{ color: muted }}>Use Claude as your Brain. Best overall quality.</p>
               </div>
               <KeyInput label="Anthropic API Key" value={anthropicKey} onChange={setAnthropicKey}
-                placeholder="sk-ant-..." hint="Stored locally — never sent to third parties."
+                placeholder="sk-ant-..." hint="Stored locally. Never sent to third parties."
                 link={{ href: "https://console.anthropic.com/settings/keys", label: "Get API key" }} />
               <div>
                 <label className="text-[13px] font-semibold text-foreground block mb-2">Model</label>
@@ -874,7 +874,7 @@ export default function OnboardingModal({ onDone }: { onDone: () => void }) {
                 </p>
               </div>
               <KeyInput label="Anthropic API Key" value={claudeKey} onChange={setClaudeKey}
-                placeholder="sk-ant-..." hint="Leave blank to skip — Search, Weather, and System Monitor work without it."
+                placeholder="sk-ant-..." hint="Leave blank to skip. Search, Weather, and System Monitor work without it."
                 link={{ href: "https://console.anthropic.com/settings/keys", label: "Get API key" }} />
             </div>
           )}

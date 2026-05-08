@@ -34,19 +34,19 @@ const WORKER_LABELS: Record<string, string> = {
 };
 
 const WORKER_MESSAGES: Record<string, string> = {
-  claude:      "Writing a thoughtful response...",
+  claude:      "Writing...",
   search:      "Searching the web...",
-  osint:       "Scanning and researching...",
+  osint:       "Researching...",
   local:       "Checking your system...",
-  video:       "Generating your video...",
-  weather:     "Fetching the latest forecast...",
-  email:       "Composing your email...",
-  code_runner: "Running your code...",
-  image_gen:   "Generating your image...",
+  video:       "Generating video...",
+  weather:     "Getting the forecast...",
+  email:       "Composing email...",
+  code_runner: "Running code...",
+  image_gen:   "Generating image...",
   translator:  "Translating...",
-  news:        "Fetching latest news...",
-  finance:     "Fetching market data...",
-  reminder:    "Creating your event...",
+  news:        "Getting news...",
+  finance:     "Getting market data...",
+  reminder:    "Creating event...",
 };
 
 const CARD_META: Record<string, { label: string; Icon: React.FC<{ size?: number }>; color: string }> = {
@@ -66,17 +66,17 @@ const CARD_META: Record<string, { label: string; Icon: React.FC<{ size?: number 
 };
 
 const FOLLOW_UP_CHIPS: Record<string, string[]> = {
-  search:      ["Summarize these results", "Make a detailed plan", "Find more"],
-  claude:      ["Make this shorter", "Turn into bullet points", "Draft as email"],
-  weather:     ["What should I pack?", "Best activities for this weather", "Plan around forecast"],
+  search:      ["Summarize this", "Make a plan", "Find more"],
+  claude:      ["Make this shorter", "Turn into bullet points", "Turn into an email"],
+  weather:     ["What should I pack?", "Things to do in this weather", "Plan around the forecast"],
   email:       ["Adjust the tone", "Write a follow-up", "Make it more formal"],
-  osint:       ["What are the risks?", "Write a report", "Check related domains"],
+  osint:       ["What are the risks", "Write a report", "Check related domains"],
   local:       ["What does this mean?", "How can I improve this?", "Full diagnostic"],
   code_runner: ["Fix any errors", "Add more features", "Explain what this does"],
   video:       ["Generate a variation", "Write a script", "Make it longer"],
   image_gen:   ["Generate a variation", "Try a different style", "More detail"],
-  translator:  ["Translate to another language", "Explain the grammar", "More formal"],
-  news:        ["Summarize into a report", "What does this mean for me?", "Related news"],
+  translator:  ["Try another language", "Explain the grammar", "More formal"],
+  news:        ["Turn into a report", "What does this mean for me", "Related news"],
   finance:     ["Should I buy or sell?", "Compare with competitors", "Show the trend"],
   reminder:    ["Add another event", "Set a follow-up", "Email myself this"],
 };
@@ -85,7 +85,7 @@ const QUICK_ACTIONS = [
   {
     icon: Plane, color: "#CC7722", bg: "rgba(204,119,34,0.1)",
     label: "Travel", sub: "Plan trips, find flights & hotels",
-    prompt: "Plan a weekend trip to Milan — flights, hotels, and itinerary",
+    prompt: "Plan a weekend in Milan: flights, hotels, itinerary",
   },
   {
     icon: Newspaper, color: "#A57C00", bg: "rgba(165,124,0,0.1)",
@@ -797,14 +797,14 @@ export default function ConsolePage() {
 
   const updateActivity = useCallback((event: OrchestrateEvent) => {
     setActivity(prev => {
-      const base: ActivityState = prev || { message: "Waking up the Brain...", pipeline: [], brainStatus: "thinking", progress: 8 };
-      if (event.type === "brain_thinking") return { ...base, message: "Understanding your request...", progress: Math.max(base.progress, 15) };
+      const base: ActivityState = prev || { message: "Starting up...", pipeline: [], brainStatus: "thinking", progress: 8 };
+      if (event.type === "brain_thinking") return { ...base, message: "Thinking...", progress: Math.max(base.progress, 15) };
       if (event.type === "brain_decision") {
         const chain = (event.data as Record<string, unknown[]>)?.chain ?? [];
         const pipeline = (chain as Array<Record<string, string>>).map(s => ({
           worker: s.worker, label: WORKER_LABELS[s.worker] || s.worker, status: "pending" as const,
         }));
-        return { ...base, brainStatus: "done", pipeline, message: "Planning the best approach...", progress: 28 };
+        return { ...base, brainStatus: "done", pipeline, message: "Planning...", progress: 28 };
       }
       if (event.type === "worker_start") {
         const w = (event.worker || "").toLowerCase();
@@ -842,7 +842,7 @@ export default function ConsolePage() {
   const runOrchestration = useCallback((msg: string, filePathArg: string | null, contextArg: string | null) => {
     setRunning(true);
     runIdRef.current += 1;
-    setActivity({ message: "Waking up the Brain...", pipeline: [], brainStatus: "thinking", progress: 8 });
+    setActivity({ message: "Starting up...", pipeline: [], brainStatus: "thinking", progress: 8 });
     const memoriesCurrent = loadMemory();
     const msgWithMemory = memoriesCurrent.length > 0
       ? `[Context about me: ${memoriesCurrent.join(". ")}]\n\n${msg}`
@@ -1171,7 +1171,7 @@ export default function ConsolePage() {
                 {getGreeting()}
               </h1>
               <p className="text-[14px] max-w-[300px]" style={{ color: "#6A5A48", letterSpacing: "0em", lineHeight: 1.65 }}>
-                Search, write, code, run numbers — or just ask a question.
+                Search, write, code, run numbers. Or just ask.
               </p>
 
               {/* Feature pills — industrial tabs */}
@@ -1337,7 +1337,7 @@ export default function ConsolePage() {
                 borderRadius: "2px",
               }}
             >
-              <RotateCcw size={10} /> Following up on previous result
+              <RotateCcw size={10} /> Continuing from last result
             </div>
             <button
               onClick={() => { setLastContext(null); setLastWorker(null); }}
@@ -1364,7 +1364,7 @@ export default function ConsolePage() {
               }}
             >
               <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: "#6A9ABA" }} />
-              Listening — speak now
+              Listening, speak now
             </div>
             <button
               onClick={toggleVoice}
@@ -1385,7 +1385,7 @@ export default function ConsolePage() {
             onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(165,124,0,0.35)"; e.currentTarget.style.color = "#CC7722"; }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = "#2A2420"; e.currentTarget.style.color = "#6A5A48"; }}
           >
-            <RotateCcw size={11} /> Regenerate response
+            <RotateCcw size={11} /> Try again
           </button>
         )}
 
@@ -1475,7 +1475,7 @@ export default function ConsolePage() {
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={lastContext ? "Ask a follow-up..." : listening ? "Listening..." : "What's on your mind?"}
+            placeholder={lastContext ? "Ask a follow-up..." : listening ? "Listening..." : "Ask anything"}
             disabled={running}
             rows={1}
             className="flex-1 bg-transparent text-[14px] text-foreground outline-none resize-none leading-relaxed max-h-36 overflow-y-auto disabled:opacity-40"
@@ -1517,7 +1517,7 @@ export default function ConsolePage() {
         </div>
 
         <p className="text-center text-[11px] mt-2" style={{ color: "#3A2E24", letterSpacing: "0em" }}>
-          AI can make mistakes — verify anything that matters
+          AI makes mistakes. Double-check anything important.
         </p>
       </div>
       </div>{/* end flex-1 flex flex-col */}

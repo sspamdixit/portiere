@@ -268,7 +268,7 @@ export default function SettingsPage() {
           statusOk={hasProfile}
         >
           <p className="text-[13px] leading-relaxed" style={{ color: muted, letterSpacing: "-0.005em" }}>
-            Injected into every request — "find a therapist near me" works because Portiere knows your city. Emails are signed with your name.
+            Injected into every request. "Find a therapist near me" works because Portiere knows your city. Emails are signed with your name.
           </p>
           <div className="grid grid-cols-2 gap-4">
             <Field label="Your name" placeholder="Alex" value={form.profile_name} onChange={set("profile_name")} />
@@ -291,7 +291,7 @@ export default function SettingsPage() {
           statusOk={memoryCount > 0}
         >
           <p className="text-[13px] leading-relaxed" style={{ color: muted, letterSpacing: "-0.005em" }}>
-            Facts Portiere remembers across all conversations. Injected silently into every message — one fact per line.
+            Facts Portiere remembers across all conversations. Injected into every message. One fact per line.
           </p>
           <textarea
             value={memText}
@@ -310,7 +310,7 @@ export default function SettingsPage() {
             }}
           />
           <div className="flex items-center justify-between">
-            <p className="text-[12px]" style={{ color: dim }}>Stored locally — never sent anywhere except your AI.</p>
+            <p className="text-[12px]" style={{ color: dim }}>Stored locally. Never sent anywhere except your AI.</p>
             <button
               onClick={handleSaveMemory}
               className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-semibold transition-all"
@@ -337,11 +337,11 @@ export default function SettingsPage() {
         >
           <Field label="Provider" value={provider} onChange={set("brain_provider")}
             options={[
-              { value: "groq",       label: "Groq — free cloud AI (recommended)" },
-              { value: "ollama",     label: "Ollama — free, runs on your machine" },
-              { value: "lmstudio",   label: "LM Studio — free, desktop app" },
-              { value: "openai",     label: "OpenAI — GPT-4o" },
-              { value: "anthropic",  label: "Anthropic — Claude as Brain" },
+              { value: "groq",       label: "Groq, free cloud AI (recommended)" },
+              { value: "ollama",     label: "Ollama, free, runs on your machine" },
+              { value: "lmstudio",   label: "LM Studio, free, desktop app" },
+              { value: "openai",     label: "OpenAI, GPT-4o" },
+              { value: "anthropic",  label: "Anthropic, Claude as Brain" },
             ]}
           />
           <Field label="Model" placeholder="llama3.2 / llama-3.3-70b-versatile / gpt-4o"
@@ -375,7 +375,7 @@ export default function SettingsPage() {
                   <a href="https://console.groq.com" target="_blank" rel="noreferrer" style={{ color: primary }}>
                     console.groq.com
                   </a>{" "}
-                  — no credit card, takes about 60 seconds.
+                  No credit card needed, takes about 60 seconds.
                   This key also powers the Writing &amp; Coding worker automatically.
                 </p>
               </div>
@@ -396,7 +396,7 @@ export default function SettingsPage() {
 
         {/* Claude */}
         <SectionCard
-          title="Claude — Writing & Coding"
+          title="Claude: Writing & Coding"
           icon={<Sparkles size={13} />}
           iconColor="#A57C00"
           iconBg="rgba(165,124,0,0.12)"
@@ -406,15 +406,15 @@ export default function SettingsPage() {
           <Field label="Anthropic API Key" secret placeholder="sk-ant-..."
             value={form.claude_api_key} onChange={set("claude_api_key")} />
           <Field label="Model" value={form.claude_model} onChange={set("claude_model")} options={[
-            { value: "claude-3-5-sonnet-20241022", label: "Claude 3.5 Sonnet — best overall" },
-            { value: "claude-3-5-haiku-20241022",  label: "Claude 3.5 Haiku — faster" },
-            { value: "claude-3-opus-20240229",     label: "Claude 3 Opus — most powerful" },
+            { value: "claude-3-5-sonnet-20241022", label: "Claude 3.5 Sonnet, best overall" },
+            { value: "claude-3-5-haiku-20241022",  label: "Claude 3.5 Haiku, faster" },
+            { value: "claude-3-opus-20240229",     label: "Claude 3 Opus, most capable" },
           ]} />
         </SectionCard>
 
         {/* Email */}
         <SectionCard
-          title="Email — Send via SMTP"
+          title="Email: Send via SMTP"
           icon={<Mail size={13} />}
           iconColor="hsl(38 90% 60%)"
           iconBg="rgba(245,158,11,0.14)"
@@ -445,7 +445,7 @@ export default function SettingsPage() {
             className="text-[12px] p-3.5 leading-relaxed"
             style={{ color: dim, backgroundColor: "#111009", border: "1px solid #2A2420", borderRadius: "3px" }}
           >
-            <strong style={{ color: "#8A7A66" }}>Gmail tip:</strong> Enable 2-step verification, then create an App Password at myaccount.google.com/apppasswords — use that instead of your main password.
+            <strong style={{ color: "#8A7A66" }}>Gmail tip:</strong> Enable 2-step verification, then create an App Password at myaccount.google.com/apppasswords. Use that instead of your main password.
           </p>
         </SectionCard>
 
@@ -479,8 +479,8 @@ export default function SettingsPage() {
             value={form.allow_shell_commands}
             onChange={set("allow_shell_commands")}
             options={[
-              { value: "false", label: "Disabled — monitoring only (safe)" },
-              { value: "true",  label: "Enabled — can run shell commands" },
+              { value: "false", label: "Disabled, monitoring only (safe)" },
+              { value: "true",  label: "Enabled, can run shell commands" },
             ]}
           />
           {form.allow_shell_commands === "true" && (
@@ -499,7 +499,7 @@ export default function SettingsPage() {
             onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = dim}
           >
             <ChevronRight size={13} className="transition-transform group-open:rotate-90" />
-            Advanced — Local AI endpoints
+            Advanced: Local AI endpoints
           </summary>
           <div className="mt-3 section-card">
             <div className="p-5 space-y-4">
@@ -515,7 +515,7 @@ export default function SettingsPage() {
           className="text-[11px] text-center pb-6"
           style={{ color: "#3A2E24", letterSpacing: "0.02em" }}
         >
-          Everything stored locally — nothing leaves your device
+          Everything stored locally. Nothing leaves your device.
         </p>
       </div>
     </div>

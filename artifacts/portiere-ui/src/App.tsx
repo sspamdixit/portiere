@@ -33,7 +33,7 @@ function AppShell() {
           <Route path="/models" component={ModelsPage} />
           <Route>
             <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">
-              404 — page not found
+              404: page not found
             </div>
           </Route>
         </Switch>

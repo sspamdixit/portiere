@@ -44,19 +44,19 @@ const POPULAR_MODELS = [
 ];
 
 const CAPABILITIES = [
-  { Icon: Search,      label: "Web Search",           desc: "Real-time search — flights, therapists, news, products, and anything on the web.", color: primary, status: "built-in" as const },
+  { Icon: Search,      label: "Web Search",           desc: "Real-time search: flights, therapists, news, products, anything on the web.", color: primary, status: "built-in" as const },
   { Icon: Cloud,       label: "Weather",              desc: "Current conditions and 7-day forecast for any city worldwide. No API key needed.", color: "hsl(200 80% 65%)", status: "built-in" as const },
-  { Icon: Newspaper,   label: "Live News",            desc: "Latest headlines on any topic — tech, world events, sports, finance. No API key needed.", color: "hsl(25 90% 62%)", status: "built-in" as const },
-  { Icon: TrendingUp,  label: "Finance & Markets",    desc: "Real-time stock prices and crypto rates — TSLA, AAPL, Bitcoin, Ethereum, and more.", color: "hsl(142 60% 55%)", status: "built-in" as const },
+  { Icon: Newspaper,   label: "Live News",            desc: "Latest headlines on any topic: tech, world events, sports, finance. No API key needed.", color: "hsl(25 90% 62%)", status: "built-in" as const },
+  { Icon: TrendingUp,  label: "Finance & Markets",    desc: "Real-time stock prices and crypto rates: TSLA, AAPL, Bitcoin, Ethereum, and more.", color: "hsl(142 60% 55%)", status: "built-in" as const },
   { Icon: Languages,   label: "Translator",           desc: "Translate text to and from 50+ languages instantly. No API key needed.", color: "hsl(185 70% 58%)", status: "built-in" as const },
-  { Icon: CalendarPlus,label: "Calendar & Reminders", desc: "Create calendar events as .ics files — import into Google Calendar, Outlook, or Apple Calendar.", color: "#C8882C", status: "built-in" as const },
-  { Icon: Sparkles,    label: "Claude — Writing & Coding", desc: "Deep reasoning, code generation, drafting emails, analysis, and complex tasks.", color: "#E0A040", status: "key" as const, key: "claude_api_key", keyLabel: "Anthropic API Key" },
+  { Icon: CalendarPlus,label: "Calendar & Reminders", desc: "Create calendar events as .ics files, importable into Google Calendar, Outlook, or Apple Calendar.", color: "#C8882C", status: "built-in" as const },
+  { Icon: Sparkles,    label: "Claude: Writing & Coding", desc: "Deep reasoning, code generation, drafting emails, analysis, and complex tasks.", color: "#E0A040", status: "key" as const, key: "claude_api_key", keyLabel: "Anthropic API Key" },
   { Icon: Mail,        label: "Email",                desc: "Compose and send emails. Sends via SMTP if configured, otherwise creates a mailto draft.", color: "hsl(38 90% 60%)", status: "smtp" as const, key: "smtp_host", keyLabel: "SMTP Host" },
-  { Icon: Terminal,    label: "Code Runner",          desc: "Write and execute Python code — see output instantly in the feed.", color: "hsl(142 60% 55%)", status: "built-in" as const },
+  { Icon: Terminal,    label: "Code Runner",          desc: "Write and execute Python code. Output appears in the feed.", color: "hsl(142 60% 55%)", status: "built-in" as const },
   { Icon: Globe,       label: "Research & OSINT",     desc: "Domain investigation, DNS/WHOIS lookups, and digital footprinting.", color: "hsl(38 90% 60%)", status: "built-in" as const },
   { Icon: Monitor,     label: "System Monitor",       desc: "CPU, RAM, battery, disk usage, and file system access.", color: "hsl(142 60% 55%)", status: "built-in" as const },
-  { Icon: Image,       label: "Image Generation",     desc: "Generate AI images via FAL.ai Flux from any text description — portraits, artwork, concepts.", color: "hsl(310 70% 68%)", status: "key" as const, key: "fal_api_key", keyLabel: "FAL API Key" },
-  { Icon: Film,        label: "Video Generation",     desc: "Generate AI video clips via FAL.ai or Seedance from a text prompt.", color: "hsl(328 80% 68%)", status: "key" as const, key: "fal_api_key", keyLabel: "FAL API Key" },
+  { Icon: Image,       label: "Image Generation",     desc: "Generate images via FAL.ai Flux from any text description: portraits, artwork, concepts.", color: "hsl(310 70% 68%)", status: "key" as const, key: "fal_api_key", keyLabel: "FAL API Key" },
+  { Icon: Film,        label: "Video Generation",     desc: "Generate video clips via FAL.ai or Seedance from a text prompt.", color: "hsl(328 80% 68%)", status: "key" as const, key: "fal_api_key", keyLabel: "FAL API Key" },
 ];
 
 export default function CapabilitiesPage() {
@@ -236,7 +236,7 @@ export default function CapabilitiesPage() {
             className="flex items-center gap-2 px-4 py-3 rounded-2xl text-[13px] animate-feed-in"
             style={{ background: "rgba(34,197,94,0.07)", border: "1px solid rgba(34,197,94,0.2)", color: green }}
           >
-            <Check size={13} /> Ollama reconnected — models refreshed
+            <Check size={13} /> Ollama reconnected, models refreshed
           </div>
         )}
 
@@ -393,9 +393,9 @@ export default function CapabilitiesPage() {
                       <div>
                         <p className="text-[13.5px] font-semibold text-foreground mb-0.5">Ollama isn't running</p>
                         <p className="text-[12.5px]" style={{ color: muted }}>
-                          {setupPhase === "installing" ? "Installing Ollama — this takes about a minute…"
+                          {setupPhase === "installing" ? "Installing Ollama, this takes about a minute…"
                             : setupPhase === "starting" ? "Starting Ollama service…"
-                            : "Portiere can set this up for you — no terminal needed."}
+                            : "Portiere can set this up. No terminal needed."}
                         </p>
                       </div>
                     </div>
@@ -439,7 +439,7 @@ export default function CapabilitiesPage() {
                           className="w-full flex items-center justify-center gap-2 py-2.5 text-[13px] font-semibold transition-all"
                           style={{ background: "rgba(204,119,34,0.08)", border: "1px solid rgba(165,124,0,0.22)", color: primary, borderRadius: "2px" }}
                         >
-                          <Play size={11} /> Start Ollama {osName === "Linux" ? "(already installed)" : osName === "Darwin" ? "— already installed" : "service"}
+                          <Play size={11} /> Start Ollama {osName === "Linux" ? "(already installed)" : osName === "Darwin" ? "(already installed)" : "service"}
                         </button>
                       </div>
                     )}
@@ -508,7 +508,7 @@ export default function CapabilitiesPage() {
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {[
-                        { name: "llama3.2", desc: "Fast · 2 GB — best for most tasks" },
+                        { name: "llama3.2", desc: "Fast · 2 GB, best for most tasks" },
                         { name: "llama3.1:8b", desc: "Smarter · 5 GB" },
                         { name: "mistral", desc: "Reasoning · 4 GB" },
                       ].map(({ name, desc }) => (
@@ -526,7 +526,7 @@ export default function CapabilitiesPage() {
                     <button onClick={refresh}
                       className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-[13px] font-semibold transition-all"
                       style={{ background: "rgba(204,119,34,0.08)", border: "1px solid rgba(165,124,0,0.22)", color: primary, borderRadius: "2px" }}>
-                      <RefreshCw size={12} /> I installed a model — scan again
+                      <RefreshCw size={12} /> I installed a model, scan again
                     </button>
                   </div>
                 ) : (
@@ -694,7 +694,7 @@ export default function CapabilitiesPage() {
                     <div className="space-y-2 text-[12.5px]">
                       {[
                         { n: "1", text: <>Download LM Studio from <a href="https://lmstudio.ai" target="_blank" rel="noreferrer" className="underline" style={{ color: primary }}>lmstudio.ai</a> and open it <span style={{ color: dim }}>(skip if you have it)</span></> },
-                        { n: "2", text: <>In LM Studio, browse and download a model — Mistral 7B or Llama 3 are good starting points</> },
+                        { n: "2", text: <>In LM Studio, browse and download a model. Mistral 7B or Llama 3 are good starting points.</> },
                         { n: "3", text: <>Click the <strong style={{ color: "#B8A080" }}>Local Server</strong> tab → hit <strong style={{ color: "#B8A080" }}>Start Server</strong>. Make sure the port is 1234.</> },
                       ].map(({ n, text }) => (
                         <div key={n} className="flex items-start gap-3 p-3" style={{ background: "#111009", border: "1px solid #2A2420", borderRadius: "3px" }}>
@@ -734,7 +734,7 @@ export default function CapabilitiesPage() {
               </div>
 
               <p className="text-[11px] text-center pb-4" style={{ color: "#3A2E24", letterSpacing: "0.02em" }}>
-                Local models run entirely on your machine — no data leaves your device
+                Local models run on your machine. No data leaves your device.
               </p>
             </div>
           )}

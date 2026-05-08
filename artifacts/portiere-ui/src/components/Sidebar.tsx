@@ -116,7 +116,7 @@ export default function Sidebar() {
               Portiere
             </span>
             <p className="text-[10px] font-medium leading-none mt-0.5" style={{ color: DIM, letterSpacing: "0.1em", textTransform: "uppercase" }}>
-              AI Concierge
+              Personal concierge
             </p>
           </div>
         </div>
