@@ -2,10 +2,10 @@ import { useState, useRef, useEffect } from "react";
 import { RefreshCw, Cpu, HardDrive, Loader2, AlertCircle, Box, ChevronRight, Sparkles, Search, Globe, Film, Monitor, Check, Cloud, Mail, Terminal, Image, Languages, Newspaper, TrendingUp, CalendarPlus, ExternalLink, Copy, Download, X, Play, Wrench } from "lucide-react";
 import { fetchModels, fetchSettings, saveSettings, streamOllamaInstall, probeOllama, fetchSystemInfo, streamInstallOllama, startOllamaService } from "@/lib/api";
 
-const dim = "hsl(238 18% 32%)";
-const muted = "hsl(238 18% 50%)";
-const green = "hsl(152 64% 48%)";
-const primary = "hsl(248 90% 68%)";
+const dim = "#4A3A2C";
+const muted = "#8A7A66";
+const green = "#6A8A5A";
+const primary = "#CC7722";
 
 interface OllamaModel { name: string; size_gb: number; modified: string; }
 interface LMStudioModel { name: string; object: string; }
@@ -192,13 +192,13 @@ export default function CapabilitiesPage() {
       {/* Header */}
       <div
         className="flex items-center justify-between px-6 flex-shrink-0"
-        style={{ height: "46px", borderBottom: "1px solid hsl(240 20% 9%)" }}
+        style={{ height: "46px", borderBottom: "1px solid #242018" }}
       >
         <div className="flex items-center gap-2">
-          <span className="text-[13.5px] font-semibold" style={{ color: "hsl(244 30% 85%)", letterSpacing: "-0.01em" }}>
+          <span className="text-[13.5px] font-semibold" style={{ color: "#E2D0B4", letterSpacing: "-0.01em" }}>
             Capabilities
           </span>
-          <ChevronRight size={12} style={{ color: "hsl(242 17% 28%)" }} />
+          <ChevronRight size={12} style={{ color: "#4A3A2C" }} />
           <span className="text-[13px]" style={{ color: muted }}>
             {lastRefresh ? `Local models · ${lastRefresh}` : "What Portiere can do"}
           </span>
@@ -206,12 +206,13 @@ export default function CapabilitiesPage() {
         <button
           onClick={refresh}
           disabled={loading}
-          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-[13px] font-medium transition-all disabled:opacity-50"
+          className="flex items-center gap-1.5 px-3.5 py-1.5 text-[13px] font-medium transition-all disabled:opacity-50"
           style={{
-            backgroundColor: "rgba(124,111,247,0.1)",
-            border: "1px solid hsl(246 89% 70% / 0.22)",
+            backgroundColor: "rgba(204,119,34,0.08)",
+            border: "1px solid rgba(165,124,0,0.22)",
             color: primary,
-            letterSpacing: "-0.01em",
+            letterSpacing: "0em",
+            borderRadius: "2px",
           }}
         >
           {loading ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />}
@@ -241,7 +242,7 @@ export default function CapabilitiesPage() {
 
         {/* Capability cards */}
         <div>
-          <p className="text-[10px] uppercase font-semibold mb-3 px-1" style={{ color: "hsl(242 17% 34%)", letterSpacing: "0.06em" }}>
+          <p className="text-[10px] uppercase font-semibold mb-3 px-1" style={{ color: "#5A4A38", letterSpacing: "0.06em" }}>
             Available capabilities
           </p>
           <div className="space-y-2">
@@ -258,27 +259,31 @@ export default function CapabilitiesPage() {
                   key={label}
                   className="flex items-start gap-4 p-4 rounded-2xl transition-colors"
                   style={{
-                    backgroundColor: "hsl(240 20% 8%)",
-                    border: "1px solid hsl(240 20% 12%)",
-                    borderLeft: configured ? `3px solid ${color}55` : "1px solid hsl(240 20% 12%)",
+                    backgroundColor: "#1A1714",
+                    border: "1px solid #2A2420",
+                    borderLeft: configured ? `2px solid ${color}70` : "1px solid #2A2420",
+                    borderRadius: "3px",
                   }}
                 >
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
-                    style={{ backgroundColor: `${color}16`, color }}>
+                  <div className="w-9 h-9 flex items-center justify-center flex-shrink-0 mt-0.5"
+                    style={{ backgroundColor: `${color}14`, color, borderRadius: "2px" }}>
                     <Icon size={16} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[13px] font-semibold" style={{ color: "hsl(244 30% 93%)", letterSpacing: "-0.01em" }}>
+                      <span className="text-[13px] font-semibold" style={{ color: "#E2D0B4", letterSpacing: "-0.01em" }}>
                         {label}
                       </span>
                       <span
-                        className="text-[10px] px-2 py-0.5 rounded-full font-semibold"
+                        className="text-[10px] px-2 py-0.5 font-semibold"
                         style={{
-                          backgroundColor: configured ? "rgba(34,197,94,0.1)" : "hsl(240 20% 12%)",
-                          color: configured ? green : "hsl(242 17% 40%)",
-                          border: `1px solid ${configured ? "rgba(34,197,94,0.25)" : "transparent"}`,
-                          letterSpacing: "0.01em",
+                          backgroundColor: configured ? "rgba(106,138,90,0.1)" : "#111009",
+                          color: configured ? green : "#5A4A38",
+                          border: `1px solid ${configured ? "rgba(106,138,90,0.25)" : "#2A2420"}`,
+                          letterSpacing: "0.04em",
+                          borderRadius: "2px",
+                          textTransform: "uppercase",
+                          fontSize: "9px",
                         }}
                       >
                         {badgeText}
@@ -297,30 +302,31 @@ export default function CapabilitiesPage() {
 
         {/* Local AI models */}
         <div>
-          <p className="text-[10px] uppercase font-semibold mb-3 px-1" style={{ color: "hsl(242 17% 34%)", letterSpacing: "0.06em" }}>
+          <p className="text-[10px] uppercase font-semibold mb-3 px-1" style={{ color: "#5A4A38", letterSpacing: "0.06em" }}>
             Local AI models
           </p>
 
           {!modelData && !loading && (
             <div className="relative flex flex-col items-center justify-center py-16 gap-4">
-              <div className="absolute inset-0 pointer-events-none dot-grid" style={{ opacity: 0.35, borderRadius: "16px" }} />
+              <div className="absolute inset-0 pointer-events-none dot-grid" style={{ opacity: 0.4, borderRadius: "3px" }} />
               <div className="absolute inset-0 pointer-events-none"
-                style={{ background: "radial-gradient(ellipse 50% 30% at 50% 50%, rgba(124,111,247,0.06) 0%, transparent 70%)" }} />
-              <div className="relative w-12 h-12 rounded-2xl flex items-center justify-center"
-                style={{ backgroundColor: "hsl(240 20% 9%)", border: "1px solid hsl(240 20% 13%)" }}>
-                <Cpu size={20} style={{ color: "hsl(242 18% 38%)" }} />
+                style={{ background: "radial-gradient(ellipse 50% 30% at 50% 50%, rgba(96,0,0,0.06) 0%, transparent 70%)" }} />
+              <div className="relative w-12 h-12 flex items-center justify-center"
+                style={{ backgroundColor: "#1A1714", border: "1px solid #2A2420", borderRadius: "3px" }}>
+                <Cpu size={20} style={{ color: "#5A4A38" }} />
               </div>
               <div className="text-center">
-                <p className="text-[14px] font-semibold" style={{ color: "hsl(244 30% 88%)", letterSpacing: "-0.01em" }}>
+                <p className="text-[14px] font-semibold" style={{ color: "#E2D0B4", letterSpacing: "-0.01em" }}>
                   Check for local models
                 </p>
                 <p className="text-[13px] mt-1" style={{ color: muted }}>Scans Ollama and LM Studio</p>
               </div>
               <button onClick={refresh}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-[13px] font-semibold"
+                className="flex items-center gap-2 px-5 py-2.5 text-[13px] font-semibold"
                 style={{
-                  background: "linear-gradient(135deg, hsl(246 89% 64%) 0%, hsl(258 72% 68%) 100%)",
-                  color: "white", boxShadow: "0 2px 12px rgba(124,111,247,0.38)", letterSpacing: "-0.01em",
+                  background: "linear-gradient(135deg, #7A5200 0%, #CC7722 100%)",
+                  color: "#E2D0B4", boxShadow: "0 2px 12px rgba(165,124,0,0.32)", letterSpacing: "0em",
+                  borderRadius: "2px", border: "1px solid rgba(204,119,34,0.4)",
                 }}
               >
                 <RefreshCw size={13} /> Scan now
@@ -341,11 +347,11 @@ export default function CapabilitiesPage() {
               <div className="section-card">
                 <div className="section-card-header">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-lg flex items-center justify-center"
-                      style={{ backgroundColor: "rgba(124,111,247,0.14)", color: primary }}>
+                    <div className="w-7 h-7 flex items-center justify-center"
+                      style={{ backgroundColor: "rgba(204,119,34,0.12)", color: primary, borderRadius: "2px" }}>
                       <Box size={13} />
                     </div>
-                    <span className="text-[13px] font-semibold" style={{ color: "hsl(244 30% 92%)", letterSpacing: "-0.01em" }}>
+                    <span className="text-[13px] font-semibold" style={{ color: "#E2D0B4", letterSpacing: "-0.01em" }}>
                       Ollama
                     </span>
                   </div>
@@ -353,11 +359,12 @@ export default function CapabilitiesPage() {
                     {!modelData.ollama_error && (
                       <button
                         onClick={() => setShowInstaller(v => !v)}
-                        className="flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-lg transition-all"
+                        className="flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 transition-all"
                         style={{
                           color: showInstaller ? primary : muted,
-                          background: showInstaller ? "rgba(109,95,234,0.1)" : "transparent",
-                          border: `1px solid ${showInstaller ? "rgba(109,95,234,0.25)" : "transparent"}`,
+                          background: showInstaller ? "rgba(204,119,34,0.08)" : "transparent",
+                          border: `1px solid ${showInstaller ? "rgba(165,124,0,0.25)" : "transparent"}`,
+                          borderRadius: "2px",
                         }}
                         title="Install a new model"
                       >
@@ -365,13 +372,13 @@ export default function CapabilitiesPage() {
                       </button>
                     )}
                     {modelData.ollama_error ? (
-                      <span className="text-[11px] px-2.5 py-0.5 rounded-full font-medium"
-                        style={{ color: "hsl(347 87% 62%)", backgroundColor: "hsl(347 87% 60% / 0.08)", border: "1px solid hsl(347 87% 60% / 0.2)" }}>
+                      <span className="text-[11px] px-2.5 py-0.5 font-medium"
+                        style={{ color: "#8B4A4A", backgroundColor: "rgba(139,74,74,0.08)", border: "1px solid rgba(139,74,74,0.2)", borderRadius: "2px" }}>
                         Unreachable
                       </span>
                     ) : (
-                      <span className="text-[11px] px-2.5 py-0.5 rounded-full font-medium"
-                        style={{ backgroundColor: "rgba(124,111,247,0.12)", color: primary, border: "1px solid rgba(124,111,247,0.25)" }}>
+                      <span className="text-[11px] px-2.5 py-0.5 font-medium"
+                        style={{ backgroundColor: "rgba(204,119,34,0.08)", color: primary, border: "1px solid rgba(165,124,0,0.2)", borderRadius: "2px" }}>
                         {modelData.ollama.length} model{modelData.ollama.length !== 1 ? "s" : ""}
                       </span>
                     )}
@@ -399,11 +406,13 @@ export default function CapabilitiesPage() {
                         {osName === "Linux" && (
                           <button
                             onClick={handleInstallOllama}
-                            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-[13px] font-semibold transition-all"
+                            className="w-full flex items-center justify-center gap-2 py-3 text-[13px] font-semibold transition-all"
                             style={{
-                              background: "linear-gradient(135deg, hsl(246 89% 64%) 0%, hsl(258 72% 68%) 100%)",
-                              color: "white",
-                              boxShadow: "0 2px 14px rgba(124,111,247,0.32)",
+                              background: "linear-gradient(135deg, #7A5200 0%, #CC7722 100%)",
+                              color: "#E2D0B4",
+                              boxShadow: "0 2px 12px rgba(165,124,0,0.3)",
+                              borderRadius: "2px",
+                              border: "1px solid rgba(204,119,34,0.4)",
                             }}
                           >
                             <Wrench size={13} /> Install Ollama automatically
@@ -413,11 +422,13 @@ export default function CapabilitiesPage() {
                           <a
                             href={osName === "Darwin" ? "https://ollama.com/download/mac" : "https://ollama.com/download/windows"}
                             target="_blank" rel="noreferrer"
-                            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-[13px] font-semibold"
+                            className="w-full flex items-center justify-center gap-2 py-3 text-[13px] font-semibold"
                             style={{
-                              background: "linear-gradient(135deg, hsl(246 89% 64%) 0%, hsl(258 72% 68%) 100%)",
-                              color: "white",
+                              background: "linear-gradient(135deg, #7A5200 0%, #CC7722 100%)",
+                              color: "#E2D0B4",
                               display: "flex",
+                              borderRadius: "2px",
+                              border: "1px solid rgba(204,119,34,0.4)",
                             }}
                           >
                             <Download size={13} /> Download Ollama for {osName === "Darwin" ? "Mac" : "Windows"}
@@ -425,8 +436,8 @@ export default function CapabilitiesPage() {
                         )}
                         <button
                           onClick={handleStartOllama}
-                          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-[13px] font-semibold transition-all"
-                          style={{ background: "rgba(109,95,234,0.1)", border: "1px solid rgba(109,95,234,0.25)", color: primary }}
+                          className="w-full flex items-center justify-center gap-2 py-2.5 text-[13px] font-semibold transition-all"
+                          style={{ background: "rgba(204,119,34,0.08)", border: "1px solid rgba(165,124,0,0.22)", color: primary, borderRadius: "2px" }}
                         >
                           <Play size={11} /> Start Ollama {osName === "Linux" ? "(already installed)" : osName === "Darwin" ? "— already installed" : "service"}
                         </button>
@@ -441,20 +452,21 @@ export default function CapabilitiesPage() {
                         </div>
                         <div
                           ref={installOutputRef}
-                          className="font-mono text-[11px] p-3 rounded-xl overflow-y-auto space-y-0.5"
+                          className="font-mono text-[11px] p-3 overflow-y-auto space-y-0.5"
                           style={{
-                            background: "hsl(240 22% 4%)",
-                            border: "1px solid hsl(240 20% 10%)",
+                            background: "#0D0C08",
+                            border: "1px solid #2A2420",
                             maxHeight: "160px",
+                            borderRadius: "3px",
                           }}
                         >
                           {installLines.length === 0 ? (
                             <p style={{ color: dim }}>Waiting for installer…</p>
                           ) : installLines.map((line, i) => (
                             <p key={i} style={{
-                              color: line.startsWith("✗") ? "hsl(347 87% 62%)"
+                              color: line.startsWith("✗") ? "#8B4A4A"
                                 : line.startsWith("✓") ? green
-                                : "hsl(240 20% 62%)",
+                                : "#8A7A66",
                               lineHeight: "1.5",
                             }}>{line}</p>
                           ))}
@@ -480,8 +492,8 @@ export default function CapabilitiesPage() {
                       Checking automatically every 5 seconds…
                     </p>
                     <button onClick={refresh}
-                      className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-[12px] font-medium transition-all"
-                      style={{ background: "rgba(109,95,234,0.06)", border: "1px solid rgba(109,95,234,0.15)", color: dim }}>
+                      className="w-full flex items-center justify-center gap-2 py-2 text-[12px] font-medium transition-all"
+                      style={{ background: "rgba(204,119,34,0.04)", border: "1px solid rgba(165,124,0,0.15)", color: dim, borderRadius: "2px" }}>
                       <RefreshCw size={11} /> Check now
                     </button>
                   </div>
@@ -502,9 +514,9 @@ export default function CapabilitiesPage() {
                       ].map(({ name, desc }) => (
                         <button key={name}
                           onClick={() => { setInstallModel(name); setShowInstaller(true); }}
-                          className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-[11.5px] transition-colors"
-                          style={{ background: "hsl(238 18% 7%)", border: "1px solid hsl(238 18% 12%)" }}>
-                          <code style={{ color: "hsl(240 20% 78%)" }}>{name}</code>
+                          className="flex items-center gap-2 px-3 py-1.5 text-[11.5px] transition-colors"
+                          style={{ background: "#111009", border: "1px solid #2A2420", borderRadius: "3px" }}>
+                          <code style={{ color: "#B8A080" }}>{name}</code>
                           <span style={{ color: dim }}>·</span>
                           <span style={{ color: dim }}>{desc}</span>
                           <Download size={9} style={{ color: dim, marginLeft: 2 }} />
@@ -513,12 +525,12 @@ export default function CapabilitiesPage() {
                     </div>
                     <button onClick={refresh}
                       className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-[13px] font-semibold transition-all"
-                      style={{ background: "rgba(109,95,234,0.1)", border: "1px solid hsl(248 90% 68% / 0.22)", color: primary }}>
+                      style={{ background: "rgba(204,119,34,0.08)", border: "1px solid rgba(165,124,0,0.22)", color: primary, borderRadius: "2px" }}>
                       <RefreshCw size={12} /> I installed a model — scan again
                     </button>
                   </div>
                 ) : (
-                  <div className="divide-y" style={{ borderColor: "hsl(240 20% 11%)" }}>
+                  <div className="divide-y" style={{ borderColor: "#2A2420" }}>
                     {modelData.ollama.map(m => {
                       const ram = getRAM(m.name);
                       const isSelected = selectedBrain === m.name;
@@ -526,7 +538,7 @@ export default function CapabilitiesPage() {
                         <div key={m.name} className="flex items-center justify-between px-5 py-3 gap-3">
                           <div className="flex items-center gap-3 min-w-0">
                             <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: isSelected ? green : primary }} />
-                            <span className="text-[13.5px] font-medium truncate" style={{ color: "hsl(244 30% 90%)", letterSpacing: "-0.01em" }}>
+                            <span className="text-[13.5px] font-medium truncate" style={{ color: "#E2D0B4", letterSpacing: "-0.01em" }}>
                               {m.name}
                             </span>
                             {ram && (
@@ -546,19 +558,20 @@ export default function CapabilitiesPage() {
                             <button
                               onClick={() => useModel(m.name)}
                               disabled={isSelected}
-                              className="flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 rounded-lg transition-all disabled:opacity-50"
+                              className="flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 transition-all disabled:opacity-50"
                               style={{
                                 color: isSelected ? green : primary,
-                                background: isSelected ? "rgba(34,197,94,0.08)" : "rgba(109,95,234,0.08)",
-                                border: `1px solid ${isSelected ? "rgba(34,197,94,0.2)" : "rgba(109,95,234,0.2)"}`,
+                                background: isSelected ? "rgba(106,138,90,0.08)" : "rgba(204,119,34,0.07)",
+                                border: `1px solid ${isSelected ? "rgba(106,138,90,0.2)" : "rgba(165,124,0,0.2)"}`,
+                                borderRadius: "2px",
                               }}
                               title="Use this as AI brain"
                             >
                               {isSelected ? <Check size={10} /> : null}
                               {isSelected ? "In use" : "Use"}
                             </button>
-                            <span className="text-[11px] flex items-center gap-1.5 px-2.5 py-1 rounded-lg"
-                              style={{ color: muted, backgroundColor: "hsl(240 22% 7%)", border: "1px solid hsl(240 20% 11%)" }}>
+                            <span className="text-[11px] flex items-center gap-1.5 px-2.5 py-1"
+                              style={{ color: muted, backgroundColor: "#111009", border: "1px solid #2A2420", borderRadius: "2px" }}>
                               <HardDrive size={10} /> {m.size_gb} GB
                             </span>
                           </div>
@@ -570,9 +583,9 @@ export default function CapabilitiesPage() {
 
                 {/* Model installer panel */}
                 {showInstaller && !modelData.ollama_error && (
-                  <div className="px-5 py-4" style={{ borderTop: "1px solid hsl(240 20% 11%)" }}>
+                  <div className="px-5 py-4" style={{ borderTop: "1px solid #2A2420" }}>
                     <div className="flex items-center justify-between mb-3">
-                      <p className="text-[11px] uppercase tracking-widest font-semibold" style={{ color: "hsl(242 17% 40%)" }}>
+                      <p className="text-[11px] uppercase tracking-widest font-semibold" style={{ color: "#5A4A38" }}>
                         Install a model
                       </p>
                       <button onClick={() => { setShowInstaller(false); setInstallError(null); }}
@@ -587,11 +600,12 @@ export default function CapabilitiesPage() {
                         <button key={name} onClick={() => setInstallModel(name)}
                           className="px-2.5 py-1 rounded-lg text-[11px] transition-all"
                           style={{
-                            background: installModel === name ? "rgba(109,95,234,0.15)" : "hsl(238 18% 7%)",
-                            border: `1px solid ${installModel === name ? "rgba(109,95,234,0.35)" : "hsl(238 18% 12%)"}`,
+                            background: installModel === name ? "rgba(204,119,34,0.12)" : "#111009",
+                            border: `1px solid ${installModel === name ? "rgba(165,124,0,0.35)" : "#2A2420"}`,
                             color: installModel === name ? primary : muted,
+                            borderRadius: "2px",
                           }}>
-                          <span style={{ color: installModel === name ? "hsl(244 30% 90%)" : "hsl(240 20% 72%)" }}>{name}</span>
+                          <span style={{ color: installModel === name ? "#E2D0B4" : "#8A7A66" }}>{name}</span>
                           <span style={{ color: dim }}> · {desc}</span>
                         </button>
                       ))}
@@ -613,8 +627,8 @@ export default function CapabilitiesPage() {
                         </button>
                       ) : (
                         <button onClick={handleInstall} disabled={!installModel.trim()}
-                          className="px-4 py-2 rounded-xl text-[13px] font-semibold disabled:opacity-50 transition-all flex items-center gap-1.5"
-                          style={{ background: "linear-gradient(135deg, hsl(246 89% 64%) 0%, hsl(258 72% 68%) 100%)", color: "white" }}>
+                          className="px-4 py-2 text-[13px] font-semibold disabled:opacity-50 transition-all flex items-center gap-1.5"
+                          style={{ background: "linear-gradient(135deg, #7A5200 0%, #CC7722 100%)", color: "#E2D0B4", borderRadius: "2px", border: "1px solid rgba(204,119,34,0.4)" }}>
                           <Download size={12} /> Install
                         </button>
                       )}
@@ -628,9 +642,9 @@ export default function CapabilitiesPage() {
                           )}
                         </div>
                         {installProgress.percent !== undefined && (
-                          <div className="h-1 rounded-full overflow-hidden" style={{ background: "hsl(240 20% 12%)" }}>
+                          <div className="h-1 rounded-full overflow-hidden" style={{ background: "#2A2420" }}>
                             <div className="h-full rounded-full transition-all duration-300"
-                              style={{ width: `${installProgress.percent}%`, background: "linear-gradient(90deg, hsl(246 89% 64%) 0%, hsl(258 72% 68%) 100%)" }} />
+                              style={{ width: `${installProgress.percent}%`, background: "linear-gradient(90deg, #A57C00 0%, #CC7722 100%)" }} />
                           </div>
                         )}
                       </div>
@@ -648,22 +662,22 @@ export default function CapabilitiesPage() {
               <div className="section-card">
                 <div className="section-card-header">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-lg flex items-center justify-center"
-                      style={{ backgroundColor: "rgba(167,139,250,0.14)", color: "hsl(270 70% 72%)" }}>
+                    <div className="w-7 h-7 flex items-center justify-center"
+                      style={{ backgroundColor: "rgba(165,124,0,0.12)", color: "#A57C00", borderRadius: "2px" }}>
                       <Cpu size={13} />
                     </div>
-                    <span className="text-[13px] font-semibold" style={{ color: "hsl(244 30% 92%)", letterSpacing: "-0.01em" }}>
+                    <span className="text-[13px] font-semibold" style={{ color: "#E2D0B4", letterSpacing: "-0.01em" }}>
                       LM Studio
                     </span>
                   </div>
                   {modelData.lmstudio_error ? (
-                    <span className="text-[11px] px-2.5 py-0.5 rounded-full font-medium"
-                      style={{ color: "hsl(347 87% 62%)", backgroundColor: "hsl(347 87% 60% / 0.08)", border: "1px solid hsl(347 87% 60% / 0.2)" }}>
+                    <span className="text-[11px] px-2.5 py-0.5 font-medium"
+                      style={{ color: "#8B4A4A", backgroundColor: "rgba(139,74,74,0.08)", border: "1px solid rgba(139,74,74,0.2)", borderRadius: "2px" }}>
                       Unreachable
                     </span>
                   ) : (
-                    <span className="text-[11px] px-2.5 py-0.5 rounded-full font-medium"
-                      style={{ backgroundColor: "rgba(167,139,250,0.12)", color: "hsl(270 70% 72%)", border: "1px solid rgba(167,139,250,0.25)" }}>
+                    <span className="text-[11px] px-2.5 py-0.5 font-medium"
+                      style={{ backgroundColor: "rgba(165,124,0,0.1)", color: "#A57C00", border: "1px solid rgba(165,124,0,0.22)", borderRadius: "2px" }}>
                       {modelData.lmstudio.length} model{modelData.lmstudio.length !== 1 ? "s" : ""}
                     </span>
                   )}
@@ -681,17 +695,17 @@ export default function CapabilitiesPage() {
                       {[
                         { n: "1", text: <>Download LM Studio from <a href="https://lmstudio.ai" target="_blank" rel="noreferrer" className="underline" style={{ color: primary }}>lmstudio.ai</a> and open it <span style={{ color: dim }}>(skip if you have it)</span></> },
                         { n: "2", text: <>In LM Studio, browse and download a model — Mistral 7B or Llama 3 are good starting points</> },
-                        { n: "3", text: <>Click the <strong style={{ color: "hsl(240 20% 82%)" }}>Local Server</strong> tab → hit <strong style={{ color: "hsl(240 20% 82%)" }}>Start Server</strong>. Make sure the port is 1234.</> },
+                        { n: "3", text: <>Click the <strong style={{ color: "#B8A080" }}>Local Server</strong> tab → hit <strong style={{ color: "#B8A080" }}>Start Server</strong>. Make sure the port is 1234.</> },
                       ].map(({ n, text }) => (
-                        <div key={n} className="flex items-start gap-3 p-3 rounded-xl" style={{ background: "hsl(238 22% 6%)", border: "1px solid hsl(238 18% 12%)" }}>
-                          <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-[10px] font-bold" style={{ background: "rgba(167,139,250,0.18)", color: "hsl(270 70% 72%)" }}>{n}</div>
+                        <div key={n} className="flex items-start gap-3 p-3" style={{ background: "#111009", border: "1px solid #2A2420", borderRadius: "3px" }}>
+                          <div className="w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5 text-[10px] font-bold" style={{ background: "rgba(165,124,0,0.15)", color: "#A57C00", borderRadius: "2px" }}>{n}</div>
                           <p style={{ color: muted }}>{text}</p>
                         </div>
                       ))}
                     </div>
                     <button onClick={refresh}
-                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-[13px] font-semibold transition-all"
-                      style={{ background: "rgba(167,139,250,0.1)", border: "1px solid rgba(167,139,250,0.22)", color: "hsl(270 70% 72%)" }}>
+                      className="w-full flex items-center justify-center gap-2 py-2.5 text-[13px] font-semibold transition-all"
+                      style={{ background: "rgba(204,119,34,0.07)", border: "1px solid rgba(165,124,0,0.2)", color: primary, borderRadius: "2px" }}>
                       <RefreshCw size={12} /> Check again
                     </button>
                   </div>
@@ -700,17 +714,17 @@ export default function CapabilitiesPage() {
                     No loaded models. Load a model in LM Studio and enable the local server, then scan again.
                   </div>
                 ) : (
-                  <div className="divide-y" style={{ borderColor: "hsl(240 20% 11%)" }}>
+                  <div className="divide-y" style={{ borderColor: "#2A2420" }}>
                     {modelData.lmstudio.map(m => (
                       <div key={m.name} className="flex items-center justify-between px-5 py-3">
                         <div className="flex items-center gap-3">
-                          <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: "hsl(270 70% 72%)" }} />
-                          <span className="text-[13.5px] font-medium" style={{ color: "hsl(244 30% 90%)", letterSpacing: "-0.01em" }}>
+                          <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: "#A57C00" }} />
+                          <span className="text-[13.5px] font-medium" style={{ color: "#E2D0B4", letterSpacing: "-0.01em" }}>
                             {m.name}
                           </span>
                         </div>
-                        <span className="text-[11px] px-2.5 py-1 rounded-lg"
-                          style={{ color: dim, backgroundColor: "hsl(240 22% 7%)", border: "1px solid hsl(240 20% 11%)" }}>
+                        <span className="text-[11px] px-2.5 py-1"
+                          style={{ color: dim, backgroundColor: "#111009", border: "1px solid #2A2420", borderRadius: "2px" }}>
                           {m.object}
                         </span>
                       </div>
@@ -719,7 +733,7 @@ export default function CapabilitiesPage() {
                 )}
               </div>
 
-              <p className="text-[11px] text-center pb-4" style={{ color: "hsl(242 17% 28%)", letterSpacing: "0.02em" }}>
+              <p className="text-[11px] text-center pb-4" style={{ color: "#3A2E24", letterSpacing: "0.02em" }}>
                 Local models run entirely on your machine — no data leaves your device
               </p>
             </div>

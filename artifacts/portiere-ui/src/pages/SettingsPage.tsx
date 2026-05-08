@@ -3,10 +3,10 @@ import { Save, Eye, EyeOff, CheckCircle, AlertCircle, Loader2, ChevronRight, Che
 import { fetchSettings, saveSettings } from "@/lib/api";
 import { loadMemory, saveMemory } from "@/lib/memory";
 
-const dim = "hsl(238 18% 32%)";
-const muted = "hsl(238 18% 50%)";
-const primary = "hsl(248 90% 68%)";
-const green = "hsl(152 64% 48%)";
+const dim = "#4A3A2C";
+const muted = "#8A7A66";
+const primary = "#CC7722";
+const green = "#6A8A5A";
 
 function SelectField({ value, onChange, options }: {
   value: string; onChange: (v: string) => void;
@@ -19,12 +19,12 @@ function SelectField({ value, onChange, options }: {
         onChange={e => onChange(e.target.value)}
         className="portiere-input portiere-select pr-10"
         onFocus={e => {
-          e.currentTarget.style.borderColor = "hsl(246 89% 70% / 0.45)";
-          e.currentTarget.style.boxShadow = "0 0 0 3px hsl(246 89% 70% / 0.07)";
+          e.currentTarget.style.borderColor = "#A57C00";
+          e.currentTarget.style.boxShadow = "inset 0 1px 4px rgba(0,0,0,0.35), 0 0 0 2px rgba(165,124,0,0.1)";
         }}
         onBlur={e => {
-          e.currentTarget.style.borderColor = "hsl(240 20% 12%)";
-          e.currentTarget.style.boxShadow = "none";
+          e.currentTarget.style.borderColor = "#2A2420";
+          e.currentTarget.style.boxShadow = "inset 0 1px 4px rgba(0,0,0,0.35)";
         }}
       >
         {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
@@ -44,11 +44,11 @@ function Field({ label, description, secret, value, onChange, placeholder, type,
   return (
     <div className="space-y-1.5">
       <div className="flex items-baseline justify-between">
-        <label className="text-[13px] font-medium" style={{ color: "hsl(244 30% 88%)", letterSpacing: "-0.01em" }}>
+        <label className="text-[13px] font-medium" style={{ color: "#E2D0B4", letterSpacing: "-0.01em" }}>
           {label}
         </label>
         {description && (
-          <span className="text-[11px]" style={{ color: "hsl(242 17% 36%)", letterSpacing: "0.01em" }}>
+          <span className="text-[11px]" style={{ color: "#5A4A38", letterSpacing: "0.01em" }}>
             {description}
           </span>
         )}
@@ -65,12 +65,12 @@ function Field({ label, description, secret, value, onChange, placeholder, type,
             className="portiere-input"
             style={{ paddingRight: secret ? "2.75rem" : undefined }}
             onFocus={e => {
-              e.currentTarget.style.borderColor = "hsl(246 89% 70% / 0.45)";
-              e.currentTarget.style.boxShadow = "0 0 0 3px hsl(246 89% 70% / 0.07)";
+              e.currentTarget.style.borderColor = "#A57C00";
+              e.currentTarget.style.boxShadow = "inset 0 1px 4px rgba(0,0,0,0.35), 0 0 0 2px rgba(165,124,0,0.1)";
             }}
             onBlur={e => {
-              e.currentTarget.style.borderColor = "hsl(240 20% 12%)";
-              e.currentTarget.style.boxShadow = "none";
+              e.currentTarget.style.borderColor = "#2A2420";
+              e.currentTarget.style.boxShadow = "inset 0 1px 4px rgba(0,0,0,0.35)";
             }}
           />
           {secret && (
@@ -103,17 +103,20 @@ function SectionCard({ title, icon, iconColor, iconBg, statusLabel, statusOk, ch
           >
             {icon}
           </div>
-          <span className="text-[13px] font-semibold" style={{ color: "hsl(244 30% 94%)", letterSpacing: "-0.01em" }}>
+          <span className="text-[13px] font-semibold" style={{ color: "#E2D0B4", letterSpacing: "0.01em" }}>
             {title}
           </span>
         </div>
         <span
-          className="text-[11px] px-2.5 py-1 rounded-full font-semibold"
+          className="text-[11px] px-2.5 py-1 font-semibold"
           style={{
-            backgroundColor: statusOk ? "rgba(34,197,94,0.1)" : "hsl(240 20% 11%)",
-            color: statusOk ? green : "hsl(242 17% 40%)",
-            border: `1px solid ${statusOk ? "rgba(34,197,94,0.25)" : "transparent"}`,
-            letterSpacing: "0.01em",
+            backgroundColor: statusOk ? "rgba(106,138,90,0.1)" : "#1A1714",
+            color: statusOk ? green : "#5A4A38",
+            border: `1px solid ${statusOk ? "rgba(106,138,90,0.3)" : "#2A2420"}`,
+            letterSpacing: "0.04em",
+            textTransform: "uppercase",
+            fontSize: "10px",
+            borderRadius: "2px",
           }}
         >
           {statusLabel}
@@ -216,11 +219,11 @@ export default function SettingsPage() {
       {/* Header */}
       <div
         className="flex items-center justify-between px-6 flex-shrink-0"
-        style={{ height: "46px", borderBottom: "1px solid hsl(240 20% 9%)" }}
+        style={{ height: "46px", borderBottom: "1px solid #242018" }}
       >
         <div className="flex items-center gap-2">
-          <span className="text-[13.5px] font-semibold" style={{ color: "hsl(244 30% 85%)", letterSpacing: "-0.01em" }}>Settings</span>
-          <ChevronRight size={12} style={{ color: "hsl(242 17% 28%)" }} />
+          <span className="text-[13.5px] font-semibold" style={{ color: "#E2D0B4", letterSpacing: "-0.01em" }}>Settings</span>
+          <ChevronRight size={12} style={{ color: "#4A3A2C" }} />
           <span className="text-[13px]" style={{ color: muted }}>AI & Capabilities</span>
         </div>
         <div className="flex items-center gap-3">
@@ -230,19 +233,21 @@ export default function SettingsPage() {
             </div>
           )}
           {status === "error" && (
-            <div className="flex items-center gap-1.5 text-[12px]" style={{ color: "hsl(347 87% 62%)" }} title={errorMsg}>
+            <div className="flex items-center gap-1.5 text-[12px]" style={{ color: "#8B3A3A" }} title={errorMsg}>
               <AlertCircle size={12} /> Error
             </div>
           )}
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-[13px] font-semibold transition-all disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 text-[13px] font-semibold transition-all disabled:opacity-50"
             style={{
-              background: "linear-gradient(135deg, hsl(246 89% 64%) 0%, hsl(258 72% 68%) 100%)",
-              color: "white",
-              boxShadow: "0 2px 10px rgba(124,111,247,0.32)",
-              letterSpacing: "-0.01em",
+              background: "linear-gradient(135deg, #8A5A00 0%, #CC7722 100%)",
+              color: "#E2D0B4",
+              boxShadow: "0 2px 10px rgba(165,124,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08)",
+              letterSpacing: "0.02em",
+              borderRadius: "2px",
+              border: "1px solid rgba(204,119,34,0.4)",
             }}
           >
             {saving ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />}
@@ -294,25 +299,26 @@ export default function SettingsPage() {
             placeholder={"I'm vegetarian\nI live in San Francisco\nI work in tech\nI prefer concise answers"}
             rows={5}
             className="portiere-input w-full resize-none text-[13px] leading-relaxed"
-            style={{ fontFamily: "inherit", caretColor: "hsl(248 90% 70%)" }}
+            style={{ fontFamily: "inherit", caretColor: "#CC7722" }}
             onFocus={e => {
-              e.currentTarget.style.borderColor = "hsl(246 89% 70% / 0.45)";
-              e.currentTarget.style.boxShadow = "0 0 0 3px hsl(246 89% 70% / 0.07)";
+              e.currentTarget.style.borderColor = "#A57C00";
+              e.currentTarget.style.boxShadow = "inset 0 1px 4px rgba(0,0,0,0.35), 0 0 0 2px rgba(165,124,0,0.1)";
             }}
             onBlur={e => {
-              e.currentTarget.style.borderColor = "hsl(240 20% 12%)";
-              e.currentTarget.style.boxShadow = "none";
+              e.currentTarget.style.borderColor = "#2A2420";
+              e.currentTarget.style.boxShadow = "inset 0 1px 4px rgba(0,0,0,0.35)";
             }}
           />
           <div className="flex items-center justify-between">
             <p className="text-[12px]" style={{ color: dim }}>Stored locally — never sent anywhere except your AI.</p>
             <button
               onClick={handleSaveMemory}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-semibold transition-all"
               style={{
-                background: memSaved ? "rgba(34,197,94,0.1)" : "rgba(109,95,234,0.1)",
-                border: `1px solid ${memSaved ? "rgba(34,197,94,0.25)" : "rgba(109,95,234,0.22)"}`,
+                background: memSaved ? "rgba(106,138,90,0.1)" : "rgba(204,119,34,0.08)",
+                border: `1px solid ${memSaved ? "rgba(106,138,90,0.25)" : "rgba(165,124,0,0.22)"}`,
                 color: memSaved ? green : primary,
+                borderRadius: "2px",
               }}
             >
               {memSaved ? <><CheckCircle size={11} /> Saved</> : "Save memory"}
@@ -325,7 +331,7 @@ export default function SettingsPage() {
           title="Your AI Brain"
           icon={<span className="text-[12px] font-bold">◈</span>}
           iconColor={primary}
-          iconBg="rgba(124,111,247,0.16)"
+          iconBg="rgba(204,119,34,0.12)"
           statusLabel={provider === "ollama" || provider === "lmstudio" ? "Local · no key needed" : provider === "groq" ? "Free cloud" : "Cloud"}
           statusOk={true}
         >
@@ -342,18 +348,18 @@ export default function SettingsPage() {
             value={form.brain_model} onChange={set("brain_model")} />
           {(provider === "ollama" || provider === "lmstudio") ? (
             <div
-              className="p-4 rounded-xl text-[13px] leading-relaxed"
-              style={{ background: "rgba(109,95,234,0.06)", border: "1px solid rgba(109,95,234,0.15)" }}
+              className="p-4 text-[13px] leading-relaxed"
+              style={{ background: "rgba(204,119,34,0.05)", border: "1px solid rgba(165,124,0,0.18)", borderRadius: "3px" }}
             >
-              <p className="font-medium mb-1.5" style={{ color: "hsl(248 80% 76%)" }}>
-                {provider === "ollama" ? "🦙 No API key needed" : "🖥 No API key needed"}
+              <p className="font-medium mb-1.5" style={{ color: "#CC7722" }}>
+                {provider === "ollama" ? "No API key needed" : "No API key needed"}
               </p>
               <p style={{ color: muted }}>
                 Portiere talks directly to {provider === "ollama" ? "Ollama" : "LM Studio"} running on your computer.
                 Just keep the app open while you use Portiere.
               </p>
               <p className="mt-2 text-[12px]" style={{ color: dim }}>
-                Not connected? Go to <strong style={{ color: "hsl(240 16% 56%)" }}>Capabilities</strong> in the sidebar to check the status and get setup help.
+                Not connected? Go to <strong style={{ color: "#8A7A66" }}>Capabilities</strong> in the sidebar to check the status and get setup help.
               </p>
             </div>
           ) : provider === "groq" ? (
@@ -361,8 +367,8 @@ export default function SettingsPage() {
               <Field label="Groq API Key" secret placeholder="gsk_..."
                 value={form.brain_api_key} onChange={(v) => { set("brain_api_key")(v); set("groq_api_key")(v); }} />
               <div
-                className="p-3.5 rounded-xl text-[12.5px] leading-relaxed"
-                style={{ background: "rgba(109,95,234,0.06)", border: "1px solid rgba(109,95,234,0.15)" }}
+                className="p-3.5 text-[12.5px] leading-relaxed"
+                style={{ background: "rgba(204,119,34,0.05)", border: "1px solid rgba(165,124,0,0.18)", borderRadius: "3px" }}
               >
                 <p style={{ color: muted }}>
                   Get a free key at{" "}
@@ -383,7 +389,7 @@ export default function SettingsPage() {
         {/* Capabilities label */}
         <p
           className="text-[10px] font-semibold px-1"
-          style={{ color: "hsl(242 17% 34%)", letterSpacing: "0.06em", textTransform: "uppercase" }}
+          style={{ color: "#5A4A38", letterSpacing: "0.06em", textTransform: "uppercase" }}
         >
           Capabilities
         </p>
@@ -392,8 +398,8 @@ export default function SettingsPage() {
         <SectionCard
           title="Claude — Writing & Coding"
           icon={<Sparkles size={13} />}
-          iconColor="hsl(270 70% 72%)"
-          iconBg="rgba(167,139,250,0.14)"
+          iconColor="#A57C00"
+          iconBg="rgba(165,124,0,0.12)"
           statusLabel={hasClaudeKey ? "Connected" : "Not configured"}
           statusOk={hasClaudeKey}
         >
@@ -436,10 +442,10 @@ export default function SettingsPage() {
           <Field label="From address" placeholder="Alex Smith <alex@gmail.com>"
             value={form.smtp_from} onChange={set("smtp_from")} />
           <p
-            className="text-[12px] p-3.5 rounded-xl leading-relaxed"
-            style={{ color: dim, backgroundColor: "hsl(240 22% 6%)", border: "1px solid hsl(240 20% 11%)" }}
+            className="text-[12px] p-3.5 leading-relaxed"
+            style={{ color: dim, backgroundColor: "#111009", border: "1px solid #2A2420", borderRadius: "3px" }}
           >
-            <strong style={{ color: "hsl(244 30% 70%)" }}>Gmail tip:</strong> Enable 2-step verification, then create an App Password at myaccount.google.com/apppasswords — use that instead of your main password.
+            <strong style={{ color: "#8A7A66" }}>Gmail tip:</strong> Enable 2-step verification, then create an App Password at myaccount.google.com/apppasswords — use that instead of your main password.
           </p>
         </SectionCard>
 
@@ -489,7 +495,7 @@ export default function SettingsPage() {
           <summary
             className="cursor-pointer text-[12px] font-medium list-none flex items-center gap-2 py-1 px-1 select-none transition-colors"
             style={{ color: dim }}
-            onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "hsl(242 18% 52%)"}
+            onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = muted}
             onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = dim}
           >
             <ChevronRight size={13} className="transition-transform group-open:rotate-90" />
@@ -507,7 +513,7 @@ export default function SettingsPage() {
 
         <p
           className="text-[11px] text-center pb-6"
-          style={{ color: "hsl(242 17% 28%)", letterSpacing: "0.02em" }}
+          style={{ color: "#3A2E24", letterSpacing: "0.02em" }}
         >
           Everything stored locally — nothing leaves your device
         </p>

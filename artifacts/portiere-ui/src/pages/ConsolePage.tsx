@@ -50,19 +50,19 @@ const WORKER_MESSAGES: Record<string, string> = {
 };
 
 const CARD_META: Record<string, { label: string; Icon: React.FC<{ size?: number }>; color: string }> = {
-  claude:      { label: "Response",    Icon: Sparkles,    color: "hsl(270 70% 72%)" },
-  search:      { label: "Web Results", Icon: SearchIcon,  color: "hsl(248 90% 70%)" },
-  osint:       { label: "Research",    Icon: Globe,       color: "hsl(38 90% 60%)"  },
-  local:       { label: "System Info", Icon: Monitor,     color: "hsl(142 60% 55%)" },
-  video:       { label: "Video",       Icon: Film,        color: "hsl(328 80% 68%)" },
-  weather:     { label: "Weather",     Icon: Cloud,       color: "hsl(200 80% 65%)" },
-  email:       { label: "Email",       Icon: Mail,        color: "hsl(38 90% 60%)"  },
-  code_runner: { label: "Code Output", Icon: Terminal,    color: "hsl(142 60% 55%)" },
-  image_gen:   { label: "Image",       Icon: Image,       color: "hsl(310 70% 68%)" },
-  translator:  { label: "Translation", Icon: Languages,   color: "hsl(185 70% 58%)" },
-  news:        { label: "News",        Icon: Newspaper,   color: "hsl(25 90% 62%)"  },
-  finance:     { label: "Markets",     Icon: TrendingUp,  color: "hsl(142 60% 55%)" },
-  reminder:    { label: "Calendar",    Icon: CalendarPlus,color: "hsl(248 90% 70%)" },
+  claude:      { label: "Response",    Icon: Sparkles,    color: "#CC7722"           },
+  search:      { label: "Web Results", Icon: SearchIcon,  color: "#CC7722"           },
+  osint:       { label: "Research",    Icon: Globe,       color: "#A57C00"           },
+  local:       { label: "System Info", Icon: Monitor,     color: "#6A8A5A"           },
+  video:       { label: "Video",       Icon: Film,        color: "#8A5A7A"           },
+  weather:     { label: "Weather",     Icon: Cloud,       color: "#5A7A8A"           },
+  email:       { label: "Email",       Icon: Mail,        color: "#A57C00"           },
+  code_runner: { label: "Code Output", Icon: Terminal,    color: "#6A8A5A"           },
+  image_gen:   { label: "Image",       Icon: Image,       color: "#8A5A7A"           },
+  translator:  { label: "Translation", Icon: Languages,   color: "#5A7A8A"           },
+  news:        { label: "News",        Icon: Newspaper,   color: "#A57C00"           },
+  finance:     { label: "Markets",     Icon: TrendingUp,  color: "#6A8A5A"           },
+  reminder:    { label: "Calendar",    Icon: CalendarPlus,color: "#CC7722"           },
 };
 
 const FOLLOW_UP_CHIPS: Record<string, string[]> = {
@@ -83,42 +83,42 @@ const FOLLOW_UP_CHIPS: Record<string, string[]> = {
 
 const QUICK_ACTIONS = [
   {
-    icon: Plane, color: "hsl(248 90% 70%)", bg: "rgba(109,95,234,0.12)",
+    icon: Plane, color: "#CC7722", bg: "rgba(204,119,34,0.1)",
     label: "Travel", sub: "Plan trips, find flights & hotels",
     prompt: "Plan a weekend trip to Milan — flights, hotels, and itinerary",
   },
   {
-    icon: Newspaper, color: "hsl(25 90% 62%)", bg: "rgba(249,115,22,0.12)",
+    icon: Newspaper, color: "#A57C00", bg: "rgba(165,124,0,0.1)",
     label: "News", sub: "Latest headlines on any topic",
     prompt: "What's happening in AI and tech today?",
   },
   {
-    icon: TrendingUp, color: "hsl(142 60% 55%)", bg: "rgba(34,197,94,0.12)",
+    icon: TrendingUp, color: "#6A8A5A", bg: "rgba(106,138,90,0.1)",
     label: "Finance", sub: "Stocks, crypto & market data",
     prompt: "How is Bitcoin doing today?",
   },
   {
-    icon: Image, color: "hsl(310 70% 68%)", bg: "rgba(192,132,252,0.12)",
+    icon: Image, color: "#8A5A7A", bg: "rgba(138,90,122,0.1)",
     label: "Create", sub: "Generate images & videos",
     prompt: "Generate an image of a futuristic city at sunset",
   },
   {
-    icon: PenLine, color: "hsl(270 70% 72%)", bg: "rgba(167,139,250,0.12)",
+    icon: PenLine, color: "#CC7722", bg: "rgba(204,119,34,0.1)",
     label: "Write", sub: "Emails, resumes, essays & more",
     prompt: "Help me write a professional bio for LinkedIn",
   },
   {
-    icon: Languages, color: "hsl(185 70% 58%)", bg: "rgba(20,184,166,0.12)",
+    icon: Languages, color: "#5A7A8A", bg: "rgba(90,122,138,0.1)",
     label: "Translate", sub: "50+ languages, free & instant",
     prompt: "Say 'I love you' in 10 different languages",
   },
   {
-    icon: CalendarPlus, color: "hsl(248 90% 70%)", bg: "rgba(109,95,234,0.12)",
+    icon: CalendarPlus, color: "#A57C00", bg: "rgba(165,124,0,0.1)",
     label: "Schedule", sub: "Calendar events & reminders",
     prompt: "Schedule a dentist appointment for tomorrow at 10am",
   },
   {
-    icon: SearchIcon, color: "hsl(200 80% 65%)", bg: "rgba(96,165,250,0.12)",
+    icon: SearchIcon, color: "#5A7A8A", bg: "rgba(90,122,138,0.1)",
     label: "Search", sub: "Find anything on the web",
     prompt: "Find a highly-rated therapist near me who takes insurance",
   },
@@ -158,36 +158,39 @@ function PipelineStep({ label, status }: { label: string; status: "pending" | "a
   return (
     <div className="flex flex-col items-center gap-1.5">
       <div
-        className="w-6 h-6 rounded-full flex items-center justify-center transition-all duration-400"
+        className="w-6 h-6 flex items-center justify-center transition-all duration-400"
         style={{
+          borderRadius: "2px",
           backgroundColor: status === "done"
-            ? "rgba(34,197,94,0.14)"
+            ? "rgba(106,138,90,0.14)"
             : status === "active"
-            ? "rgba(109,95,234,0.2)"
-            : "hsl(238 18% 10%)",
-          border: `1.5px solid ${status === "done"
-            ? "rgba(34,197,94,0.4)"
+            ? "rgba(204,119,34,0.18)"
+            : "#1A1714",
+          border: `1px solid ${status === "done"
+            ? "rgba(106,138,90,0.4)"
             : status === "active"
-            ? "rgba(109,95,234,0.55)"
-            : "hsl(238 18% 15%)"}`,
-          boxShadow: status === "active" ? "0 0 10px rgba(109,95,234,0.25)" : "none",
+            ? "rgba(204,119,34,0.5)"
+            : "#2A2420"}`,
+          boxShadow: status === "active" ? "0 0 8px rgba(204,119,34,0.2)" : "none",
         }}
       >
         {status === "done"
-          ? <Check size={10} style={{ color: "hsl(152 64% 52%)" }} />
+          ? <Check size={10} style={{ color: "#6A8A5A" }} />
           : status === "active"
-          ? <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: "hsl(248 90% 72%)" }} />
-          : <div className="w-1 h-1 rounded-full" style={{ backgroundColor: "hsl(238 18% 30%)" }} />}
+          ? <div className="w-1.5 h-1.5 animate-pulse" style={{ backgroundColor: "#CC7722", borderRadius: "1px" }} />
+          : <div className="w-1 h-1" style={{ backgroundColor: "#3A2A1C", borderRadius: "1px" }} />}
       </div>
       <span
-        className="text-[10px] font-semibold tracking-wide"
+        className="text-[10px] font-semibold"
         style={{
           color: status === "done"
-            ? "hsl(152 64% 52%)"
+            ? "#6A8A5A"
             : status === "active"
-            ? "hsl(248 90% 75%)"
-            : "hsl(238 18% 32%)",
-          letterSpacing: "0.02em",
+            ? "#CC7722"
+            : "#4A3A2C",
+          letterSpacing: "0.04em",
+          textTransform: "uppercase",
+          fontSize: "9px",
         }}
       >
         {label}
@@ -203,32 +206,29 @@ function ActivityCard({ activity, elapsed }: { activity: ActivityState; elapsed:
 
   return (
     <div
-      className="mx-5 mt-3 mb-2 p-4 rounded-2xl animate-feed-in"
-      style={{
-        background: "hsl(238 18% 7%)",
-        border: "1px solid hsl(238 18% 11%)",
-        boxShadow: "0 4px 24px rgba(0,0,0,0.22)",
-      }}
+      className="mx-5 mt-3 mb-2 animate-feed-in section-card"
+      style={{ padding: "16px" }}
     >
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <Loader2 size={12} className="animate-spin" style={{ color: "hsl(248 90% 68%)" }} />
-          <span className="text-[13px] font-semibold" style={{ color: "hsl(240 20% 88%)", letterSpacing: "-0.01em" }}>
+          <Loader2 size={12} className="animate-spin" style={{ color: "#CC7722" }} />
+          <span className="text-[13px] font-semibold" style={{ color: "#E2D0B4", letterSpacing: "-0.01em" }}>
             Working on it
           </span>
         </div>
-        <span className="text-[11px] tabular-nums" style={{ color: "hsl(238 18% 36%)", fontVariantNumeric: "tabular-nums" }}>
+        <span className="text-[11px] tabular-nums font-medium" style={{ color: "#6A5A48", fontVariantNumeric: "tabular-nums", letterSpacing: "0.04em" }}>
           {elapsed}s
         </span>
       </div>
 
-      <div className="h-[3px] rounded-full mb-4 overflow-hidden" style={{ backgroundColor: "hsl(238 18% 12%)" }}>
+      <div className="h-[2px] mb-4 overflow-hidden" style={{ backgroundColor: "#2A2420", borderRadius: "1px" }}>
         <div
-          className="h-full rounded-full transition-all duration-700 ease-out"
+          className="h-full transition-all duration-700 ease-out"
           style={{
             width: `${progress}%`,
-            background: "linear-gradient(90deg, hsl(248 82% 62%) 0%, hsl(264 68% 68%) 100%)",
-            boxShadow: "0 0 8px rgba(109,95,234,0.5)",
+            background: "linear-gradient(90deg, #A57C00 0%, #CC7722 100%)",
+            boxShadow: "0 0 6px rgba(204,119,34,0.4)",
+            borderRadius: "1px",
           }}
         />
       </div>
@@ -239,18 +239,18 @@ function ActivityCard({ activity, elapsed }: { activity: ActivityState; elapsed:
           <div key={step.worker} className="flex items-center gap-1">
             <div
               className="h-px w-4 transition-colors duration-500"
-              style={{ backgroundColor: step.status !== "pending" ? "rgba(109,95,234,0.3)" : "hsl(238 18% 14%)" }}
+              style={{ backgroundColor: step.status !== "pending" ? "rgba(204,119,34,0.25)" : "#2A2420" }}
             />
             <PipelineStep label={step.label} status={step.status} />
           </div>
         ))}
         <div className="flex items-center gap-1">
-          <div className="h-px w-4" style={{ backgroundColor: allDone ? "rgba(34,197,94,0.3)" : "hsl(238 18% 14%)" }} />
+          <div className="h-px w-4" style={{ backgroundColor: allDone ? "rgba(106,138,90,0.3)" : "#2A2420" }} />
           <PipelineStep label="Done" status={allDone ? "done" : "pending"} />
         </div>
       </div>
 
-      <p className="text-[12px] text-center" style={{ color: "hsl(238 18% 44%)" }}>{message}</p>
+      <p className="text-[12px] text-center italic" style={{ color: "#6A5A48" }}>{message}</p>
     </div>
   );
 }
@@ -265,19 +265,19 @@ function SearchResultCards({ data }: { data: SearchData }) {
     <div className="space-y-2">
       {data.answer && (
         <div
-          className="px-4 py-3 rounded-xl mb-3"
-          style={{ backgroundColor: "rgba(109,95,234,0.08)", border: "1px solid rgba(109,95,234,0.18)" }}
+          className="px-4 py-3 mb-3"
+          style={{ backgroundColor: "rgba(204,119,34,0.07)", border: "1px solid rgba(165,124,0,0.22)", borderRadius: "3px" }}
         >
-          <p className="text-[14px] font-semibold" style={{ color: "hsl(240 20% 95%)", letterSpacing: "-0.01em" }}>{data.answer}</p>
+          <p className="text-[14px] font-semibold" style={{ color: "#E2D0B4", letterSpacing: "-0.01em" }}>{data.answer}</p>
         </div>
       )}
       {data.abstract && (
-        <p className="text-[13.5px] leading-relaxed mb-3" style={{ color: "hsl(240 16% 80%)" }}>
+        <p className="text-[13.5px] leading-relaxed mb-3" style={{ color: "#B8A080" }}>
           {data.abstract}
           {data.abstract_url && (
             <a href={data.abstract_url} target="_blank" rel="noreferrer"
               className="inline-flex items-center gap-1 ml-2 text-[12px] underline underline-offset-2"
-              style={{ color: "hsl(248 90% 72%)" }}>
+              style={{ color: "#CC7722" }}>
               Source <ExternalLink size={10} />
             </a>
           )}
@@ -292,39 +292,39 @@ function SearchResultCards({ data }: { data: SearchData }) {
               target="_blank"
               rel="noreferrer"
               className="flex items-start justify-between gap-3 p-3.5 rounded-xl transition-all group"
-              style={{ backgroundColor: "hsl(238 20% 6%)", border: "1px solid hsl(238 18% 11%)" }}
+              style={{ backgroundColor: "#111009", border: "1px solid #2A2420", borderRadius: "3px" }}
               onClick={!r.url ? e => e.preventDefault() : undefined}
               onMouseEnter={e => {
-                (e.currentTarget as HTMLElement).style.borderColor = "rgba(109,95,234,0.28)";
-                (e.currentTarget as HTMLElement).style.backgroundColor = "hsl(238 18% 7%)";
+                (e.currentTarget as HTMLElement).style.borderColor = "rgba(165,124,0,0.3)";
+                (e.currentTarget as HTMLElement).style.backgroundColor = "#1A1714";
               }}
               onMouseLeave={e => {
-                (e.currentTarget as HTMLElement).style.borderColor = "hsl(238 18% 11%)";
-                (e.currentTarget as HTMLElement).style.backgroundColor = "hsl(238 20% 6%)";
+                (e.currentTarget as HTMLElement).style.borderColor = "#2A2420";
+                (e.currentTarget as HTMLElement).style.backgroundColor = "#111009";
               }}
             >
               <div className="flex-1 min-w-0">
-                <p className="text-[13px] font-semibold leading-snug" style={{ color: "hsl(240 20% 93%)", letterSpacing: "-0.01em" }}>
+                <p className="text-[13px] font-semibold leading-snug" style={{ color: "#E2D0B4", letterSpacing: "-0.01em" }}>
                   {r.title || r.snippet.slice(0, 70)}
                 </p>
                 {r.snippet && r.snippet !== r.title && (
-                  <p className="text-[12px] mt-0.5 leading-relaxed line-clamp-2" style={{ color: "hsl(238 18% 50%)" }}>
+                  <p className="text-[12px] mt-0.5 leading-relaxed line-clamp-2" style={{ color: "#8A7A66" }}>
                     {r.snippet.slice(0, 180)}
                   </p>
                 )}
                 {r.url && (
-                  <p className="text-[11px] mt-1 truncate font-mono" style={{ color: "hsl(248 90% 64%)" }}>
+                  <p className="text-[11px] mt-1 truncate font-mono" style={{ color: "#A57C00" }}>
                     {r.url.replace(/^https?:\/\//, "").slice(0, 60)}
                   </p>
                 )}
               </div>
-              {r.url && <ExternalLink size={11} className="flex-shrink-0 mt-0.5 opacity-25 group-hover:opacity-55 transition-opacity" style={{ color: "hsl(248 90% 70%)" }} />}
+              {r.url && <ExternalLink size={11} className="flex-shrink-0 mt-0.5 opacity-25 group-hover:opacity-55 transition-opacity" style={{ color: "#CC7722" }} />}
             </a>
           ))}
         </div>
       )}
       {results.length === 0 && !data.answer && !data.abstract && (
-        <p className="text-[14px]" style={{ color: "hsl(238 18% 46%)" }}>No results found. Try a different search.</p>
+        <p className="text-[14px]" style={{ color: "#6A5A48" }}>No results found. Try a different search.</p>
       )}
     </div>
   );
@@ -333,7 +333,7 @@ function SearchResultCards({ data }: { data: SearchData }) {
 // ── Worker result card ─────────────────────────────────────────────────────
 function WorkerResultCard({ event }: { event: OrchestrateEvent }) {
   const k = (event.worker || "brain").toLowerCase();
-  const meta = CARD_META[k] || { label: "Result", Icon: Cpu, color: "hsl(238 18% 55%)" };
+  const meta = CARD_META[k] || { label: "Result", Icon: Cpu, color: "#8A7A66" };
   const content = event.content || "";
   const data = event.data as Record<string, unknown> | undefined;
   const videoUrl = data?.video_url as string | undefined;
@@ -348,49 +348,37 @@ function WorkerResultCard({ event }: { event: OrchestrateEvent }) {
   };
 
   return (
-    <div
-      className="mx-5 my-2.5 animate-feed-in"
-      style={{
-        borderRadius: "16px",
-        overflow: "hidden",
-        background: "hsl(238 18% 7%)",
-        border: "1px solid hsl(238 18% 11%)",
-        borderLeft: `3px solid ${meta.color}60`,
-        boxShadow: "0 2px 16px rgba(0,0,0,0.18)",
-      }}
-    >
-      <div
-        className="flex items-center justify-between px-4 py-2.5"
-        style={{ borderBottom: "1px solid hsl(238 18% 10%)", background: "hsl(238 20% 6%)" }}
-      >
+    <div className="mx-5 my-2.5 animate-feed-in result-card" style={{ borderLeft: `2px solid ${meta.color}80` }}>
+      <div className="flex items-center justify-between px-4 py-2.5 result-card-header">
         <div className="flex items-center gap-2.5">
           <div
-            className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{ backgroundColor: `${meta.color}18`, color: meta.color }}
+            className="w-6 h-6 flex items-center justify-center flex-shrink-0"
+            style={{ backgroundColor: `${meta.color}18`, color: meta.color, borderRadius: "2px" }}
           >
             <meta.Icon size={13} />
           </div>
-          <span className="text-[13px] font-semibold" style={{ color: "hsl(240 20% 92%)", letterSpacing: "-0.01em" }}>
+          <span className="text-[13px] font-semibold" style={{ color: "#E2D0B4", letterSpacing: "0.01em", textTransform: "uppercase", fontSize: "11px" }}>
             {meta.label}
           </span>
         </div>
         <div className="flex items-center gap-1">
           <button
             onClick={() => downloadWorkerFile(content, k)}
-            className="flex items-center gap-1 text-[11px] font-medium transition-all px-2 py-1 rounded-lg"
-            style={{ color: "hsl(238 18% 36%)" }}
+            className="flex items-center gap-1 text-[11px] font-medium transition-all px-2 py-1"
+            style={{ color: "#4A3A2C", borderRadius: "2px" }}
             title="Save to file"
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "rgba(255,255,255,0.05)"; (e.currentTarget as HTMLElement).style.color = "hsl(238 18% 52%)"; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"; (e.currentTarget as HTMLElement).style.color = "hsl(238 18% 36%)"; }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "rgba(255,255,255,0.04)"; (e.currentTarget as HTMLElement).style.color = "#8A7A66"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"; (e.currentTarget as HTMLElement).style.color = "#4A3A2C"; }}
           >
             <Download size={11} />
           </button>
           <button
             onClick={copy}
-            className="flex items-center gap-1.5 text-[11px] font-medium transition-all px-2.5 py-1 rounded-lg"
+            className="flex items-center gap-1.5 text-[11px] font-medium transition-all px-2.5 py-1"
             style={{
-              color: copied ? "hsl(152 64% 52%)" : "hsl(238 18% 40%)",
-              backgroundColor: copied ? "rgba(34,197,94,0.08)" : "transparent",
+              color: copied ? "#6A8A5A" : "#4A3A2C",
+              backgroundColor: copied ? "rgba(106,138,90,0.08)" : "transparent",
+              borderRadius: "2px",
             }}
           >
             {copied ? <Check size={11} /> : <Copy size={11} />}
@@ -406,15 +394,15 @@ function WorkerResultCard({ event }: { event: OrchestrateEvent }) {
               src={imageUrl}
               alt={content}
               className="w-full rounded-xl object-cover"
-              style={{ maxHeight: "380px", border: "1px solid hsl(238 18% 13%)" }}
+              style={{ maxHeight: "380px", border: "1px solid #2A2420", borderRadius: "3px" }}
             />
-            <p className="text-[12px]" style={{ color: "hsl(238 18% 46%)" }}>{content}</p>
+            <p className="text-[12px]" style={{ color: "#6A5A48" }}>{content}</p>
             <a
               href={imageUrl}
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-1.5 text-[13px] font-medium"
-              style={{ color: "hsl(248 90% 70%)" }}
+              style={{ color: "#CC7722" }}
             >
               <ExternalLink size={12} /> Open full size
             </a>
@@ -430,7 +418,7 @@ function WorkerResultCard({ event }: { event: OrchestrateEvent }) {
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center gap-1.5 mt-4 text-[13px] font-medium"
-            style={{ color: "hsl(248 90% 72%)" }}
+            style={{ color: "#CC7722" }}
           >
             View generated video →
           </a>
@@ -443,31 +431,18 @@ function WorkerResultCard({ event }: { event: OrchestrateEvent }) {
 // ── Streaming card ─────────────────────────────────────────────────────────
 function StreamingCard({ worker, text }: { worker: string; text: string }) {
   const k = worker.toLowerCase();
-  const meta = CARD_META[k] || { label: "Working", Icon: Cpu, color: "hsl(238 18% 55%)" };
+  const meta = CARD_META[k] || { label: "Working", Icon: Cpu, color: "#8A7A66" };
   return (
-    <div
-      className="mx-5 my-2.5"
-      style={{
-        borderRadius: "16px",
-        overflow: "hidden",
-        background: "hsl(238 18% 7%)",
-        border: "1px solid hsl(238 18% 11%)",
-        borderLeft: `3px solid ${meta.color}60`,
-        boxShadow: "0 2px 16px rgba(0,0,0,0.18)",
-      }}
-    >
-      <div
-        className="flex items-center gap-2.5 px-4 py-2.5"
-        style={{ borderBottom: "1px solid hsl(238 18% 10%)", background: "hsl(238 20% 6%)" }}
-      >
-        <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${meta.color}18`, color: meta.color }}>
+    <div className="mx-5 my-2.5 result-card" style={{ borderLeft: `2px solid ${meta.color}80` }}>
+      <div className="flex items-center gap-2.5 px-4 py-2.5 result-card-header">
+        <div className="w-6 h-6 flex items-center justify-center" style={{ backgroundColor: `${meta.color}18`, color: meta.color, borderRadius: "2px" }}>
           <meta.Icon size={13} />
         </div>
-        <span className="text-[13px] font-semibold" style={{ color: "hsl(240 20% 92%)", letterSpacing: "-0.01em" }}>{meta.label}</span>
-        <Loader2 size={11} className="animate-spin ml-auto" style={{ color: meta.color, opacity: 0.65 }} />
+        <span className="text-[11px] font-semibold" style={{ color: "#E2D0B4", letterSpacing: "0.04em", textTransform: "uppercase" }}>{meta.label}</span>
+        <Loader2 size={11} className="animate-spin ml-auto" style={{ color: meta.color, opacity: 0.7 }} />
       </div>
       <div className="px-5 py-4">
-        <pre className="mono-output" style={{ color: "hsl(240 16% 78% / 0.7)" }}>
+        <pre className="mono-output kinetic-reveal" style={{ color: "#9A8870" }}>
           {text}<span className="cursor-blink" />
         </pre>
       </div>
@@ -479,21 +454,23 @@ function StreamingCard({ worker, text }: { worker: string; text: string }) {
 function CompleteRow({ elapsed }: { elapsed?: number }) {
   return (
     <div className="flex items-center gap-3 py-5 px-6 animate-feed-in">
-      <div className="flex-1 h-px" style={{ background: "linear-gradient(90deg, transparent, hsl(238 18% 12%) 60%)" }} />
+      <div className="flex-1 h-px" style={{ background: "linear-gradient(90deg, transparent, #2A2420 60%)" }} />
       <div
-        className="flex items-center gap-1.5 text-[11px] font-medium px-3.5 py-1.5 rounded-full"
+        className="flex items-center gap-1.5 text-[11px] font-semibold px-3.5 py-1.5"
         style={{
-          color: "hsl(152 60% 50%)",
-          backgroundColor: "rgba(34,197,94,0.06)",
-          border: "1px solid rgba(34,197,94,0.14)",
-          letterSpacing: "-0.005em",
-          boxShadow: "0 1px 8px rgba(34,197,94,0.08)",
+          color: "#6A8A5A",
+          backgroundColor: "rgba(106,138,90,0.07)",
+          border: "1px solid rgba(106,138,90,0.22)",
+          letterSpacing: "0.04em",
+          textTransform: "uppercase",
+          fontSize: "10px",
+          borderRadius: "2px",
         }}
       >
-        <Check size={10} strokeWidth={2.5} />
-        {elapsed !== undefined ? `Finished in ${elapsed}s` : "Done"}
+        <Check size={9} strokeWidth={2.5} />
+        {elapsed !== undefined ? `Done · ${elapsed}s` : "Done"}
       </div>
-      <div className="flex-1 h-px" style={{ background: "linear-gradient(90deg, hsl(238 18% 12%) 40%, transparent)" }} />
+      <div className="flex-1 h-px" style={{ background: "linear-gradient(90deg, #2A2420 40%, transparent)" }} />
     </div>
   );
 }
@@ -817,16 +794,16 @@ export default function ConsolePage() {
       {/* Header */}
       <div
         className="flex items-center justify-between px-5 flex-shrink-0"
-        style={{ height: "48px", borderBottom: "1px solid hsl(238 18% 8%)" }}
+        style={{ height: "48px", borderBottom: "1px solid #242018" }}
       >
         <div className="flex items-center gap-2">
-          <span className="text-[13.5px] font-semibold" style={{ color: "hsl(240 20% 84%)", letterSpacing: "-0.015em" }}>
+          <span className="text-[13.5px] font-semibold" style={{ color: "#E2D0B4", letterSpacing: "-0.01em" }}>
             Chat
           </span>
           {!isEmpty && (
             <>
-              <ChevronRight size={12} style={{ color: "hsl(238 18% 26%)" }} />
-              <span className="text-[12.5px] max-w-xs truncate" style={{ color: "hsl(238 18% 42%)" }}>
+              <ChevronRight size={12} style={{ color: "#4A3A2C" }} />
+              <span className="text-[12.5px] max-w-xs truncate" style={{ color: "#8A7A66" }}>
                 {feed.find(e => e.event.type === "user_input")?.event.content?.slice(0, 55) ?? "session"}
               </span>
             </>
@@ -834,71 +811,69 @@ export default function ConsolePage() {
         </div>
         <div className="flex items-center gap-1.5">
           {currentBrain && !isEmpty && (
-            <div className="flex items-center gap-1.5 text-[11px] px-2 py-1 rounded-full mr-1"
-              style={{ background: "rgba(109,95,234,0.07)", border: "1px solid rgba(109,95,234,0.12)", color: "hsl(248 78% 68%)" }}>
-              <span style={{ opacity: 0.5 }}>◈</span>
-              <span style={{ letterSpacing: "-0.01em" }}>{currentBrain.model}</span>
+            <div className="flex items-center gap-1.5 text-[11px] px-2 py-1 mr-1"
+              style={{ background: "rgba(204,119,34,0.06)", border: "1px solid rgba(165,124,0,0.2)", color: "#CC7722", borderRadius: "2px" }}>
+              <span style={{ opacity: 0.6 }}>◈</span>
+              <span style={{ letterSpacing: "0em" }}>{currentBrain.model}</span>
             </div>
           )}
           {running && (
-            <div className="flex items-center gap-1.5 text-[12px] mr-2" style={{ color: "hsl(248 90% 70%)" }}>
+            <div className="flex items-center gap-1.5 text-[12px] mr-2" style={{ color: "#CC7722" }}>
               <Loader2 size={11} className="animate-spin" />
-              <span style={{ letterSpacing: "-0.01em" }}>{elapsed}s</span>
+              <span style={{ letterSpacing: "0.02em", fontVariantNumeric: "tabular-nums" }}>{elapsed}s</span>
             </div>
           )}
           {isComplete && !running && (
-            <div className="flex items-center gap-1.5 text-[12px] mr-1" style={{ color: "hsl(152 64% 50%)" }}>
+            <div className="flex items-center gap-1.5 text-[12px] mr-1" style={{ color: "#6A8A5A" }}>
               <Check size={11} />
-              <span style={{ letterSpacing: "-0.01em" }}>Done</span>
+              <span style={{ letterSpacing: "0em" }}>Done</span>
             </div>
           )}
-          {/* Export button */}
           {!isEmpty && (
             <button
               onClick={handleExport}
               title="Export chat (⌘E)"
-              className="flex items-center gap-1.5 text-[12px] px-2.5 py-1.5 rounded-lg transition-all"
-              style={{ color: "hsl(238 18% 38%)" }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "rgba(255,255,255,0.04)"; (e.currentTarget as HTMLElement).style.color = "hsl(238 18% 58%)"; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"; (e.currentTarget as HTMLElement).style.color = "hsl(238 18% 38%)"; }}
+              className="flex items-center gap-1.5 text-[12px] px-2.5 py-1.5 transition-all"
+              style={{ color: "#4A3A2C", borderRadius: "2px" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "rgba(255,255,255,0.03)"; (e.currentTarget as HTMLElement).style.color = "#8A7A66"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"; (e.currentTarget as HTMLElement).style.color = "#4A3A2C"; }}
             >
               <FileDown size={13} />
               <span className="hidden sm:inline">Export</span>
             </button>
           )}
-          {/* Templates button */}
           <button
             onClick={() => setShowTemplates(true)}
             title="Prompt templates (⌘T)"
-            className="flex items-center gap-1.5 text-[12px] px-2.5 py-1.5 rounded-lg transition-all"
-            style={{ color: "hsl(238 18% 38%)" }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "rgba(255,255,255,0.04)"; (e.currentTarget as HTMLElement).style.color = "hsl(238 18% 58%)"; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"; (e.currentTarget as HTMLElement).style.color = "hsl(238 18% 38%)"; }}
+            className="flex items-center gap-1.5 text-[12px] px-2.5 py-1.5 transition-all"
+            style={{ color: "#4A3A2C", borderRadius: "2px" }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "rgba(255,255,255,0.03)"; (e.currentTarget as HTMLElement).style.color = "#8A7A66"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"; (e.currentTarget as HTMLElement).style.color = "#4A3A2C"; }}
           >
             <BookOpen size={13} />
           </button>
-          {/* Shortcuts button */}
           <button
             onClick={() => setShowShortcuts(true)}
             title="Keyboard shortcuts (?)"
-            className="flex items-center justify-center w-6 h-6 rounded-md text-[11px] font-bold transition-all"
+            className="flex items-center justify-center w-6 h-6 text-[11px] font-bold transition-all"
             style={{
-              color: "hsl(238 18% 36%)",
-              border: "1px solid hsl(238 18% 14%)",
-              backgroundColor: "hsl(238 18% 8%)",
+              color: "#4A3A2C",
+              border: "1px solid #2A2420",
+              backgroundColor: "#1A1714",
+              borderRadius: "2px",
             }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "hsl(238 18% 22%)"; (e.currentTarget as HTMLElement).style.color = "hsl(238 18% 55%)"; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "hsl(238 18% 14%)"; (e.currentTarget as HTMLElement).style.color = "hsl(238 18% 36%)"; }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "#A57C00"; (e.currentTarget as HTMLElement).style.color = "#CC7722"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "#2A2420"; (e.currentTarget as HTMLElement).style.color = "#4A3A2C"; }}
           >
             ?
           </button>
           {!isEmpty && (
             <button
               onClick={handleClear}
-              className="text-[12px] px-2.5 py-1 rounded-lg transition-all ml-1"
-              style={{ color: "hsl(238 18% 36%)" }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "rgba(255,255,255,0.04)"; (e.currentTarget as HTMLElement).style.color = "hsl(238 18% 52%)"; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"; (e.currentTarget as HTMLElement).style.color = "hsl(238 18% 36%)"; }}
+              className="text-[12px] px-2.5 py-1 transition-all ml-1"
+              style={{ color: "#4A3A2C", borderRadius: "2px" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "rgba(255,255,255,0.03)"; (e.currentTarget as HTMLElement).style.color = "#8A7A66"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"; (e.currentTarget as HTMLElement).style.color = "#4A3A2C"; }}
             >
               Clear
             </button>
@@ -914,45 +889,52 @@ export default function ConsolePage() {
             {/* Dot grid background */}
             <div
               className="absolute inset-0 pointer-events-none dot-grid"
-              style={{ opacity: 0.4 }}
+              style={{ opacity: 0.5 }}
             />
-            {/* Radial glow */}
+            {/* Radial glow — oxblood warmth */}
             <div
               className="absolute pointer-events-none"
               style={{
                 top: 0, left: "50%", transform: "translateX(-50%)",
                 width: "600px", height: "400px",
-                background: "radial-gradient(ellipse 60% 50% at 50% 0%, rgba(109,95,234,0.08) 0%, transparent 70%)",
+                background: "radial-gradient(ellipse 60% 50% at 50% 0%, rgba(96,0,0,0.07) 0%, transparent 70%)",
               }}
             />
 
             {/* Hero */}
             <div className="relative flex flex-col items-center text-center mb-8 animate-slide-up">
               <div
-                className="relative w-16 h-16 rounded-2xl flex items-center justify-center mb-5 animate-float"
+                className="relative w-16 h-16 flex items-center justify-center mb-5 animate-float"
                 style={{
-                  background: "linear-gradient(145deg, rgba(109,95,234,0.24) 0%, rgba(109,95,234,0.07) 100%)",
-                  border: "1px solid rgba(109,95,234,0.3)",
-                  boxShadow: "0 0 48px rgba(109,95,234,0.16), 0 8px 32px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.04) inset",
+                  background: "linear-gradient(145deg, rgba(96,0,0,0.35) 0%, rgba(50,0,0,0.15) 100%)",
+                  border: "1px solid rgba(204,119,34,0.3)",
+                  borderRadius: "4px",
+                  boxShadow: "0 0 36px rgba(96,0,0,0.2), 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(204,119,34,0.1)",
                 }}
               >
                 <div
-                  className="absolute inset-0 rounded-2xl pointer-events-none animate-logo-breathe"
-                  style={{ background: "rgba(109,95,234,0.2)", filter: "blur(14px)", transform: "scale(1.3)" }}
+                  className="absolute inset-0 pointer-events-none animate-logo-breathe"
+                  style={{ background: "rgba(96,0,0,0.25)", filter: "blur(14px)", transform: "scale(1.3)", borderRadius: "4px" }}
                 />
-                <span className="relative text-[30px] leading-none select-none" style={{ color: "hsl(248 90% 74%)" }}>◈</span>
+                <span className="relative text-[30px] leading-none select-none" style={{ color: "#CC7722" }}>◈</span>
               </div>
               <h1
-                className="text-[30px] font-semibold mb-3"
-                style={{ color: "hsl(240 20% 97%)", letterSpacing: "-0.045em", lineHeight: 1.12 }}
+                className="text-[30px] mb-3"
+                style={{
+                  color: "#E2D0B4",
+                  letterSpacing: "-0.03em",
+                  lineHeight: 1.1,
+                  fontFamily: "'Instrument Serif', 'Source Serif 4', Georgia, serif",
+                  fontWeight: 400,
+                }}
               >
                 {getGreeting()}
               </h1>
-              <p className="text-[14px] max-w-[300px]" style={{ color: "hsl(238 18% 44%)", letterSpacing: "-0.01em", lineHeight: 1.65 }}>
+              <p className="text-[14px] max-w-[300px]" style={{ color: "#6A5A48", letterSpacing: "0em", lineHeight: 1.65 }}>
                 Search, write, code, run numbers — or just ask a question.
               </p>
 
-              {/* Feature pills */}
+              {/* Feature pills — industrial tabs */}
               <div className="flex flex-wrap items-center justify-center gap-1.5 mt-5">
                 {[
                   { label: "Voice input", icon: Mic },
@@ -962,11 +944,12 @@ export default function ConsolePage() {
                 ].map(({ label, icon: Icon }) => (
                   <div
                     key={label}
-                    className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[11.5px] font-medium"
+                    className="flex items-center gap-1.5 px-3 py-1 text-[11.5px] font-medium"
                     style={{
-                      backgroundColor: "rgba(109,95,234,0.07)",
-                      border: "1px solid rgba(109,95,234,0.14)",
-                      color: "hsl(248 80% 70%)",
+                      backgroundColor: "rgba(204,119,34,0.06)",
+                      border: "1px solid rgba(165,124,0,0.2)",
+                      color: "#A57C00",
+                      borderRadius: "2px",
                     }}
                   >
                     <Icon size={10} />
@@ -994,10 +977,10 @@ export default function ConsolePage() {
                     <action.icon size={15} />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[12.5px] font-semibold leading-snug" style={{ color: "hsl(240 20% 92%)", letterSpacing: "-0.01em" }}>
+                    <p className="text-[12.5px] font-semibold leading-snug" style={{ color: "#E2D0B4", letterSpacing: "-0.01em" }}>
                       {action.label}
                     </p>
-                    <p className="text-[11px] mt-0.5 leading-relaxed" style={{ color: "hsl(238 18% 42%)" }}>
+                    <p className="text-[11px] mt-0.5 leading-relaxed" style={{ color: "#6A5A48" }}>
                       {action.sub}
                     </p>
                   </div>
@@ -1007,7 +990,7 @@ export default function ConsolePage() {
 
             <p
               className="relative text-[11.5px] animate-slide-up"
-              style={{ color: "hsl(238 18% 30%)", letterSpacing: "-0.005em", animationDelay: "0.1s" }}
+              style={{ color: "#3A2E24", letterSpacing: "0.01em", animationDelay: "0.1s" }}
             >
               <span style={{ opacity: 0.6 }}>⌘K</span>
               <span style={{ opacity: 0.3, margin: "0 6px" }}>·</span>
@@ -1032,7 +1015,7 @@ export default function ConsolePage() {
                         onClick={() => handleEditMessage(event.content || "")}
                         title="Edit and resend"
                         className="absolute -left-8 top-1/2 -translate-y-1/2 p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                        style={{ color: "hsl(238 18% 44%)", backgroundColor: "hsl(238 18% 8%)", border: "1px solid hsl(238 18% 14%)" }}
+                        style={{ color: "#6A5A48", backgroundColor: "#1A1714", border: "1px solid #2A2420", borderRadius: "2px" }}
                       >
                         <Edit3 size={11} />
                       </button>
@@ -1064,8 +1047,8 @@ export default function ConsolePage() {
               if (event.type === "file_loaded") {
                 return (
                   <div key={entry.id} className="flex items-center gap-2 px-6 py-1.5 animate-feed-in">
-                    <Paperclip size={11} style={{ color: "hsl(238 18% 32%)" }} />
-                    <span className="text-[12px]" style={{ color: "hsl(238 18% 34%)" }}>{event.content}</span>
+                    <Paperclip size={11} style={{ color: "#4A3A2C" }} />
+                    <span className="text-[12px]" style={{ color: "#6A5A48" }}>{event.content}</span>
                   </div>
                 );
               }
@@ -1086,9 +1069,9 @@ export default function ConsolePage() {
           onClick={scrollToBottom}
           title="Scroll to bottom"
           className="absolute bottom-4 right-4 z-10 flex items-center justify-center w-8 h-8 rounded-full shadow-lg transition-all animate-feed-in"
-          style={{ background: "hsl(238 20% 13%)", border: "1px solid hsl(238 18% 22%)", color: "hsl(238 18% 62%)" }}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "hsl(248 80% 70%)"; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "hsl(238 18% 62%)"; }}
+          style={{ background: "#1A1714", border: "1px solid #2A2420", color: "#6A5A48", borderRadius: "2px" }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#CC7722"; (e.currentTarget as HTMLElement).style.borderColor = "#A57C00"; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "#6A5A48"; (e.currentTarget as HTMLElement).style.borderColor = "#2A2420"; }}
         >
           <ArrowDown size={14} />
         </button>
@@ -1098,26 +1081,27 @@ export default function ConsolePage() {
       {/* Input area */}
       <div
         className="flex-shrink-0 px-5 pb-5 pt-3"
-        style={{ borderTop: "1px solid hsl(238 18% 8%)" }}
+        style={{ borderTop: "1px solid #242018" }}
       >
         {/* Context indicator */}
         {lastContext && !running && (
           <div className="flex items-center gap-2 mb-3">
             <div
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium"
               style={{
-                backgroundColor: "rgba(109,95,234,0.09)",
-                border: "1px solid rgba(109,95,234,0.2)",
-                color: "hsl(248 90% 72%)",
+                backgroundColor: "rgba(204,119,34,0.07)",
+                border: "1px solid rgba(165,124,0,0.25)",
+                color: "#CC7722",
+                borderRadius: "2px",
               }}
             >
               <RotateCcw size={10} /> Following up on previous result
             </div>
             <button
               onClick={() => { setLastContext(null); setLastWorker(null); }}
-              className="text-[11px] px-2.5 py-1.5 rounded-full transition-colors"
-              style={{ color: "hsl(238 18% 38%)" }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "rgba(255,255,255,0.04)"; }}
+              className="text-[11px] px-2.5 py-1.5 transition-colors"
+              style={{ color: "#6A5A48", borderRadius: "2px" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "rgba(255,255,255,0.03)"; }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"; }}
             >
               Start fresh
@@ -1142,7 +1126,7 @@ export default function ConsolePage() {
             <button
               onClick={toggleVoice}
               className="text-[11px] px-2.5 py-1.5 rounded-full"
-              style={{ color: "hsl(238 18% 40%)" }}
+              style={{ color: "#6A5A48" }}
             >
               Cancel
             </button>
@@ -1154,9 +1138,9 @@ export default function ConsolePage() {
           <button
             onClick={handleRegenerate}
             className="flex items-center justify-center gap-1.5 w-full py-2 mb-2 rounded-xl text-[12.5px] font-medium transition-all"
-            style={{ border: "1px dashed hsl(238 18% 14%)", color: "hsl(238 18% 42%)" }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(109,95,234,0.3)"; e.currentTarget.style.color = "hsl(248 80% 68%)"; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = "hsl(238 18% 14%)"; e.currentTarget.style.color = "hsl(238 18% 42%)"; }}
+            style={{ border: "1px dashed #2A2420", color: "#6A5A48", borderRadius: "2px" }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(165,124,0,0.35)"; e.currentTarget.style.color = "#CC7722"; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = "#2A2420"; e.currentTarget.style.color = "#6A5A48"; }}
           >
             <RotateCcw size={11} /> Regenerate response
           </button>
@@ -1170,7 +1154,7 @@ export default function ConsolePage() {
                 key={s}
                 onClick={() => { setInput(s); inputRef.current?.focus(); }}
                 className="suggestion-chip px-3 py-1.5 rounded-full text-[12px]"
-                style={{ color: "hsl(238 18% 46%)" }}
+                style={{ color: "#6A5A48" }}
               >
                 {s}
               </button>
@@ -1182,19 +1166,19 @@ export default function ConsolePage() {
         {showFilePath && (
           <div
             className="flex items-center gap-2 mb-2.5 px-4 py-2.5 rounded-2xl"
-            style={{ backgroundColor: "hsl(238 18% 7%)", border: "1.5px solid hsl(238 18% 13%)" }}
+            style={{ backgroundColor: "#111009", border: "1px solid #2A2420", borderRadius: "3px" }}
           >
-            <Paperclip size={11} style={{ color: "hsl(238 18% 38%)" }} />
+            <Paperclip size={11} style={{ color: "#6A5A48" }} />
             <input
               type="text"
               value={filePath}
               onChange={e => setFilePath(e.target.value)}
               placeholder="/path/to/file"
               className="flex-1 bg-transparent text-[13px] text-foreground outline-none"
-              style={{ caretColor: "hsl(248 90% 70%)" }}
+              style={{ caretColor: "#CC7722" }}
             />
             <button onClick={() => { setShowFilePath(false); setFilePath(""); }}>
-              <X size={13} style={{ color: "hsl(238 18% 40%)" }} />
+              <X size={13} style={{ color: "#6A5A48" }} />
             </button>
           </div>
         )}
@@ -1206,9 +1190,9 @@ export default function ConsolePage() {
             onClick={() => setShowFilePath(v => !v)}
             title="Attach file path"
             className="flex-shrink-0 mb-0.5 transition-all rounded-lg p-1"
-            style={{ color: showFilePath || filePath ? "hsl(248 90% 70%)" : "hsl(238 18% 34%)" }}
-            onMouseEnter={e => { if (!showFilePath && !filePath) (e.currentTarget as HTMLElement).style.color = "hsl(238 18% 52%)"; }}
-            onMouseLeave={e => { if (!showFilePath && !filePath) (e.currentTarget as HTMLElement).style.color = "hsl(238 18% 34%)"; }}
+            style={{ color: showFilePath || filePath ? "#CC7722" : "#6A5A48" }}
+            onMouseEnter={e => { if (!showFilePath && !filePath) (e.currentTarget as HTMLElement).style.color = "#A57C00"; }}
+            onMouseLeave={e => { if (!showFilePath && !filePath) (e.currentTarget as HTMLElement).style.color = "#6A5A48"; }}
           >
             <Paperclip size={15} />
           </button>
@@ -1220,11 +1204,11 @@ export default function ConsolePage() {
               title="Voice input (⌘/)"
               className="flex-shrink-0 mb-0.5 transition-all rounded-lg p-1"
               style={{
-                color: listening ? "hsl(4 86% 60%)" : "hsl(238 18% 34%)",
+                color: listening ? "hsl(4 86% 60%)" : "#6A5A48",
                 backgroundColor: listening ? "rgba(220,53,69,0.1)" : "transparent",
               }}
-              onMouseEnter={e => { if (!listening) (e.currentTarget as HTMLElement).style.color = "hsl(238 18% 52%)"; }}
-              onMouseLeave={e => { if (!listening) (e.currentTarget as HTMLElement).style.color = "hsl(238 18% 34%)"; }}
+              onMouseEnter={e => { if (!listening) (e.currentTarget as HTMLElement).style.color = "#A57C00"; }}
+              onMouseLeave={e => { if (!listening) (e.currentTarget as HTMLElement).style.color = "#6A5A48"; }}
             >
               {listening ? <MicOff size={15} /> : <Mic size={15} />}
             </button>
@@ -1235,9 +1219,9 @@ export default function ConsolePage() {
             onClick={() => setShowTemplates(true)}
             title="Prompt templates (⌘T)"
             className="flex-shrink-0 mb-0.5 transition-all rounded-lg p-1"
-            style={{ color: "hsl(238 18% 34%)" }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "hsl(238 18% 52%)"; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "hsl(238 18% 34%)"; }}
+            style={{ color: "#6A5A48" }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#A57C00"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "#6A5A48"; }}
           >
             <BookOpen size={15} />
           </button>
@@ -1254,9 +1238,9 @@ export default function ConsolePage() {
             className="flex-1 bg-transparent text-[14px] text-foreground outline-none resize-none leading-relaxed max-h-36 overflow-y-auto disabled:opacity-40"
             style={{
               minHeight: "1.5rem",
-              caretColor: "hsl(248 90% 70%)",
+              caretColor: "#CC7722",
               letterSpacing: "-0.01em",
-              color: "hsl(240 20% 92%)",
+              color: "#E2D0B4",
             }}
           />
 
@@ -1264,25 +1248,24 @@ export default function ConsolePage() {
           <button
             onClick={running ? () => stopRef.current?.() : submit}
             disabled={!running && !input.trim()}
-            className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-xl transition-all duration-200 disabled:opacity-20 disabled:cursor-not-allowed"
+            className="flex-shrink-0 flex items-center justify-center w-8 h-8 transition-all duration-150 disabled:opacity-20 disabled:cursor-not-allowed"
             style={{
               background: running
                 ? "transparent"
-                : "linear-gradient(148deg, hsl(248 82% 64%) 0%, hsl(264 68% 58%) 100%)",
-              color: running ? "hsl(4 86% 62%)" : "white",
-              border: running ? "1.5px solid hsl(4 86% 56% / 0.35)" : "none",
-              boxShadow: running ? "none" : "0 2px 14px rgba(109,95,234,0.42), inset 0 1px 0 rgba(255,255,255,0.16)",
+                : "linear-gradient(148deg, #7A5200 0%, #CC7722 100%)",
+              color: running ? "#8B4A4A" : "#E2D0B4",
+              border: running ? "1px solid rgba(139,74,74,0.4)" : "1px solid rgba(204,119,34,0.5)",
+              boxShadow: running ? "none" : "0 2px 12px rgba(165,124,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08)",
+              borderRadius: "2px",
             }}
             onMouseEnter={e => {
               if (!running && input.trim()) {
-                (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 22px rgba(109,95,234,0.6), inset 0 1px 0 rgba(255,255,255,0.2)";
-                (e.currentTarget as HTMLElement).style.transform = "scale(1.06)";
+                (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 18px rgba(165,124,0,0.5), inset 0 1px 0 rgba(255,255,255,0.12)";
               }
             }}
             onMouseLeave={e => {
               if (!running) {
-                (e.currentTarget as HTMLElement).style.boxShadow = "0 2px 14px rgba(109,95,234,0.42), inset 0 1px 0 rgba(255,255,255,0.16)";
-                (e.currentTarget as HTMLElement).style.transform = "scale(1)";
+                (e.currentTarget as HTMLElement).style.boxShadow = "0 2px 12px rgba(165,124,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08)";
               }
             }}
           >
@@ -1290,7 +1273,7 @@ export default function ConsolePage() {
           </button>
         </div>
 
-        <p className="text-center text-[11px] mt-2" style={{ color: "hsl(238 18% 22%)", letterSpacing: "-0.005em" }}>
+        <p className="text-center text-[11px] mt-2" style={{ color: "#3A2E24", letterSpacing: "0em" }}>
           AI can make mistakes — verify anything that matters
         </p>
       </div>
