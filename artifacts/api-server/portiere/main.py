@@ -224,20 +224,60 @@ def _build_recommendations(ram_gb: float, gpus: list | None) -> list[dict]:
         })
 
     recs.append({
+        "tier": "quickstart",
+        "label": "Quick Start — Groq (Free)",
+        "tagline": "Free cloud AI · no install · no GPU · nothing to configure",
+        "provider": "groq",
+        "model": "llama-3.3-70b-versatile",
+        "badges": ["Free", "Zero Setup", "No install"],
+        "items": [
+            {"role": "Brain", "name": "Groq · Llama 3.3 70B", "note": "Fast & free"},
+            {"role": "Writing & Code", "name": "Groq fallback", "note": "No extra key needed"},
+        ],
+        "why": "Groq is free, blazing fast, and needs zero local software. One API key from console.groq.com — takes about 60 seconds. No credit card required.",
+    })
+
+    recs.append({
         "tier": "cloud",
         "label": "Cloud AI — Maximum Quality",
-        "tagline": "Works on any machine, no local setup",
+        "tagline": "GPT-4o quality — works on any machine",
         "provider": "openai",
         "model": "gpt-4o",
-        "badges": ["Best quality", "No setup"],
+        "badges": ["Best quality", "Paid"],
         "items": [
             {"role": "Brain", "name": "OpenAI GPT-4o", "note": "Requires API key"},
             {"role": "Writing & Code", "name": "Claude worker", "note": "Optional — add API key later"},
         ],
-        "why": "Maximum capability. Needs an OpenAI API key — pay per use.",
+        "why": "Maximum capability. Needs an OpenAI API key — pay per use, no monthly subscription required.",
     })
 
     return recs
+
+
+@app.get("/api/auto-detect")
+async def auto_detect():
+    detected = []
+    if os.environ.get("GROQ_API_KEY"):
+        detected.append({"provider": "groq", "model": "llama-3.3-70b-versatile", "label": "Groq · Llama 3.3 70B"})
+    if os.environ.get("OPENAI_API_KEY"):
+        detected.append({"provider": "openai", "model": "gpt-4o", "label": "OpenAI · GPT-4o"})
+    if os.environ.get("ANTHROPIC_API_KEY"):
+        detected.append({"provider": "anthropic", "model": "claude-3-5-sonnet-20241022", "label": "Anthropic · Claude 3.5 Sonnet"})
+    return {"detected": detected, "any_found": bool(detected)}
+
+
+@app.post("/api/auto-detect/apply")
+async def apply_auto_detected():
+    updates: dict = {}
+    if key := os.environ.get("GROQ_API_KEY"):
+        updates = {"brain_provider": "groq", "brain_model": "llama-3.3-70b-versatile", "brain_api_key": key, "groq_api_key": key}
+    elif key := os.environ.get("OPENAI_API_KEY"):
+        updates = {"brain_provider": "openai", "brain_model": "gpt-4o", "brain_api_key": key}
+    elif key := os.environ.get("ANTHROPIC_API_KEY"):
+        updates = {"brain_provider": "anthropic", "brain_model": "claude-3-5-sonnet-20241022", "brain_api_key": key}
+    if updates:
+        _settings_store.save(updates)
+    return {"ok": True}
 
 
 @app.get("/api/system-info")

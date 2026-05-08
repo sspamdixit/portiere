@@ -8,7 +8,7 @@ SETTINGS_DIR = Path.home() / ".portiere"
 SETTINGS_FILE = SETTINGS_DIR / "settings.json"
 
 _SECRET_KEYS = {
-    "brain_api_key", "claude_api_key", "openai_api_key",
+    "brain_api_key", "claude_api_key", "openai_api_key", "groq_api_key",
     "fal_api_key", "seedance_api_key", "smtp_password",
 }
 

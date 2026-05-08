@@ -1,11 +1,15 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   ArrowRight, Check, Copy, ExternalLink, Loader2,
   Cpu, Zap, ChevronLeft, X,
   Monitor, Server, Sparkles,
-  HardDrive, MemoryStick, Gpu,
+  HardDrive, MemoryStick, Wifi,
 } from "lucide-react";
-import { saveSettings, probeOllama, probeLMStudio, fetchSystemInfo, type SystemInfo, type SystemRecommendation } from "@/lib/api";
+import {
+  saveSettings, probeOllama, probeLMStudio,
+  fetchSystemInfo, fetchAutoDetect, applyAutoDetect,
+  type SystemInfo, type SystemRecommendation, type AutoDetectEntry,
+} from "@/lib/api";
 
 const bg     = "hsl(238 20% 6%)";
 const bg2    = "hsl(238 18% 8%)";
@@ -15,7 +19,7 @@ const muted  = "hsl(238 18% 52%)";
 const primary = "hsl(248 90% 68%)";
 const green  = "hsl(152 64% 48%)";
 
-type Provider = "ollama" | "lmstudio" | "openai" | "anthropic";
+type Provider = "ollama" | "lmstudio" | "openai" | "anthropic" | "groq";
 interface ProbeResult { ok: boolean; models?: string[]; error?: string; }
 
 function CopyButton({ text }: { text: string }) {
@@ -93,10 +97,11 @@ function RadioCard<T extends string>({ id, selected, onSelect, children }: {
 }
 
 const PROVIDER_OPTIONS: { id: Provider; label: string; sub: string; badge: string; badgeGreen?: boolean; Icon: React.FC<{ size?: number }> }[] = [
-  { id: "ollama",    label: "Ollama",    sub: "Free · Runs locally on your machine",  badge: "Local", badgeGreen: true, Icon: Monitor },
-  { id: "lmstudio", label: "LM Studio", sub: "Free · GUI desktop app",               badge: "Local",        Icon: Cpu },
-  { id: "openai",   label: "OpenAI",    sub: "GPT-4o · Requires API key",             badge: "Cloud",        Icon: Server },
-  { id: "anthropic",label: "Anthropic", sub: "Claude as Brain · Requires API key",   badge: "Cloud",        Icon: Zap },
+  { id: "groq",      label: "Groq",      sub: "Free cloud AI · llama-3.3-70b · no install",  badge: "Free",  badgeGreen: true, Icon: Zap },
+  { id: "ollama",    label: "Ollama",    sub: "Free · Runs locally on your machine",           badge: "Local", badgeGreen: true, Icon: Monitor },
+  { id: "lmstudio", label: "LM Studio", sub: "Free · GUI desktop app",                        badge: "Local",                  Icon: Cpu },
+  { id: "openai",   label: "OpenAI",    sub: "GPT-4o · Requires paid API key",                badge: "Cloud",                  Icon: Server },
+  { id: "anthropic",label: "Anthropic", sub: "Claude as Brain · Requires API key",            badge: "Cloud",                  Icon: Zap },
 ];
 
 const OLLAMA_MODELS = [
@@ -113,11 +118,16 @@ const CLAUDE_MODELS = [
   { id: "claude-3-5-sonnet-20241022", label: "Claude 3.5 Sonnet", note: "Best overall" },
   { id: "claude-3-5-haiku-20241022",  label: "Claude 3.5 Haiku",  note: "Fast" },
 ];
+const GROQ_MODELS = [
+  { id: "llama-3.3-70b-versatile", label: "Llama 3.3 70B Versatile", note: "Best quality · free" },
+  { id: "llama-3.1-8b-instant",    label: "Llama 3.1 8B Instant",    note: "Fastest" },
+];
 
 const TIER_COLORS: Record<string, { accent: string; bg: string; border: string }> = {
   gpu:         { accent: "hsl(142 60% 55%)",  bg: "rgba(34,197,94,0.06)",   border: "rgba(34,197,94,0.2)"  },
   local:       { accent: primary,              bg: "rgba(109,95,234,0.08)",  border: "rgba(109,95,234,0.22)" },
   local_light: { accent: primary,              bg: "rgba(109,95,234,0.08)",  border: "rgba(109,95,234,0.22)" },
+  quickstart:  { accent: "hsl(152 64% 48%)",  bg: "rgba(34,197,94,0.07)",   border: "rgba(34,197,94,0.22)" },
   cloud:       { accent: "hsl(200 80% 65%)",  bg: "rgba(56,189,248,0.06)",  border: "rgba(56,189,248,0.18)" },
 };
 
@@ -134,11 +144,12 @@ function SpecPill({ icon, label, value }: { icon: React.ReactNode; label: string
   );
 }
 
-function ComboCard({ rec, selected, onSelect, index }: {
+function ComboCard({ rec, selected, onSelect, index, isEasiest }: {
   rec: SystemRecommendation;
   selected: boolean;
   onSelect: () => void;
   index: number;
+  isEasiest?: boolean;
 }) {
   const colors = TIER_COLORS[rec.tier] ?? TIER_COLORS.cloud;
   return (
@@ -160,6 +171,12 @@ function ComboCard({ rec, selected, onSelect, index }: {
             <span className="text-[13.5px] font-semibold text-foreground" style={{ letterSpacing: "-0.01em" }}>
               {rec.label}
             </span>
+            {isEasiest && (
+              <span className="text-[10px] px-1.5 py-0.5 rounded-md font-semibold"
+                style={{ backgroundColor: "rgba(34,197,94,0.12)", color: green, border: "1px solid rgba(34,197,94,0.25)" }}>
+                Easiest
+              </span>
+            )}
             {rec.badges.slice(0, 2).map(b => (
               <span key={b} className="text-[10px] px-1.5 py-0.5 rounded-md font-semibold"
                 style={{ backgroundColor: selected ? colors.bg : "hsl(238 18% 11%)", color: selected ? colors.accent : dim, border: `1px solid ${selected ? colors.border : "transparent"}` }}>
@@ -210,19 +227,26 @@ function PulsingDot({ delay = 0 }: { delay?: number }) {
 function HardwareScanStep({
   onComplete,
 }: {
-  onComplete: (provider: Provider, model: string) => void;
+  onComplete: (provider: Provider, model: string, autoApply?: boolean) => void;
 }) {
   const [phase, setPhase] = useState<"scanning" | "done" | "error">("scanning");
   const [sysInfo, setSysInfo] = useState<SystemInfo | null>(null);
+  const [autoDetected, setAutoDetected] = useState<AutoDetectEntry | null>(null);
   const [selected, setSelected] = useState<number>(0);
   const [errMsg, setErrMsg] = useState("");
+  const [applying, setApplying] = useState(false);
+  const [showAllRecs, setShowAllRecs] = useState(false);
 
   useEffect(() => {
     const minDelay = new Promise(r => setTimeout(r, 900));
     const infoFetch = fetchSystemInfo();
-    Promise.all([minDelay, infoFetch])
-      .then(([, info]) => {
+    const detectFetch = fetchAutoDetect().catch(() => ({ detected: [], any_found: false }));
+    Promise.all([minDelay, infoFetch, detectFetch])
+      .then(([, info, detect]) => {
         setSysInfo(info as SystemInfo);
+        if (detect.any_found && detect.detected.length > 0) {
+          setAutoDetected(detect.detected[0]);
+        }
         setPhase("done");
       })
       .catch(e => {
@@ -230,6 +254,13 @@ function HardwareScanStep({
         setPhase("error");
       });
   }, []);
+
+  const handleAutoStart = useCallback(async () => {
+    if (!autoDetected) return;
+    setApplying(true);
+    await applyAutoDetect().catch(() => {});
+    onComplete(autoDetected.provider as Provider, autoDetected.model, true);
+  }, [autoDetected, onComplete]);
 
   const handleAccept = useCallback(() => {
     if (!sysInfo) return;
@@ -239,7 +270,7 @@ function HardwareScanStep({
   }, [sysInfo, selected, onComplete]);
 
   const handleSkip = useCallback(() => {
-    onComplete("openai", "gpt-4o");
+    onComplete("groq", "llama-3.3-70b-versatile");
   }, [onComplete]);
 
   const cpuShortName = (model: string) => {
@@ -258,7 +289,9 @@ function HardwareScanStep({
         </div>
         <div>
           <h1 className="text-[18px] font-semibold text-foreground" style={{ letterSpacing: "-0.02em" }}>Welcome to Portiere</h1>
-          <p className="text-[12px] mt-0.5" style={{ color: muted }}>Scanning your machine to find the best AI setup</p>
+          <p className="text-[12px] mt-0.5" style={{ color: muted }}>
+            {phase === "scanning" ? "Scanning your machine to find the best AI setup" : "Pick the setup that works best for you"}
+          </p>
         </div>
       </div>
 
@@ -286,7 +319,7 @@ function HardwareScanStep({
             ))}
           </div>
           <div className="space-y-2">
-            {[1, 2].map(i => (
+            {[1, 2, 3].map(i => (
               <div key={i} className="h-24 rounded-2xl animate-pulse"
                 style={{ backgroundColor: bg2, border: `1px solid ${border}`, animationDelay: `${i * 120}ms` }} />
             ))}
@@ -311,69 +344,99 @@ function HardwareScanStep({
       {/* Results state */}
       {phase === "done" && sysInfo && (
         <div className="flex flex-col gap-4">
+          {/* Auto-detected banner */}
+          {autoDetected && !showAllRecs && (
+            <div className="flex flex-col gap-3 p-4 rounded-2xl"
+              style={{ backgroundColor: "rgba(34,197,94,0.06)", border: "1px solid rgba(34,197,94,0.22)" }}>
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{ backgroundColor: "rgba(34,197,94,0.18)" }}>
+                  <Check size={11} style={{ color: green }} />
+                </div>
+                <span className="text-[12px] font-semibold" style={{ color: green }}>API key detected in your environment</span>
+              </div>
+              <div>
+                <p className="text-[14px] font-semibold text-foreground" style={{ letterSpacing: "-0.01em" }}>{autoDetected.label}</p>
+                <p className="text-[12px] mt-0.5" style={{ color: muted }}>Configured from your environment variables — no setup needed.</p>
+              </div>
+              <button
+                onClick={handleAutoStart}
+                disabled={applying}
+                className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-[13.5px] font-semibold transition-all disabled:opacity-50"
+                style={{ backgroundColor: "rgba(34,197,94,0.14)", border: "1px solid rgba(34,197,94,0.3)", color: green }}>
+                {applying ? <Loader2 size={13} className="animate-spin" /> : <Zap size={13} />}
+                {applying ? "Starting…" : "Start now — already configured ✓"}
+              </button>
+              <button onClick={() => setShowAllRecs(true)}
+                className="text-[11.5px] text-center transition-colors"
+                style={{ color: dim }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = muted}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = dim}>
+                Or choose a different setup →
+              </button>
+            </div>
+          )}
+
           {/* Spec pills */}
-          <div className="grid grid-cols-3 gap-2">
-            <SpecPill
-              icon={<Cpu size={13} />}
-              label="CPU"
-              value={cpuShortName(sysInfo.cpu.model)}
-            />
-            <SpecPill
-              icon={<MemoryStick size={13} />}
-              label="RAM"
-              value={`${sysInfo.ram_gb} GB`}
-            />
-            <SpecPill
-              icon={<HardDrive size={13} />}
-              label="GPU"
-              value={sysInfo.gpu?.[0]
-                ? `${sysInfo.gpu[0].vram_gb}GB VRAM`
-                : "No GPU"}
-            />
-          </div>
+          {(!autoDetected || showAllRecs) && (
+            <div className="grid grid-cols-3 gap-2">
+              <SpecPill icon={<Cpu size={13} />} label="CPU" value={cpuShortName(sysInfo.cpu.model)} />
+              <SpecPill icon={<MemoryStick size={13} />} label="RAM" value={`${sysInfo.ram_gb} GB`} />
+              <SpecPill
+                icon={<HardDrive size={13} />}
+                label="GPU"
+                value={sysInfo.gpu?.[0] ? `${sysInfo.gpu[0].vram_gb}GB VRAM` : "No GPU"}
+              />
+            </div>
+          )}
 
           {/* Recommendations */}
-          <div>
-            <p className="text-[11px] uppercase tracking-widest font-semibold mb-2.5 px-0.5"
-              style={{ color: dim }}>
-              Best AI combos for your setup
-            </p>
-            <div className="space-y-2.5">
-              {sysInfo.recommendations.map((rec, i) => (
-                <ComboCard
-                  key={rec.tier}
-                  rec={rec}
-                  selected={selected === i}
-                  onSelect={() => setSelected(i)}
-                  index={i}
-                />
-              ))}
+          {(!autoDetected || showAllRecs) && (
+            <div>
+              <p className="text-[11px] uppercase tracking-widest font-semibold mb-2.5 px-0.5"
+                style={{ color: dim }}>
+                Best AI setups for your machine
+              </p>
+              <div className="space-y-2.5">
+                {sysInfo.recommendations.map((rec, i) => (
+                  <ComboCard
+                    key={rec.tier + i}
+                    rec={rec}
+                    selected={selected === i}
+                    onSelect={() => setSelected(i)}
+                    index={i}
+                    isEasiest={rec.tier === "quickstart"}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       )}
 
       {/* Footer actions */}
-      <div className="flex items-center justify-between pt-1">
-        <button onClick={handleSkip} className="text-[12px] transition-colors"
-          style={{ color: dim }}
-          onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = muted}
-          onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = dim}>
-          Skip →
-        </button>
-        <button
-          onClick={phase === "error" ? () => onComplete("openai", "gpt-4o") : handleAccept}
-          disabled={phase === "scanning"}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-[13px] font-semibold transition-all disabled:opacity-40"
-          style={{
-            background: "linear-gradient(135deg, hsl(248 82% 60%) 0%, hsl(264 68% 64%) 100%)",
-            color: "white",
-            boxShadow: phase !== "scanning" ? "0 2px 10px rgba(109,95,234,0.38)" : "none",
-          }}>
-          {phase === "error" ? "Choose manually" : "Apply & continue"}
-          <ArrowRight size={13} />
-        </button>
-      </div>
+      {(!autoDetected || showAllRecs) && (
+        <div className="flex items-center justify-between pt-1">
+          <button onClick={handleSkip} className="text-[12px] transition-colors"
+            style={{ color: dim }}
+            onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = muted}
+            onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = dim}>
+            Skip →
+          </button>
+          <button
+            onClick={phase === "error" ? () => onComplete("groq", "llama-3.3-70b-versatile") : handleAccept}
+            disabled={phase === "scanning"}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-[13px] font-semibold transition-all disabled:opacity-40"
+            style={{
+              background: "linear-gradient(135deg, hsl(248 82% 60%) 0%, hsl(264 68% 64%) 100%)",
+              color: "white",
+              boxShadow: phase !== "scanning" ? "0 2px 10px rgba(109,95,234,0.38)" : "none",
+            }}>
+            {phase === "error" ? "Choose manually" : "Apply & continue"}
+            <ArrowRight size={13} />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -381,27 +444,45 @@ function HardwareScanStep({
 // ─── Main modal ──────────────────────────────────────────────────────────
 export default function OnboardingModal({ onDone }: { onDone: () => void }) {
   const [step, setStep] = useState(0);
-  const [provider, setProvider] = useState<Provider>("ollama");
+  const [provider, setProvider] = useState<Provider>("groq");
   const [ollamaModel, setOllamaModel] = useState("llama3.2");
   const [openaiKey, setOpenaiKey] = useState("");
   const [openaiModel, setOpenaiModel] = useState("gpt-4o");
   const [anthropicKey, setAnthropicKey] = useState("");
   const [anthropicModel, setAnthropicModel] = useState("claude-3-5-sonnet-20241022");
+  const [groqKey, setGroqKey] = useState("");
+  const [groqModel, setGroqModel] = useState("llama-3.3-70b-versatile");
   const [claudeKey, setClaudeKey] = useState("");
   const [probeResult, setProbeResult] = useState<ProbeResult | null>(null);
   const [probing, setProbing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [hwRecommendedProvider, setHwRecommendedProvider] = useState<Provider | null>(null);
 
-  const totalSteps = provider === "ollama" || provider === "lmstudio" ? 4 : 3;
-  const isFinalStep = (step >= 2 && provider === "anthropic" && step === 3) || (provider !== "anthropic" && step === 4);
+  // groq/anthropic: 2 numbered steps before final
+  // openai: 3 numbered steps (key + optional claude) before final
+  // ollama/lmstudio: 4 numbered steps before final
+  const totalSteps =
+    provider === "ollama" || provider === "lmstudio" ? 4
+    : provider === "openai" ? 3
+    : 2; // groq & anthropic
 
-  const handleHardwareScanComplete = (recommendedProvider: Provider, recommendedModel: string) => {
+  const isFinalStep =
+    ((provider === "anthropic" || provider === "groq") && step === 3) ||
+    ((provider === "ollama" || provider === "lmstudio" || provider === "openai") && step === 4);
+
+  const handleHardwareScanComplete = (recommendedProvider: Provider, recommendedModel: string, autoApply?: boolean) => {
     setProvider(recommendedProvider);
     setHwRecommendedProvider(recommendedProvider);
-    if (recommendedProvider === "ollama") setOllamaModel(recommendedModel);
-    if (recommendedProvider === "openai") setOpenaiModel(recommendedModel);
+    if (recommendedProvider === "ollama")    setOllamaModel(recommendedModel);
+    if (recommendedProvider === "openai")    setOpenaiModel(recommendedModel);
     if (recommendedProvider === "anthropic") setAnthropicModel(recommendedModel);
+    if (recommendedProvider === "groq")      setGroqModel(recommendedModel);
+
+    if (autoApply) {
+      saveSettings({ first_launch: false }).catch(() => {});
+      onDone();
+      return;
+    }
     setStep(1);
   };
 
@@ -418,6 +499,7 @@ export default function OnboardingModal({ onDone }: { onDone: () => void }) {
     if (provider === "lmstudio") { p.brain_provider = "lmstudio";  p.brain_model = "local-model";  p.brain_base_url = "http://localhost:1234/v1"; }
     if (provider === "openai")   { p.brain_provider = "openai";    p.brain_model = openaiModel;    p.brain_api_key = openaiKey; }
     if (provider === "anthropic"){ p.brain_provider = "anthropic"; p.brain_model = anthropicModel; p.brain_api_key = anthropicKey; }
+    if (provider === "groq")     { p.brain_provider = "groq";      p.brain_model = groqModel;      p.brain_api_key = groqKey; p.groq_api_key = groqKey; }
     if (claudeKey) p.claude_api_key = claudeKey;
     await saveSettings(p).catch(() => {});
     setSaving(false);
@@ -429,6 +511,7 @@ export default function OnboardingModal({ onDone }: { onDone: () => void }) {
   const canContinue = () => {
     if (step === 2 && provider === "openai")    return openaiKey.trim().length > 5;
     if (step === 2 && provider === "anthropic") return anthropicKey.trim().length > 5;
+    if (step === 2 && provider === "groq")      return groqKey.trim().length > 5;
     return true;
   };
 
@@ -478,9 +561,15 @@ export default function OnboardingModal({ onDone }: { onDone: () => void }) {
                       <Icon size={15} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-[13px] font-semibold text-foreground">{label}</span>
-                        {id === hwRecommendedProvider && (
+                        {id === "groq" && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-md font-semibold"
+                            style={{ backgroundColor: "rgba(34,197,94,0.1)", color: green, border: "1px solid rgba(34,197,94,0.2)" }}>
+                            Easiest
+                          </span>
+                        )}
+                        {id === hwRecommendedProvider && id !== "groq" && (
                           <span className="text-[10px] px-1.5 py-0.5 rounded-md font-semibold"
                             style={{ backgroundColor: "rgba(109,95,234,0.15)", color: primary }}>
                             Recommended for your PC
@@ -496,6 +585,82 @@ export default function OnboardingModal({ onDone }: { onDone: () => void }) {
                     {provider === id && <Check size={14} style={{ color: primary, flexShrink: 0 }} />}
                   </button>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* ── Step 2: Groq ── */}
+          {step === 2 && provider === "groq" && (
+            <div className="flex flex-col gap-5">
+              <div>
+                <p className="text-[11px] uppercase tracking-widest font-semibold mb-1.5" style={{ color: dim }}>Step 2 of {totalSteps}</p>
+                <h2 className="text-[18px] font-semibold text-foreground" style={{ letterSpacing: "-0.02em" }}>Connect Groq (Free)</h2>
+                <p className="text-[13px] mt-1" style={{ color: muted }}>
+                  One free API key — the fastest setup possible. No local installs, no monthly bill.
+                </p>
+              </div>
+
+              {/* Quick steps */}
+              <div className="space-y-3">
+                {[
+                  {
+                    n: "1", title: "Create a free Groq account",
+                    content: (
+                      <a href="https://console.groq.com/keys" target="_blank" rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[12px] font-medium mt-1"
+                        style={{ background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.25)", color: green }}>
+                        <ExternalLink size={10} /> console.groq.com — No credit card needed
+                      </a>
+                    ),
+                  },
+                  {
+                    n: "2", title: 'Click "Create API Key" and copy it',
+                    content: <p className="text-[12.5px] mt-0.5" style={{ color: muted }}>Takes about 60 seconds total.</p>,
+                  },
+                  {
+                    n: "3", title: "Paste it below",
+                    content: (
+                      <div className="mt-2">
+                        <KeyInput
+                          label=""
+                          value={groqKey}
+                          onChange={setGroqKey}
+                          placeholder="gsk_..."
+                          hint="Stored locally — never sent to third parties."
+                        />
+                      </div>
+                    ),
+                  },
+                ].map(({ n, title, content }) => (
+                  <div key={n} className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold mt-0.5"
+                      style={{ backgroundColor: "rgba(34,197,94,0.12)", color: green }}>{n}</div>
+                    <div className="flex-1">
+                      <p className="text-[13px] font-semibold text-foreground">{title}</p>
+                      {content}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="p-3.5 rounded-xl flex items-start gap-2.5"
+                style={{ backgroundColor: "rgba(34,197,94,0.05)", border: "1px solid rgba(34,197,94,0.16)" }}>
+                <Wifi size={13} style={{ color: green, flexShrink: 0, marginTop: "2px" }} />
+                <p className="text-[12px] leading-relaxed" style={{ color: muted }}>
+                  With Groq, both the Brain <em>and</em> the Writing worker run via Groq — so you don't need an Anthropic key for most tasks.
+                </p>
+              </div>
+
+              <div>
+                <label className="text-[13px] font-semibold text-foreground block mb-2">Model</label>
+                <div className="space-y-1.5">
+                  {GROQ_MODELS.map(m => (
+                    <RadioCard key={m.id} id={m.id} selected={groqModel} onSelect={setGroqModel}>
+                      <span className="text-[13px] font-medium text-foreground">{m.label}</span>
+                      <span className="text-[12px] ml-2" style={{ color: muted }}>{m.note}</span>
+                    </RadioCard>
+                  ))}
+                </div>
               </div>
             </div>
           )}

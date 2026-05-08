@@ -44,6 +44,7 @@ class SettingsModel(BaseModel):
     claude_api_key: Optional[str] = None
     claude_model: str = "claude-3-5-sonnet-20241022"
     openai_api_key: Optional[str] = None
+    groq_api_key: Optional[str] = None
     fal_api_key: Optional[str] = None
     seedance_api_key: Optional[str] = None
 

@@ -156,6 +156,12 @@ class Brain:
                 base_url="https://api.openai.com/v1",
                 api_key=self.settings.brain_api_key or self.settings.openai_api_key,
             )
+        elif provider == "groq":
+            return await self._call_openai_compat(
+                prompt, system,
+                base_url="https://api.groq.com/openai/v1",
+                api_key=self.settings.brain_api_key or self.settings.groq_api_key,
+            )
         elif provider == "lmstudio":
             return await self._call_openai_compat(
                 prompt, system,

@@ -54,6 +54,21 @@ export async function fetchSystemInfo(): Promise<SystemInfo> {
   return r.json();
 }
 
+export interface AutoDetectEntry { provider: string; model: string; label: string; }
+export interface AutoDetectResult { detected: AutoDetectEntry[]; any_found: boolean; }
+
+export async function fetchAutoDetect(): Promise<AutoDetectResult> {
+  const r = await fetch(`${API}/auto-detect`);
+  if (!r.ok) return { detected: [], any_found: false };
+  return r.json();
+}
+
+export async function applyAutoDetect(): Promise<{ ok: boolean }> {
+  const r = await fetch(`${API}/auto-detect/apply`, { method: "POST" });
+  if (!r.ok) return { ok: false };
+  return r.json();
+}
+
 export interface WizardChunk {
   type: "chunk" | "done" | "error" | "setup_result";
   content?: string;
