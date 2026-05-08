@@ -42,6 +42,7 @@ export interface SystemRecommendation {
   why: string;
 }
 export interface SystemInfo {
+  os: string;
   cpu: { model: string; cores: number; logical: number; ghz: number | null };
   ram_gb: number;
   gpu: SystemGpu[] | null;
@@ -168,6 +169,47 @@ export function streamOllamaInstall(
     onDone();
   })();
   return () => ctrl.abort();
+}
+
+export async function startOllamaService(): Promise<{ ok: boolean; message: string }> {
+  const r = await fetch(`${API}/ollama/start`, { method: "POST" });
+  if (!r.ok) return { ok: false, message: `HTTP ${r.status}` };
+  return r.json();
+}
+
+export function streamInstallOllama(
+  onLine: (line: string) => void,
+  onEvent: (type: "success" | "error" | "platform", message: string, os?: string) => void,
+): void {
+  (async () => {
+    try {
+      const r = await fetch(`${API}/ollama/install`);
+      if (!r.ok) { onEvent("error", `HTTP ${r.status}`); return; }
+      const reader = r.body!.getReader();
+      const decoder = new TextDecoder();
+      let buf = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const lines = buf.split("\n");
+        buf = lines.pop() ?? "";
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            try {
+              const obj = JSON.parse(line.slice(6));
+              if (obj.type === "output" || obj.type === "info") onLine(obj.message ?? "");
+              else if (obj.type === "success") onEvent("success", obj.message ?? "");
+              else if (obj.type === "error") onEvent("error", obj.message ?? "");
+              else if (obj.type === "platform") onEvent("platform", obj.message ?? "", obj.os);
+            } catch { /* skip */ }
+          }
+        }
+      }
+    } catch (e) {
+      onEvent("error", String(e));
+    }
+  })();
 }
 
 export function streamOrchestrate(

@@ -130,6 +130,7 @@ export default function SettingsPage() {
   const [form, setForm] = useState<FormState>({
     brain_provider: "ollama", brain_model: "llama3.2",
     brain_api_key: "", brain_base_url: "http://localhost:11434/v1",
+    groq_api_key: "",
     claude_api_key: "", claude_model: "claude-3-5-sonnet-20241022",
     fal_api_key: "", seedance_api_key: "",
     ollama_base_url: "http://localhost:11434", lmstudio_base_url: "http://localhost:1234/v1",
@@ -325,18 +326,19 @@ export default function SettingsPage() {
           icon={<span className="text-[12px] font-bold">◈</span>}
           iconColor={primary}
           iconBg="rgba(124,111,247,0.16)"
-          statusLabel={provider === "ollama" || provider === "lmstudio" ? "Local · no key needed" : "Cloud"}
+          statusLabel={provider === "ollama" || provider === "lmstudio" ? "Local · no key needed" : provider === "groq" ? "Free cloud" : "Cloud"}
           statusOk={true}
         >
           <Field label="Provider" value={provider} onChange={set("brain_provider")}
             options={[
+              { value: "groq",       label: "Groq — free cloud AI (recommended)" },
               { value: "ollama",     label: "Ollama — free, runs on your machine" },
               { value: "lmstudio",   label: "LM Studio — free, desktop app" },
               { value: "openai",     label: "OpenAI — GPT-4o" },
               { value: "anthropic",  label: "Anthropic — Claude as Brain" },
             ]}
           />
-          <Field label="Model" placeholder="llama3.2 / gpt-4o / claude-3-5-sonnet-20241022"
+          <Field label="Model" placeholder="llama3.2 / llama-3.3-70b-versatile / gpt-4o"
             value={form.brain_model} onChange={set("brain_model")} />
           {(provider === "ollama" || provider === "lmstudio") ? (
             <div
@@ -354,6 +356,24 @@ export default function SettingsPage() {
                 Not connected? Go to <strong style={{ color: "hsl(240 16% 56%)" }}>Capabilities</strong> in the sidebar to check the status and get setup help.
               </p>
             </div>
+          ) : provider === "groq" ? (
+            <>
+              <Field label="Groq API Key" secret placeholder="gsk_..."
+                value={form.brain_api_key} onChange={(v) => { set("brain_api_key")(v); set("groq_api_key")(v); }} />
+              <div
+                className="p-3.5 rounded-xl text-[12.5px] leading-relaxed"
+                style={{ background: "rgba(109,95,234,0.06)", border: "1px solid rgba(109,95,234,0.15)" }}
+              >
+                <p style={{ color: muted }}>
+                  Get a free key at{" "}
+                  <a href="https://console.groq.com" target="_blank" rel="noreferrer" style={{ color: primary }}>
+                    console.groq.com
+                  </a>{" "}
+                  — no credit card, takes about 60 seconds.
+                  This key also powers the Writing &amp; Coding worker automatically.
+                </p>
+              </div>
+            </>
           ) : (
             <Field label="API Key" secret placeholder="sk-..."
               value={form.brain_api_key} onChange={set("brain_api_key")} />

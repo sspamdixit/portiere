@@ -1,3 +1,4 @@
+import asyncio
 import json
 import os
 import platform
@@ -296,6 +297,7 @@ async def get_system_info():
     recommendations = _build_recommendations(ram_gb, gpus)
 
     return {
+        "os": platform.system(),
         "cpu": {
             "model": cpu_model,
             "cores": cpu_cores,
@@ -306,6 +308,73 @@ async def get_system_info():
         "gpu": gpus,
         "recommendations": recommendations,
     }
+
+
+@app.get("/api/ollama/install")
+async def install_ollama_sse():
+    os_name = platform.system()
+
+    async def generate():
+        if os_name == "Linux":
+            yield {"data": json.dumps({"type": "info", "message": "Detected Linux — running Ollama installer…"})}
+            try:
+                proc = await asyncio.create_subprocess_shell(
+                    "curl -fsSL https://ollama.com/install.sh | sh",
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.STDOUT,
+                )
+                while True:
+                    line = await proc.stdout.readline()
+                    if not line:
+                        break
+                    text = line.decode().rstrip()
+                    if text:
+                        yield {"data": json.dumps({"type": "output", "message": text})}
+                rc = await proc.wait()
+                if rc == 0:
+                    yield {"data": json.dumps({"type": "success", "message": "Ollama installed successfully!"})}
+                else:
+                    yield {"data": json.dumps({"type": "error", "message": f"Installer exited with code {rc}"})}
+            except Exception as e:
+                yield {"data": json.dumps({"type": "error", "message": str(e)})}
+        elif os_name == "Darwin":
+            yield {"data": json.dumps({"type": "platform", "os": "mac", "message": "macOS detected — please download Ollama from ollama.com/download"})}
+        else:
+            yield {"data": json.dumps({"type": "platform", "os": "windows", "message": "Windows detected — please download Ollama from ollama.com/download"})}
+
+    return EventSourceResponse(generate())
+
+
+@app.post("/api/ollama/start")
+async def start_ollama():
+    try:
+        async with httpx.AsyncClient(timeout=2.0) as client:
+            try:
+                r = await client.get("http://localhost:11434/api/tags")
+                if r.status_code == 200:
+                    return {"ok": True, "message": "Ollama is already running"}
+            except Exception:
+                pass
+        proc = await asyncio.create_subprocess_exec(
+            "ollama", "serve",
+            stdout=asyncio.subprocess.DEVNULL,
+            stderr=asyncio.subprocess.DEVNULL,
+            start_new_session=True,
+        )
+        _ = proc
+        await asyncio.sleep(2.5)
+        async with httpx.AsyncClient(timeout=3.0) as client:
+            try:
+                r = await client.get("http://localhost:11434/api/tags")
+                if r.status_code == 200:
+                    return {"ok": True, "message": "Ollama started — models loading"}
+            except Exception:
+                pass
+        return {"ok": True, "message": "Ollama start command sent — may take a few seconds"}
+    except FileNotFoundError:
+        return {"ok": False, "message": "ollama not found — install it first"}
+    except Exception as e:
+        return {"ok": False, "message": str(e)}
 
 
 @app.get("/api/workers")

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
-import { RefreshCw, Cpu, HardDrive, Loader2, AlertCircle, Box, ChevronRight, Sparkles, Search, Globe, Film, Monitor, Check, Cloud, Mail, Terminal, Image, Languages, Newspaper, TrendingUp, CalendarPlus, ExternalLink, Copy, Download, X } from "lucide-react";
-import { fetchModels, fetchSettings, saveSettings, streamOllamaInstall, probeOllama } from "@/lib/api";
+import { RefreshCw, Cpu, HardDrive, Loader2, AlertCircle, Box, ChevronRight, Sparkles, Search, Globe, Film, Monitor, Check, Cloud, Mail, Terminal, Image, Languages, Newspaper, TrendingUp, CalendarPlus, ExternalLink, Copy, Download, X, Play, Wrench } from "lucide-react";
+import { fetchModels, fetchSettings, saveSettings, streamOllamaInstall, probeOllama, fetchSystemInfo, streamInstallOllama, startOllamaService } from "@/lib/api";
 
 const dim = "hsl(238 18% 32%)";
 const muted = "hsl(238 18% 50%)";
@@ -75,11 +75,56 @@ export default function CapabilitiesPage() {
   const installCancelRef = useRef<(() => void) | null>(null);
   const reconnectRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  const [osName, setOsName] = useState<string | null>(null);
+  const [setupPhase, setSetupPhase] = useState<"idle" | "installing" | "starting">("idle");
+  const [installLines, setInstallLines] = useState<string[]>([]);
+  const [startMsg, setStartMsg] = useState<string | null>(null);
+  const installOutputRef = useRef<HTMLDivElement | null>(null);
+
   useEffect(() => {
     fetchSettings()
       .then(s => setSelectedBrain(String(s.brain_model || "")))
       .catch(() => {});
+    fetchSystemInfo()
+      .then(info => setOsName(info.os))
+      .catch(() => {});
   }, []);
+
+  const handleInstallOllama = () => {
+    setSetupPhase("installing");
+    setInstallLines([]);
+    setStartMsg(null);
+    streamInstallOllama(
+      (line) => setInstallLines(prev => {
+        const next = [...prev, line];
+        setTimeout(() => {
+          if (installOutputRef.current)
+            installOutputRef.current.scrollTop = installOutputRef.current.scrollHeight;
+        }, 30);
+        return next;
+      }),
+      (type, msg) => {
+        if (type === "success") {
+          setInstallLines(prev => [...prev, "✓ " + msg]);
+          setSetupPhase("starting");
+          handleStartOllama();
+        } else if (type === "error") {
+          setInstallLines(prev => [...prev, "✗ " + msg]);
+          setSetupPhase("idle");
+        } else {
+          setSetupPhase("idle");
+        }
+      },
+    );
+  };
+
+  const handleStartOllama = async () => {
+    setSetupPhase("starting");
+    const r = await startOllamaService();
+    setStartMsg(r.message);
+    setSetupPhase("idle");
+    if (r.ok) setTimeout(() => refresh(), 2000);
+  };
 
   useEffect(() => {
     if (!modelData?.ollama_error) {
@@ -335,44 +380,109 @@ export default function CapabilitiesPage() {
 
                 {modelData.ollama_error ? (
                   <div className="px-5 py-5 space-y-3">
+                    {/* Header */}
                     <div className="flex items-start gap-2.5">
                       <span className="text-lg leading-none mt-0.5">🦙</span>
                       <div>
                         <p className="text-[13.5px] font-semibold text-foreground mb-0.5">Ollama isn't running</p>
-                        <p className="text-[12.5px]" style={{ color: muted }}>Follow these steps to get it working:</p>
+                        <p className="text-[12.5px]" style={{ color: muted }}>
+                          {setupPhase === "installing" ? "Installing Ollama — this takes about a minute…"
+                            : setupPhase === "starting" ? "Starting Ollama service…"
+                            : "Portiere can set this up for you — no terminal needed."}
+                        </p>
                       </div>
                     </div>
-                    <div className="space-y-2">
-                      <div className="flex items-start gap-3 p-3.5 rounded-xl" style={{ background: "hsl(238 22% 6%)", border: "1px solid hsl(238 18% 12%)" }}>
-                        <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-[10px] font-bold" style={{ background: "rgba(109,95,234,0.18)", color: primary }}>1</div>
-                        <div className="flex-1">
-                          <p className="text-[12.5px] font-medium text-foreground mb-1">Download Ollama <span className="font-normal" style={{ color: dim }}>(skip if you have it)</span></p>
-                          <a href="https://ollama.com/download" target="_blank" rel="noreferrer"
-                            className="inline-flex items-center gap-1.5 text-[12px] font-medium" style={{ color: primary }}>
-                            ollama.com/download <ExternalLink size={10} />
+
+                    {/* Action buttons — only shown when idle */}
+                    {setupPhase === "idle" && (
+                      <div className="space-y-2">
+                        {osName === "Linux" && (
+                          <button
+                            onClick={handleInstallOllama}
+                            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-[13px] font-semibold transition-all"
+                            style={{
+                              background: "linear-gradient(135deg, hsl(246 89% 64%) 0%, hsl(258 72% 68%) 100%)",
+                              color: "white",
+                              boxShadow: "0 2px 14px rgba(124,111,247,0.32)",
+                            }}
+                          >
+                            <Wrench size={13} /> Install Ollama automatically
+                          </button>
+                        )}
+                        {(osName === "Darwin" || osName === "Windows") && (
+                          <a
+                            href={osName === "Darwin" ? "https://ollama.com/download/mac" : "https://ollama.com/download/windows"}
+                            target="_blank" rel="noreferrer"
+                            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-[13px] font-semibold"
+                            style={{
+                              background: "linear-gradient(135deg, hsl(246 89% 64%) 0%, hsl(258 72% 68%) 100%)",
+                              color: "white",
+                              display: "flex",
+                            }}
+                          >
+                            <Download size={13} /> Download Ollama for {osName === "Darwin" ? "Mac" : "Windows"}
                           </a>
+                        )}
+                        <button
+                          onClick={handleStartOllama}
+                          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-[13px] font-semibold transition-all"
+                          style={{ background: "rgba(109,95,234,0.1)", border: "1px solid rgba(109,95,234,0.25)", color: primary }}
+                        >
+                          <Play size={11} /> Start Ollama {osName === "Linux" ? "(already installed)" : osName === "Darwin" ? "— already installed" : "service"}
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Installing: live streaming terminal output */}
+                    {setupPhase === "installing" && (
+                      <div className="space-y-2 animate-feed-in">
+                        <div className="flex items-center gap-2 text-[12px]" style={{ color: primary }}>
+                          <Loader2 size={11} className="animate-spin" /> Installing…
+                        </div>
+                        <div
+                          ref={installOutputRef}
+                          className="font-mono text-[11px] p-3 rounded-xl overflow-y-auto space-y-0.5"
+                          style={{
+                            background: "hsl(240 22% 4%)",
+                            border: "1px solid hsl(240 20% 10%)",
+                            maxHeight: "160px",
+                          }}
+                        >
+                          {installLines.length === 0 ? (
+                            <p style={{ color: dim }}>Waiting for installer…</p>
+                          ) : installLines.map((line, i) => (
+                            <p key={i} style={{
+                              color: line.startsWith("✗") ? "hsl(347 87% 62%)"
+                                : line.startsWith("✓") ? green
+                                : "hsl(240 20% 62%)",
+                              lineHeight: "1.5",
+                            }}>{line}</p>
+                          ))}
                         </div>
                       </div>
-                      <div className="flex items-start gap-3 p-3.5 rounded-xl" style={{ background: "hsl(238 22% 6%)", border: "1px solid hsl(238 18% 12%)" }}>
-                        <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-[10px] font-bold" style={{ background: "rgba(109,95,234,0.18)", color: primary }}>2</div>
-                        <div>
-                          <p className="text-[12.5px] font-medium text-foreground mb-1">Open the Ollama app</p>
-                          <p className="text-[12px] leading-relaxed" style={{ color: muted }}>
-                            Look for the 🦙 icon in your menu bar (Mac) or taskbar (Windows).
-                          </p>
-                          <p className="text-[11.5px] mt-1.5" style={{ color: dim }}>
-                            Linux: run <code className="px-1.5 py-0.5 rounded text-[11px]" style={{ background: "hsl(238 22% 5%)", border: "1px solid hsl(238 18% 14%)", color: "hsl(240 20% 84%)" }}>ollama serve</code> in a terminal
-                          </p>
-                        </div>
+                    )}
+
+                    {/* Starting spinner */}
+                    {setupPhase === "starting" && (
+                      <div className="flex items-center gap-2 text-[13px] py-1 animate-feed-in" style={{ color: primary }}>
+                        <Loader2 size={13} className="animate-spin" /> Starting Ollama service…
                       </div>
-                    </div>
-                    <p className="text-[11.5px] text-center py-1" style={{ color: dim }}>
-                      Checking for connection automatically every 5 seconds…
+                    )}
+
+                    {/* Result message after start attempt */}
+                    {startMsg && setupPhase === "idle" && (
+                      <p className="text-[12px] flex items-center gap-1.5" style={{ color: muted }}>
+                        <Check size={11} style={{ color: green }} /> {startMsg}
+                      </p>
+                    )}
+
+                    <p className="text-[11.5px] text-center pt-1" style={{ color: dim }}>
+                      Checking automatically every 5 seconds…
                     </p>
                     <button onClick={refresh}
-                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-[13px] font-semibold transition-all"
-                      style={{ background: "rgba(109,95,234,0.1)", border: "1px solid hsl(248 90% 68% / 0.22)", color: primary }}>
-                      <RefreshCw size={12} /> Check now
+                      className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-[12px] font-medium transition-all"
+                      style={{ background: "rgba(109,95,234,0.06)", border: "1px solid rgba(109,95,234,0.15)", color: dim }}>
+                      <RefreshCw size={11} /> Check now
                     </button>
                   </div>
                 ) : modelData.ollama.length === 0 ? (
