@@ -107,9 +107,10 @@ export default function Sidebar() {
               className="text-[15px] block"
               style={{
                 color: TEXT,
-                letterSpacing: "-0.02em",
-                fontFamily: "'Instrument Serif', 'Source Serif 4', Georgia, serif",
-                fontWeight: 400,
+                letterSpacing: "-0.015em",
+                fontFamily: "'Cormorant Garamond', Georgia, serif",
+                fontWeight: 500,
+                fontSize: "17px",
               }}
             >
               Portiere

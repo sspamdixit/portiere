@@ -919,13 +919,14 @@ export default function ConsolePage() {
                 <span className="relative text-[30px] leading-none select-none" style={{ color: "#CC7722" }}>◈</span>
               </div>
               <h1
-                className="text-[30px] mb-3"
+                className="text-[34px] mb-3"
                 style={{
-                  color: "#E2D0B4",
-                  letterSpacing: "-0.03em",
-                  lineHeight: 1.1,
-                  fontFamily: "'Instrument Serif', 'Source Serif 4', Georgia, serif",
+                  color: "#E8D5B7",
+                  letterSpacing: "-0.02em",
+                  lineHeight: 1.05,
+                  fontFamily: "'Cormorant Garamond', Georgia, serif",
                   fontWeight: 400,
+                  fontStyle: "italic",
                 }}
               >
                 {getGreeting()}

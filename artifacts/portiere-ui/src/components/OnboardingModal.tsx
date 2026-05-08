@@ -11,12 +11,12 @@ import {
   type SystemInfo, type SystemRecommendation, type AutoDetectEntry,
 } from "@/lib/api";
 
-const bg     = "hsl(238 20% 6%)";
-const bg2    = "hsl(238 18% 8%)";
-const border = "hsl(238 18% 12%)";
-const dim    = "hsl(238 18% 34%)";
-const muted  = "hsl(238 18% 52%)";
-const primary = "hsl(248 90% 68%)";
+const bg     = "#0D0A07";
+const bg2    = "#141009";
+const border = "#272018";
+const dim    = "#5C4A30";
+const muted  = "#8A7660";
+const primary = "#C8882C";
 const green  = "hsl(152 64% 48%)";
 
 type Provider = "ollama" | "lmstudio" | "openai" | "anthropic" | "groq";
@@ -37,7 +37,7 @@ function CopyButton({ text }: { text: string }) {
 function CodeBlock({ children }: { children: string }) {
   return (
     <div className="flex items-center justify-between gap-3 rounded-xl px-4 py-3 mt-2"
-      style={{ backgroundColor: "hsl(238 22% 5%)", border: `1px solid ${border}` }}>
+      style={{ backgroundColor: "#0A0805", border: `1px solid ${border}` }}>
       <code className="text-[13px] text-foreground font-mono">{children}</code>
       <CopyButton text={children} />
     </div>
@@ -61,7 +61,7 @@ function KeyInput({ label, value, onChange, placeholder, hint, link }: {
       </div>
       <input type="password" value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
         className="w-full rounded-xl px-4 py-3 text-[14px] text-foreground outline-none transition-all"
-        style={{ backgroundColor: "hsl(238 22% 5%)", border: `1px solid ${value ? "hsl(248 90% 68% / 0.4)" : border}`, caretColor: primary, boxShadow: value ? "0 0 0 3px rgba(109,95,234,0.07)" : "none" }} />
+        style={{ backgroundColor: "#0A0805", border: `1px solid ${value ? "rgba(200,136,44,0.4)" : border}`, caretColor: primary, boxShadow: value ? "0 0 0 3px rgba(200,136,44,0.07)" : "none" }} />
       {hint && <p className="text-[12px]" style={{ color: dim }}>{hint}</p>}
     </div>
   );
@@ -75,8 +75,8 @@ function StepDots({ total, current }: { total: number; current: number }) {
           style={{
             width: i === current ? "18px" : "5px", height: "5px",
             background: i === current
-              ? "linear-gradient(90deg, hsl(248 90% 68%), hsl(262 75% 70%))"
-              : i < current ? "hsl(248 90% 68% / 0.35)" : "hsl(238 18% 14%)",
+              ? "linear-gradient(90deg, #C8882C, #E0A040)"
+              : i < current ? "rgba(200,136,44,0.35)" : "#201810",
           }} />
       ))}
     </div>
@@ -89,7 +89,7 @@ function RadioCard<T extends string>({ id, selected, onSelect, children }: {
   const active = id === selected;
   return (
     <button onClick={() => onSelect(id)} className="w-full text-left transition-all duration-150"
-      style={{ padding: "12px 14px", borderRadius: "12px", backgroundColor: active ? "rgba(109,95,234,0.1)" : bg2, border: `1px solid ${active ? "hsl(248 90% 68% / 0.38)" : border}` }}>
+      style={{ padding: "12px 14px", borderRadius: "12px", backgroundColor: active ? "rgba(200,136,44,0.1)" : bg2, border: `1px solid ${active ? "rgba(200,136,44,0.38)" : border}` }}>
       {children}
       {active && <span className="float-right"><Check size={13} style={{ color: primary }} /></span>}
     </button>
@@ -125,8 +125,8 @@ const GROQ_MODELS = [
 
 const TIER_COLORS: Record<string, { accent: string; bg: string; border: string }> = {
   gpu:         { accent: "hsl(142 60% 55%)",  bg: "rgba(34,197,94,0.06)",   border: "rgba(34,197,94,0.2)"  },
-  local:       { accent: primary,              bg: "rgba(109,95,234,0.08)",  border: "rgba(109,95,234,0.22)" },
-  local_light: { accent: primary,              bg: "rgba(109,95,234,0.08)",  border: "rgba(109,95,234,0.22)" },
+  local:       { accent: primary,              bg: "rgba(200,136,44,0.08)",  border: "rgba(200,136,44,0.22)" },
+  local_light: { accent: primary,              bg: "rgba(200,136,44,0.08)",  border: "rgba(200,136,44,0.22)" },
   quickstart:  { accent: "hsl(152 64% 48%)",  bg: "rgba(34,197,94,0.07)",   border: "rgba(34,197,94,0.22)" },
   cloud:       { accent: "hsl(200 80% 65%)",  bg: "rgba(56,189,248,0.06)",  border: "rgba(56,189,248,0.18)" },
 };
@@ -179,7 +179,7 @@ function ComboCard({ rec, selected, onSelect, index, isEasiest }: {
             )}
             {rec.badges.slice(0, 2).map(b => (
               <span key={b} className="text-[10px] px-1.5 py-0.5 rounded-md font-semibold"
-                style={{ backgroundColor: selected ? colors.bg : "hsl(238 18% 11%)", color: selected ? colors.accent : dim, border: `1px solid ${selected ? colors.border : "transparent"}` }}>
+                style={{ backgroundColor: selected ? colors.bg : "#181210", color: selected ? colors.accent : dim, border: `1px solid ${selected ? colors.border : "transparent"}` }}>
                 {b}
               </span>
             ))}
@@ -189,8 +189,8 @@ function ComboCard({ rec, selected, onSelect, index, isEasiest }: {
             {rec.items.map((item, i) => (
               <div key={i} className="flex items-center gap-2">
                 <span className="text-[10px] px-2 py-0.5 rounded-md font-semibold flex-shrink-0"
-                  style={{ backgroundColor: "hsl(238 18% 11%)", color: dim }}>{item.role}</span>
-                <span className="text-[12px] font-medium" style={{ color: selected ? "hsl(240 20% 86%)" : muted }}>{item.name}</span>
+                  style={{ backgroundColor: "#181210", color: dim }}>{item.role}</span>
+                <span className="text-[12px] font-medium" style={{ color: selected ? "#E8D5B7" : muted }}>{item.name}</span>
                 <span className="text-[11px]" style={{ color: dim }}>· {item.note}</span>
               </div>
             ))}
@@ -284,11 +284,11 @@ function HardwareScanStep({
       {/* Header */}
       <div className="flex items-center gap-3">
         <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-          style={{ background: "linear-gradient(135deg, hsl(248 82% 60%) 0%, hsl(264 68% 66%) 100%)", boxShadow: "0 4px 14px rgba(109,95,234,0.4)" }}>
-          <span className="text-white text-[16px] font-bold leading-none select-none">◈</span>
+          style={{ background: "linear-gradient(135deg, #7A3800 0%, #C8882C 100%)", boxShadow: "0 4px 14px rgba(200,136,44,0.35)" }}>
+          <span className="text-[16px] font-bold leading-none select-none" style={{ color: "#FFE8C0" }}>◈</span>
         </div>
         <div>
-          <h1 className="text-[18px] font-semibold text-foreground" style={{ letterSpacing: "-0.02em" }}>Welcome to Portiere</h1>
+          <h1 className="text-[20px] text-foreground" style={{ letterSpacing: "-0.01em", fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 500 }}>Welcome to Portiere</h1>
           <p className="text-[12px] mt-0.5" style={{ color: muted }}>
             {phase === "scanning" ? "Scanning your machine to find the best AI setup" : "Pick the setup that works best for you"}
           </p>
@@ -428,9 +428,9 @@ function HardwareScanStep({
             disabled={phase === "scanning"}
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-[13px] font-semibold transition-all disabled:opacity-40"
             style={{
-              background: "linear-gradient(135deg, hsl(248 82% 60%) 0%, hsl(264 68% 64%) 100%)",
-              color: "white",
-              boxShadow: phase !== "scanning" ? "0 2px 10px rgba(109,95,234,0.38)" : "none",
+              background: "linear-gradient(135deg, #7A3800 0%, #C8882C 100%)",
+              color: "#FFE8C0",
+              boxShadow: phase !== "scanning" ? "0 2px 10px rgba(200,136,44,0.35)" : "none",
             }}>
             {phase === "error" ? "Choose manually" : "Apply & continue"}
             <ArrowRight size={13} />
@@ -517,13 +517,13 @@ export default function OnboardingModal({ onDone }: { onDone: () => void }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ backgroundColor: "rgba(8,8,13,0.9)", backdropFilter: "blur(12px)" }}>
+      style={{ backgroundColor: "rgba(5,4,2,0.88)", backdropFilter: "blur(16px)" }}>
       <div className="relative w-full max-w-[520px] rounded-2xl flex flex-col overflow-hidden"
         style={{ backgroundColor: bg, border: `1px solid ${border}`, boxShadow: "0 24px 64px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.04)", maxHeight: "92vh" }}>
 
         {/* Top accent bar */}
         <div className="h-[2px] w-full flex-shrink-0"
-          style={{ background: "linear-gradient(90deg, transparent 0%, hsl(248 82% 66%) 30%, hsl(264 70% 70%) 70%, transparent 100%)" }} />
+          style={{ background: "linear-gradient(90deg, transparent 0%, #C8882C 30%, #E0A848 70%, transparent 100%)" }} />
 
         {/* Close / skip button */}
         {step !== 0 && (
@@ -555,9 +555,9 @@ export default function OnboardingModal({ onDone }: { onDone: () => void }) {
                 {PROVIDER_OPTIONS.map(({ id, label, sub, badge, badgeGreen, Icon }) => (
                   <button key={id} onClick={() => setProvider(id)}
                     className="w-full flex items-center gap-3.5 p-3.5 rounded-xl text-left transition-all duration-150"
-                    style={{ backgroundColor: provider === id ? "rgba(109,95,234,0.1)" : bg2, border: `1px solid ${provider === id ? "hsl(248 90% 68% / 0.38)" : border}` }}>
+                    style={{ backgroundColor: provider === id ? "rgba(200,136,44,0.1)" : bg2, border: `1px solid ${provider === id ? "rgba(200,136,44,0.38)" : border}` }}>
                     <div className="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center"
-                      style={{ backgroundColor: provider === id ? "rgba(109,95,234,0.18)" : border, color: provider === id ? primary : muted }}>
+                      style={{ backgroundColor: provider === id ? "rgba(200,136,44,0.18)" : border, color: provider === id ? primary : muted }}>
                       <Icon size={15} />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -571,12 +571,12 @@ export default function OnboardingModal({ onDone }: { onDone: () => void }) {
                         )}
                         {id === hwRecommendedProvider && id !== "groq" && (
                           <span className="text-[10px] px-1.5 py-0.5 rounded-md font-semibold"
-                            style={{ backgroundColor: "rgba(109,95,234,0.15)", color: primary }}>
+                            style={{ backgroundColor: "rgba(200,136,44,0.15)", color: primary }}>
                             Recommended for your PC
                           </span>
                         )}
                         <span className="text-[10px] px-1.5 py-0.5 rounded-md font-semibold"
-                          style={{ backgroundColor: badgeGreen ? "rgba(34,197,94,0.1)" : "hsl(238 18% 12%)", color: badgeGreen ? green : dim }}>
+                          style={{ backgroundColor: badgeGreen ? "rgba(34,197,94,0.1)" : "#1A1510", color: badgeGreen ? green : dim }}>
                           {badge}
                         </span>
                       </div>
@@ -677,18 +677,18 @@ export default function OnboardingModal({ onDone }: { onDone: () => void }) {
               <div className="p-4 rounded-2xl" style={{ background: bg2, border: `1px solid ${border}` }}>
                 <div className="flex items-start gap-3">
                   <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-[10px] font-bold"
-                    style={{ background: "rgba(109,95,234,0.2)", color: primary }}>1</div>
+                    style={{ background: "rgba(200,136,44,0.2)", color: primary }}>1</div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[13px] font-semibold text-foreground mb-2">Download Ollama <span className="font-normal text-[12px]" style={{ color: dim }}>(skip if already installed)</span></p>
                     <div className="flex flex-wrap gap-2">
                       <a href="https://ollama.com/download/mac" target="_blank" rel="noreferrer"
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[12px] font-medium"
-                        style={{ background: "rgba(109,95,234,0.1)", border: "1px solid hsl(248 90% 68% / 0.22)", color: primary }}>
+                        style={{ background: "rgba(200,136,44,0.1)", border: "1px solid rgba(200,136,44,0.22)", color: primary }}>
                         <ExternalLink size={10} /> macOS
                       </a>
                       <a href="https://ollama.com/download/windows" target="_blank" rel="noreferrer"
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[12px] font-medium"
-                        style={{ background: "rgba(109,95,234,0.1)", border: "1px solid hsl(248 90% 68% / 0.22)", color: primary }}>
+                        style={{ background: "rgba(200,136,44,0.1)", border: "1px solid rgba(200,136,44,0.22)", color: primary }}>
                         <ExternalLink size={10} /> Windows
                       </a>
                     </div>
@@ -701,14 +701,14 @@ export default function OnboardingModal({ onDone }: { onDone: () => void }) {
               <div className="p-4 rounded-2xl" style={{ background: bg2, border: `1px solid ${border}` }}>
                 <div className="flex items-start gap-3">
                   <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-[10px] font-bold"
-                    style={{ background: "rgba(109,95,234,0.2)", color: primary }}>2</div>
+                    style={{ background: "rgba(200,136,44,0.2)", color: primary }}>2</div>
                   <div className="flex-1">
                     <p className="text-[13px] font-semibold text-foreground mb-1">Open Ollama</p>
                     <p className="text-[12.5px] leading-relaxed" style={{ color: muted }}>
-                      <strong style={{ color: "hsl(240 20% 84%)" }}>macOS / Windows:</strong> Open the app — look for the 🦙 icon in your menu bar or taskbar.
+                      <strong style={{ color: "#D4B896" }}>macOS / Windows:</strong> Open the app — look for the 🦙 icon in your menu bar or taskbar.
                     </p>
                     <p className="text-[12px] mt-1.5" style={{ color: dim }}>
-                      Linux: run <code className="px-1.5 py-0.5 rounded-md text-[11px]" style={{ background: "hsl(238 22% 6%)", border: `1px solid ${border}`, color: "hsl(240 20% 86%)" }}>ollama serve</code> in a terminal window.
+                      Linux: run <code className="px-1.5 py-0.5 rounded-md text-[11px]" style={{ background: "#0E0B07", border: `1px solid ${border}`, color: "#D4B896" }}>ollama serve</code> in a terminal window.
                     </p>
                   </div>
                 </div>
@@ -717,7 +717,7 @@ export default function OnboardingModal({ onDone }: { onDone: () => void }) {
               <div className="p-4 rounded-2xl" style={{ background: bg2, border: `1px solid ${border}` }}>
                 <div className="flex items-start gap-3">
                   <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-[10px] font-bold"
-                    style={{ background: "rgba(109,95,234,0.2)", color: primary }}>3</div>
+                    style={{ background: "rgba(200,136,44,0.2)", color: primary }}>3</div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[13px] font-semibold text-foreground mb-2">Download a model <span className="font-normal text-[12px]" style={{ color: dim }}>(skip if you have one)</span></p>
                     <div className="space-y-1.5 mb-3">
@@ -742,10 +742,10 @@ export default function OnboardingModal({ onDone }: { onDone: () => void }) {
                 style={{
                   background: probeResult?.ok
                     ? "rgba(34,197,94,0.1)"
-                    : "linear-gradient(135deg, hsl(248 82% 60%) 0%, hsl(264 68% 64%) 100%)",
+                    : "linear-gradient(135deg, #7A3800 0%, #C8882C 100%)",
                   border: probeResult?.ok ? "1px solid rgba(34,197,94,0.3)" : "none",
-                  color: probeResult?.ok ? green : "white",
-                  boxShadow: probeResult?.ok ? "none" : "0 2px 12px rgba(109,95,234,0.35)",
+                  color: probeResult?.ok ? green : "#FFE8C0",
+                  boxShadow: probeResult?.ok ? "none" : "0 2px 12px rgba(200,136,44,0.3)",
                 }}
               >
                 {probing ? (
@@ -768,7 +768,7 @@ export default function OnboardingModal({ onDone }: { onDone: () => void }) {
               {probeResult?.ok && !(probeResult.models?.length) && (
                 <div className="p-4 rounded-2xl text-[13px]" style={{ background: "rgba(245,158,11,0.06)", border: "1px solid rgba(245,158,11,0.2)" }}>
                   <p className="font-semibold mb-1" style={{ color: "hsl(38 90% 64%)" }}>Ollama is running, but no models found yet</p>
-                  <p style={{ color: muted }}>Run the <code className="px-1 py-0.5 rounded text-[11px]" style={{ background: "hsl(238 22% 6%)", border: `1px solid ${border}` }}>ollama pull</code> command in step 3 above, then test again.</p>
+                  <p style={{ color: muted }}>Run the <code className="px-1 py-0.5 rounded text-[11px]" style={{ background: "#0E0B07", border: `1px solid ${border}`, color: "#C8882C" }}>ollama pull</code> command in step 3 above, then test again.</p>
                 </div>
               )}
             </div>
@@ -790,7 +790,7 @@ export default function OnboardingModal({ onDone }: { onDone: () => void }) {
                 ].map(({ n, title, content }) => (
                   <div key={n} className="flex gap-3">
                     <div className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold mt-0.5"
-                      style={{ backgroundColor: "rgba(109,95,234,0.14)", color: primary }}>{n}</div>
+                      style={{ backgroundColor: "rgba(200,136,44,0.14)", color: primary }}>{n}</div>
                     <div>
                       <p className="text-[13px] font-semibold text-foreground mb-1">{title}</p>
                       {content}
@@ -799,7 +799,7 @@ export default function OnboardingModal({ onDone }: { onDone: () => void }) {
                 ))}
                 <button onClick={handleProbe} disabled={probing}
                   className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-medium transition-all disabled:opacity-50"
-                  style={{ backgroundColor: "rgba(109,95,234,0.1)", border: "1px solid hsl(248 90% 68% / 0.22)", color: primary }}>
+                  style={{ backgroundColor: "rgba(200,136,44,0.1)", border: "1px solid rgba(200,136,44,0.22)", color: primary }}>
                   {probing ? <Loader2 size={13} className="animate-spin" /> : <Cpu size={13} />}
                   {probing ? "Testing…" : "Test LM Studio connection"}
                 </button>
@@ -898,8 +898,8 @@ export default function OnboardingModal({ onDone }: { onDone: () => void }) {
             <div className="flex flex-col gap-6">
               <div className="flex flex-col items-center gap-4 text-center py-4">
                 <div className="w-14 h-14 rounded-2xl flex items-center justify-center"
-                  style={{ background: "linear-gradient(135deg, hsl(248 82% 60%) 0%, hsl(264 68% 64%) 100%)", boxShadow: "0 4px 20px rgba(109,95,234,0.45)" }}>
-                  <Sparkles size={24} style={{ color: "white" }} />
+                  style={{ background: "linear-gradient(135deg, #7A3800 0%, #C8882C 100%)", boxShadow: "0 4px 20px rgba(200,136,44,0.4)" }}>
+                  <Sparkles size={24} style={{ color: "#FFE8C0" }} />
                 </div>
                 <div>
                   <h2 className="text-[20px] font-semibold text-foreground" style={{ letterSpacing: "-0.025em" }}>You're all set!</h2>
@@ -915,7 +915,7 @@ export default function OnboardingModal({ onDone }: { onDone: () => void }) {
                 ].map(s => (
                   <div key={s} className="flex items-center gap-3 px-4 py-2.5 rounded-xl"
                     style={{ backgroundColor: bg2, border: `1px solid ${border}` }}>
-                    <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: "hsl(248 90% 68% / 0.6)" }} />
+                    <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: "rgba(200,136,44,0.6)" }} />
                     <span className="text-[13px]" style={{ color: muted }}>{s}</span>
                   </div>
                 ))}
@@ -940,7 +940,7 @@ export default function OnboardingModal({ onDone }: { onDone: () => void }) {
               {isFinalStep ? (
                 <button onClick={handleFinish} disabled={saving}
                   className="flex items-center gap-2 px-5 py-2 rounded-xl text-[13px] font-semibold transition-all disabled:opacity-50"
-                  style={{ background: "linear-gradient(135deg, hsl(248 82% 60%) 0%, hsl(264 68% 64%) 100%)", color: "white", boxShadow: "0 2px 8px rgba(109,95,234,0.35)" }}>
+                  style={{ background: "linear-gradient(135deg, #7A3800 0%, #C8882C 100%)", color: "#FFE8C0", boxShadow: "0 2px 8px rgba(200,136,44,0.32)" }}>
                   {saving ? <Loader2 size={13} className="animate-spin" /> : null}
                   {saving ? "Saving…" : "Start using Portiere"}
                   {!saving && <ArrowRight size={14} />}
@@ -948,7 +948,7 @@ export default function OnboardingModal({ onDone }: { onDone: () => void }) {
               ) : (
                 <button onClick={() => setStep(s => s + 1)} disabled={!canContinue()}
                   className="flex items-center gap-2 px-5 py-2 rounded-xl text-[13px] font-semibold transition-all disabled:opacity-40"
-                  style={{ background: "linear-gradient(135deg, hsl(248 82% 60%) 0%, hsl(264 68% 64%) 100%)", color: "white", boxShadow: canContinue() ? "0 2px 8px rgba(109,95,234,0.35)" : "none" }}>
+                  style={{ background: "linear-gradient(135deg, #7A3800 0%, #C8882C 100%)", color: "#FFE8C0", boxShadow: canContinue() ? "0 2px 8px rgba(200,136,44,0.32)" : "none" }}>
                   Continue <ArrowRight size={14} />
                 </button>
               )}

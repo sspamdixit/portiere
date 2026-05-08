@@ -2,6 +2,14 @@ import { useState, useMemo } from "react";
 import { Search, X, Plus, Trash2, BookOpen, Check } from "lucide-react";
 import { getTemplates, saveTemplate, deleteTemplate, getCategories, type Template } from "@/lib/templates";
 
+const bg     = "#0E0B07";
+const bg2    = "#141009";
+const border = "#272018";
+const dim    = "#5C4A30";
+const muted  = "#8A7660";
+const primary = "#C8882C";
+const green  = "hsl(152 64% 48%)";
+
 interface Props {
   onUse: (content: string) => void;
   onClose: () => void;
@@ -49,25 +57,29 @@ export default function TemplatesModal({ onUse, onClose }: Props) {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center"
-      style={{ backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}
+      style={{ backgroundColor: "rgba(3,2,1,0.75)", backdropFilter: "blur(10px)" }}
       onClick={onClose}
     >
       <div
         className="relative flex flex-col w-full max-w-xl mx-4 rounded-2xl overflow-hidden animate-feed-in"
         style={{
-          background: "hsl(238 20% 7%)",
-          border: "1px solid hsl(238 18% 14%)",
-          boxShadow: "0 24px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04)",
+          background: bg,
+          border: `1px solid ${border}`,
+          boxShadow: "0 24px 80px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,235,180,0.04)",
           maxHeight: "80vh",
         }}
         onClick={e => e.stopPropagation()}
       >
+        {/* Amber accent line */}
+        <div className="h-[2px] w-full flex-shrink-0"
+          style={{ background: "linear-gradient(90deg, transparent 0%, #C8882C 35%, #E0A848 70%, transparent 100%)" }} />
+
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 flex-shrink-0"
-          style={{ borderBottom: "1px solid hsl(238 18% 11%)" }}>
+          style={{ borderBottom: `1px solid ${border}`, background: "rgba(6,4,2,0.4)" }}>
           <div className="flex items-center gap-2.5">
-            <BookOpen size={14} style={{ color: "hsl(248 90% 70%)" }} />
-            <span className="text-[14px] font-semibold" style={{ color: "hsl(240 20% 94%)", letterSpacing: "-0.02em" }}>
+            <BookOpen size={14} style={{ color: primary }} />
+            <span className="text-[14px] font-semibold" style={{ color: "#E8D5B7", letterSpacing: "-0.02em" }}>
               Prompt templates
             </span>
           </div>
@@ -76,16 +88,17 @@ export default function TemplatesModal({ onUse, onClose }: Props) {
               onClick={() => setShowSave(v => !v)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[12px] font-semibold transition-all"
               style={{
-                background: showSave ? "hsl(238 18% 11%)" : "linear-gradient(135deg, hsl(246 89% 64%) 0%, hsl(258 72% 68%) 100%)",
-                color: showSave ? "hsl(238 18% 50%)" : "white",
-                boxShadow: showSave ? "none" : "0 2px 10px rgba(124,111,247,0.32)",
+                background: showSave ? bg2 : "linear-gradient(135deg, #7A3800 0%, #C8882C 100%)",
+                color: showSave ? muted : "#FFE8C0",
+                border: showSave ? `1px solid ${border}` : "none",
+                boxShadow: showSave ? "none" : "0 2px 10px rgba(200,136,44,0.28)",
               }}
             >
               <Plus size={11} /> Save current
             </button>
-            <button onClick={onClose} style={{ color: "hsl(238 18% 40%)" }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "hsl(238 18% 64%)"; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "hsl(238 18% 40%)"; }}>
+            <button onClick={onClose} style={{ color: dim }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = muted; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = dim; }}>
               <X size={15} />
             </button>
           </div>
@@ -93,7 +106,7 @@ export default function TemplatesModal({ onUse, onClose }: Props) {
 
         {/* Save form */}
         {showSave && (
-          <div className="px-5 py-4 flex-shrink-0 space-y-3" style={{ borderBottom: "1px solid hsl(238 18% 11%)", background: "hsl(238 20% 6%)" }}>
+          <div className="px-5 py-4 flex-shrink-0 space-y-3" style={{ borderBottom: `1px solid ${border}`, background: "rgba(8,5,2,0.6)" }}>
             <input
               value={saveTitle}
               onChange={e => setSaveTitle(e.target.value)}
@@ -122,10 +135,7 @@ export default function TemplatesModal({ onUse, onClose }: Props) {
                 onClick={handleSave}
                 disabled={!saveTitle.trim() || !saveContent.trim()}
                 className="px-4 py-2 rounded-xl text-[12px] font-semibold transition-all disabled:opacity-40"
-                style={{
-                  background: "linear-gradient(135deg, hsl(246 89% 64%) 0%, hsl(258 72% 68%) 100%)",
-                  color: "white",
-                }}
+                style={{ background: "linear-gradient(135deg, #7A3800 0%, #C8882C 100%)", color: "#FFE8C0" }}
               >
                 Save
               </button>
@@ -134,9 +144,9 @@ export default function TemplatesModal({ onUse, onClose }: Props) {
         )}
 
         {/* Search */}
-        <div className="px-5 py-3 flex-shrink-0" style={{ borderBottom: "1px solid hsl(238 18% 10%)" }}>
+        <div className="px-5 py-3 flex-shrink-0" style={{ borderBottom: `1px solid ${border}` }}>
           <div className="relative">
-            <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: "hsl(238 18% 36%)" }} />
+            <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: dim }} />
             <input
               value={search}
               onChange={e => setSearch(e.target.value)}
@@ -148,16 +158,16 @@ export default function TemplatesModal({ onUse, onClose }: Props) {
         </div>
 
         {/* Category pills */}
-        <div className="flex gap-1.5 px-5 py-2.5 flex-shrink-0 overflow-x-auto" style={{ borderBottom: "1px solid hsl(238 18% 10%)" }}>
+        <div className="flex gap-1.5 px-5 py-2.5 flex-shrink-0 overflow-x-auto" style={{ borderBottom: `1px solid ${border}` }}>
           {categories.map(cat => (
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
               className="flex-shrink-0 px-3 py-1 rounded-full text-[11px] font-semibold transition-all"
               style={{
-                backgroundColor: activeCategory === cat ? "rgba(109,95,234,0.18)" : "hsl(238 18% 9%)",
-                border: `1px solid ${activeCategory === cat ? "rgba(109,95,234,0.4)" : "hsl(238 18% 13%)"}`,
-                color: activeCategory === cat ? "hsl(248 90% 75%)" : "hsl(238 18% 46%)",
+                backgroundColor: activeCategory === cat ? "rgba(200,136,44,0.15)" : bg2,
+                border: `1px solid ${activeCategory === cat ? "rgba(200,136,44,0.38)" : border}`,
+                color: activeCategory === cat ? primary : muted,
               }}
             >
               {cat}
@@ -168,7 +178,7 @@ export default function TemplatesModal({ onUse, onClose }: Props) {
         {/* Template list */}
         <div className="flex-1 overflow-y-auto feed-scroll px-5 py-3 space-y-1.5">
           {filtered.length === 0 && (
-            <div className="text-center py-10 text-[13px]" style={{ color: "hsl(238 18% 38%)" }}>
+            <div className="text-center py-10 text-[13px]" style={{ color: dim }}>
               No templates found
             </div>
           )}
@@ -178,45 +188,45 @@ export default function TemplatesModal({ onUse, onClose }: Props) {
               onClick={() => handleUse(t)}
               className="group w-full text-left flex items-start justify-between gap-3 p-3.5 rounded-xl transition-all"
               style={{
-                backgroundColor: justUsed === t.id ? "rgba(34,197,94,0.07)" : "hsl(238 18% 9%)",
-                border: `1px solid ${justUsed === t.id ? "rgba(34,197,94,0.25)" : "hsl(238 18% 13%)"}`,
+                backgroundColor: justUsed === t.id ? "rgba(34,197,94,0.07)" : bg2,
+                border: `1px solid ${justUsed === t.id ? "rgba(34,197,94,0.25)" : border}`,
               }}
-              onMouseEnter={e => { if (justUsed !== t.id) { (e.currentTarget as HTMLElement).style.borderColor = "rgba(109,95,234,0.3)"; (e.currentTarget as HTMLElement).style.backgroundColor = "hsl(238 18% 10%)"; } }}
-              onMouseLeave={e => { if (justUsed !== t.id) { (e.currentTarget as HTMLElement).style.borderColor = "hsl(238 18% 13%)"; (e.currentTarget as HTMLElement).style.backgroundColor = "hsl(238 18% 9%)"; } }}
+              onMouseEnter={e => { if (justUsed !== t.id) { (e.currentTarget as HTMLElement).style.borderColor = "rgba(200,136,44,0.3)"; (e.currentTarget as HTMLElement).style.backgroundColor = "#181210"; } }}
+              onMouseLeave={e => { if (justUsed !== t.id) { (e.currentTarget as HTMLElement).style.borderColor = border; (e.currentTarget as HTMLElement).style.backgroundColor = bg2; } }}
             >
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-[12.5px] font-semibold" style={{ color: "hsl(240 20% 90%)", letterSpacing: "-0.01em" }}>
+                  <span className="text-[12.5px] font-semibold" style={{ color: "#E8D5B7", letterSpacing: "-0.01em" }}>
                     {t.title}
                   </span>
                   <span
                     className="text-[10px] px-2 py-px rounded-full font-medium"
-                    style={{ backgroundColor: "hsl(238 18% 13%)", color: "hsl(238 18% 46%)" }}
+                    style={{ backgroundColor: "#1A1510", color: muted }}
                   >
                     {t.category}
                   </span>
                   {t.builtin && (
-                    <span className="text-[10px] px-1.5 py-px rounded font-medium" style={{ color: "hsl(248 90% 65%)", backgroundColor: "rgba(109,95,234,0.1)" }}>
+                    <span className="text-[10px] px-1.5 py-px rounded font-medium" style={{ color: primary, backgroundColor: "rgba(200,136,44,0.1)" }}>
                       built-in
                     </span>
                   )}
                 </div>
-                <p className="text-[11.5px] leading-relaxed line-clamp-2" style={{ color: "hsl(238 18% 46%)" }}>
+                <p className="text-[11.5px] leading-relaxed line-clamp-2" style={{ color: muted }}>
                   {t.content}
                 </p>
               </div>
               <div className="flex items-center gap-1.5 flex-shrink-0 mt-0.5">
                 {justUsed === t.id
-                  ? <Check size={13} style={{ color: "hsl(152 64% 52%)" }} />
-                  : <span className="text-[11px] font-medium opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: "hsl(248 90% 70%)" }}>Use →</span>
+                  ? <Check size={13} style={{ color: green }} />
+                  : <span className="text-[11px] font-medium opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: primary }}>Use →</span>
                 }
                 {!t.builtin && (
                   <button
                     onClick={e => handleDelete(t.id, e)}
                     className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-lg"
-                    style={{ color: "hsl(238 18% 38%)" }}
+                    style={{ color: dim }}
                     onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "hsl(4 86% 62%)"; e.stopPropagation(); }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "hsl(238 18% 38%)"; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = dim; }}
                   >
                     <Trash2 size={11} />
                   </button>
@@ -228,7 +238,7 @@ export default function TemplatesModal({ onUse, onClose }: Props) {
 
         <div
           className="px-5 py-2.5 text-[11px] text-center flex-shrink-0"
-          style={{ borderTop: "1px solid hsl(238 18% 10%)", color: "hsl(238 18% 30%)" }}
+          style={{ borderTop: `1px solid ${border}`, color: dim }}
         >
           Click any template to use it · ⌘T to open here
         </div>

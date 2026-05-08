@@ -4,46 +4,46 @@ import remarkGfm from "remark-gfm";
 import type { Components } from "react-markdown";
 import SyntaxHighlighter from "react-syntax-highlighter";
 
-const primary = "hsl(246 89% 70%)";
-const codeBorder = "hsl(240 24% 12%)";
+const primary = "#C8882C";
+const codeBorder = "#221A0F";
 
 const codeStyle: { [key: string]: React.CSSProperties } = {
   hljs: {
-    background: "hsl(240 22% 6%)",
-    color: "hsl(240 20% 88%)",
+    background: "#0C0903",
+    color: "#D0B898",
     padding: "16px",
     lineHeight: "1.7",
     fontSize: "13px",
     fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
     overflowX: "auto",
   },
-  "hljs-comment": { color: "hsl(238 18% 42%)", fontStyle: "italic" },
-  "hljs-quote": { color: "hsl(238 18% 42%)", fontStyle: "italic" },
-  "hljs-keyword": { color: "hsl(248 90% 74%)" },
-  "hljs-selector-tag": { color: "hsl(248 90% 74%)" },
-  "hljs-addition": { color: "hsl(142 60% 58%)" },
-  "hljs-number": { color: "hsl(25 90% 66%)" },
-  "hljs-string": { color: "hsl(142 60% 60%)" },
-  "hljs-meta-string": { color: "hsl(142 60% 60%)" },
-  "hljs-doctag": { color: "hsl(142 60% 60%)" },
-  "hljs-attr": { color: "hsl(185 70% 62%)" },
-  "hljs-attribute": { color: "hsl(185 70% 62%)" },
-  "hljs-variable": { color: "hsl(200 80% 68%)" },
+  "hljs-comment":           { color: "#4A3C28", fontStyle: "italic" },
+  "hljs-quote":             { color: "#4A3C28", fontStyle: "italic" },
+  "hljs-keyword":           { color: "#C8882C" },
+  "hljs-selector-tag":      { color: "#C8882C" },
+  "hljs-addition":          { color: "hsl(142 60% 58%)" },
+  "hljs-number":            { color: "hsl(25 90% 66%)" },
+  "hljs-string":            { color: "hsl(142 60% 60%)" },
+  "hljs-meta-string":       { color: "hsl(142 60% 60%)" },
+  "hljs-doctag":            { color: "hsl(142 60% 60%)" },
+  "hljs-attr":              { color: "hsl(185 70% 62%)" },
+  "hljs-attribute":         { color: "hsl(185 70% 62%)" },
+  "hljs-variable":          { color: "hsl(200 80% 68%)" },
   "hljs-template-variable": { color: "hsl(200 80% 68%)" },
-  "hljs-type": { color: "hsl(38 90% 64%)" },
-  "hljs-selector-class": { color: "hsl(38 90% 64%)" },
-  "hljs-selector-id": { color: "hsl(38 90% 64%)" },
-  "hljs-title": { color: "hsl(200 80% 68%)" },
-  "hljs-section": { color: "hsl(200 80% 68%)" },
-  "hljs-built_in": { color: "hsl(38 90% 64%)" },
-  "hljs-literal": { color: "hsl(25 90% 66%)" },
-  "hljs-bullet": { color: "hsl(25 90% 66%)" },
-  "hljs-link": { color: "hsl(248 90% 74%)", textDecoration: "underline" },
-  "hljs-regexp": { color: "hsl(328 80% 68%)" },
-  "hljs-symbol": { color: "hsl(328 80% 68%)" },
-  "hljs-deletion": { color: "hsl(4 86% 64%)" },
-  "hljs-emphasis": { fontStyle: "italic" },
-  "hljs-strong": { fontWeight: "bold" },
+  "hljs-type":              { color: "hsl(38 90% 64%)" },
+  "hljs-selector-class":    { color: "hsl(38 90% 64%)" },
+  "hljs-selector-id":       { color: "hsl(38 90% 64%)" },
+  "hljs-title":             { color: "hsl(200 80% 68%)" },
+  "hljs-section":           { color: "hsl(200 80% 68%)" },
+  "hljs-built_in":          { color: "hsl(38 90% 64%)" },
+  "hljs-literal":           { color: "hsl(25 90% 66%)" },
+  "hljs-bullet":            { color: "hsl(25 90% 66%)" },
+  "hljs-link":              { color: "#C8882C", textDecoration: "underline" },
+  "hljs-regexp":            { color: "hsl(328 80% 68%)" },
+  "hljs-symbol":            { color: "hsl(328 80% 68%)" },
+  "hljs-deletion":          { color: "hsl(4 86% 64%)" },
+  "hljs-emphasis":          { fontStyle: "italic" },
+  "hljs-strong":            { fontWeight: "bold" },
 };
 
 function CodeBlock({ language, code }: { language: string; code: string }) {
@@ -57,16 +57,16 @@ function CodeBlock({ language, code }: { language: string; code: string }) {
     <div className="rounded-xl overflow-hidden mb-3 last:mb-0" style={{ border: `1px solid ${codeBorder}` }}>
       <div
         className="flex items-center justify-between px-4 py-2"
-        style={{ background: "hsl(240 22% 8%)", borderBottom: `1px solid ${codeBorder}` }}
+        style={{ background: "#0A0803", borderBottom: `1px solid ${codeBorder}` }}
       >
-        <span className="text-[11px] font-medium tracking-wide" style={{ color: "hsl(238 18% 38%)" }}>
+        <span className="text-[11px] font-medium tracking-wide" style={{ color: "#4A3C28" }}>
           {language}
         </span>
         <button
           onClick={copy}
           className="text-[11px] font-medium px-2.5 py-0.5 rounded-lg transition-all"
           style={{
-            color: copied ? "hsl(152 64% 52%)" : "hsl(238 18% 44%)",
+            color: copied ? "hsl(152 64% 52%)" : "#6A5440",
             backgroundColor: copied ? "rgba(34,197,94,0.08)" : "transparent",
           }}
         >
@@ -98,7 +98,7 @@ const components: Components = {
   ),
 
   p: ({ children }) => (
-    <p className="text-[14px] leading-[1.75] mb-3 last:mb-0" style={{ color: "hsl(244 100% 97% / 0.82)" }}>
+    <p className="text-[14px] leading-[1.75] mb-3 last:mb-0" style={{ color: "#B09070" }}>
       {children}
     </p>
   ),
@@ -106,14 +106,14 @@ const components: Components = {
   ul: ({ children }) => <ul className="mb-3 last:mb-0 space-y-1.5 pl-0">{children}</ul>,
   ol: ({ children }) => <ol className="mb-3 last:mb-0 space-y-1.5 pl-5 list-decimal">{children}</ol>,
   li: ({ children }) => (
-    <li className="text-[14px] leading-[1.7] flex items-start gap-2.5" style={{ color: "hsl(244 100% 97% / 0.8)" }}>
-      <span className="mt-[8px] w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: "hsl(246 89% 70% / 0.7)" }} />
+    <li className="text-[14px] leading-[1.7] flex items-start gap-2.5" style={{ color: "#B09070" }}>
+      <span className="mt-[8px] w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: "rgba(200,136,44,0.6)" }} />
       <span className="flex-1">{children}</span>
     </li>
   ),
 
   strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>,
-  em: ({ children }) => <em className="italic" style={{ color: "hsl(244 100% 97% / 0.75)" }}>{children}</em>,
+  em: ({ children }) => <em className="italic" style={{ color: "#9A7A5C" }}>{children}</em>,
 
   pre: ({ children }) => <>{children}</>,
 
@@ -127,9 +127,9 @@ const components: Components = {
       <code
         className="text-[13px] font-mono px-1.5 py-0.5 rounded-md"
         style={{
-          backgroundColor: "hsl(240 20% 13%)",
-          color: "hsl(246 89% 78%)",
-          border: "1px solid hsl(240 24% 18%)",
+          backgroundColor: "rgba(200,136,44,0.1)",
+          color: "#C8882C",
+          border: "1px solid rgba(200,136,44,0.2)",
         }}
       >
         {children}
@@ -147,12 +147,12 @@ const components: Components = {
 
   blockquote: ({ children }) => (
     <blockquote className="pl-4 my-3 italic text-[14px] leading-[1.75]"
-      style={{ borderLeft: "2px solid hsl(246 89% 70% / 0.35)", color: "hsl(242 18% 60%)" }}>
+      style={{ borderLeft: "2px solid rgba(200,136,44,0.35)", color: "#8A7060" }}>
       {children}
     </blockquote>
   ),
 
-  hr: () => <hr className="my-4" style={{ borderColor: "hsl(240 24% 14%)" }} />,
+  hr: () => <hr className="my-4" style={{ borderColor: "#221A0F" }} />,
 
   table: ({ children }) => (
     <div className="overflow-x-auto mb-3 last:mb-0 rounded-xl" style={{ border: `1px solid ${codeBorder}` }}>
@@ -160,20 +160,20 @@ const components: Components = {
     </div>
   ),
   thead: ({ children }) => (
-    <thead style={{ backgroundColor: "hsl(240 20% 10%)", borderBottom: `1px solid ${codeBorder}` }}>
+    <thead style={{ backgroundColor: "#0A0803", borderBottom: `1px solid ${codeBorder}` }}>
       {children}
     </thead>
   ),
   th: ({ children }) => (
     <th className="text-left px-4 py-2.5 text-[11px] font-semibold uppercase tracking-widest"
-      style={{ color: "hsl(242 18% 52%)" }}>
+      style={{ color: "#6A5440" }}>
       {children}
     </th>
   ),
   tbody: ({ children }) => <tbody>{children}</tbody>,
-  tr: ({ children }) => <tr style={{ borderBottom: "1px solid hsl(240 24% 11%)" }}>{children}</tr>,
+  tr: ({ children }) => <tr style={{ borderBottom: `1px solid ${codeBorder}` }}>{children}</tr>,
   td: ({ children }) => (
-    <td className="px-4 py-2.5 text-[14px]" style={{ color: "hsl(244 100% 97% / 0.78)" }}>
+    <td className="px-4 py-2.5 text-[14px]" style={{ color: "#B09070" }}>
       {children}
     </td>
   ),
