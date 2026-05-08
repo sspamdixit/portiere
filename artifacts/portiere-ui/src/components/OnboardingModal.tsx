@@ -1,12 +1,11 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import {
   ArrowRight, Check, Copy, ExternalLink, Loader2,
-  Cpu, Zap, ChevronLeft, X, Send,
+  Cpu, Zap, ChevronLeft, X,
   Monitor, Server, Sparkles,
-  Newspaper, TrendingUp, Languages, CalendarPlus, Image,
-  Bot, User as UserIcon,
+  HardDrive, MemoryStick, Gpu,
 } from "lucide-react";
-import { saveSettings, probeOllama, probeLMStudio, streamWizard } from "@/lib/api";
+import { saveSettings, probeOllama, probeLMStudio, fetchSystemInfo, type SystemInfo, type SystemRecommendation } from "@/lib/api";
 
 const bg     = "hsl(238 20% 6%)";
 const bg2    = "hsl(238 18% 8%)";
@@ -18,12 +17,6 @@ const green  = "hsl(152 64% 48%)";
 
 type Provider = "ollama" | "lmstudio" | "openai" | "anthropic";
 interface ProbeResult { ok: boolean; models?: string[]; error?: string; }
-interface ChatMessage { role: "user" | "assistant"; content: string; }
-interface SetupResult {
-  profile_name?: string; profile_city?: string;
-  profile_occupation?: string; profile_preferences?: string;
-  recommended_provider?: Provider; recommendation_reason?: string;
-}
 
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
@@ -100,7 +93,7 @@ function RadioCard<T extends string>({ id, selected, onSelect, children }: {
 }
 
 const PROVIDER_OPTIONS: { id: Provider; label: string; sub: string; badge: string; badgeGreen?: boolean; Icon: React.FC<{ size?: number }> }[] = [
-  { id: "ollama",    label: "Ollama",    sub: "Free · Runs locally on your machine",  badge: "Recommended", badgeGreen: true, Icon: Monitor },
+  { id: "ollama",    label: "Ollama",    sub: "Free · Runs locally on your machine",  badge: "Local", badgeGreen: true, Icon: Monitor },
   { id: "lmstudio", label: "LM Studio", sub: "Free · GUI desktop app",               badge: "Local",        Icon: Cpu },
   { id: "openai",   label: "OpenAI",    sub: "GPT-4o · Requires API key",             badge: "Cloud",        Icon: Server },
   { id: "anthropic",label: "Anthropic", sub: "Claude as Brain · Requires API key",   badge: "Cloud",        Icon: Zap },
@@ -121,90 +114,142 @@ const CLAUDE_MODELS = [
   { id: "claude-3-5-haiku-20241022",  label: "Claude 3.5 Haiku",  note: "Fast" },
 ];
 
-// ─── Wizard Chat UI (Step 0) ─────────────────────────────────────────────
-function WizardStep({
+const TIER_COLORS: Record<string, { accent: string; bg: string; border: string }> = {
+  gpu:         { accent: "hsl(142 60% 55%)",  bg: "rgba(34,197,94,0.06)",   border: "rgba(34,197,94,0.2)"  },
+  local:       { accent: primary,              bg: "rgba(109,95,234,0.08)",  border: "rgba(109,95,234,0.22)" },
+  local_light: { accent: primary,              bg: "rgba(109,95,234,0.08)",  border: "rgba(109,95,234,0.22)" },
+  cloud:       { accent: "hsl(200 80% 65%)",  bg: "rgba(56,189,248,0.06)",  border: "rgba(56,189,248,0.18)" },
+};
+
+function SpecPill({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl flex-1 min-w-0"
+      style={{ backgroundColor: bg2, border: `1px solid ${border}` }}>
+      <div style={{ color: primary, flexShrink: 0 }}>{icon}</div>
+      <div className="min-w-0">
+        <p className="text-[10px] uppercase tracking-wider font-semibold" style={{ color: dim }}>{label}</p>
+        <p className="text-[12.5px] font-semibold text-foreground truncate" style={{ letterSpacing: "-0.01em" }}>{value}</p>
+      </div>
+    </div>
+  );
+}
+
+function ComboCard({ rec, selected, onSelect, index }: {
+  rec: SystemRecommendation;
+  selected: boolean;
+  onSelect: () => void;
+  index: number;
+}) {
+  const colors = TIER_COLORS[rec.tier] ?? TIER_COLORS.cloud;
+  return (
+    <button
+      onClick={onSelect}
+      className="w-full text-left transition-all duration-200 animate-feed-in"
+      style={{
+        animationDelay: `${index * 80}ms`,
+        padding: "14px 16px",
+        borderRadius: "16px",
+        backgroundColor: selected ? colors.bg : bg2,
+        border: `1.5px solid ${selected ? colors.border : border}`,
+        boxShadow: selected ? `0 0 0 1px ${colors.border}` : "none",
+      }}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap mb-1">
+            <span className="text-[13.5px] font-semibold text-foreground" style={{ letterSpacing: "-0.01em" }}>
+              {rec.label}
+            </span>
+            {rec.badges.slice(0, 2).map(b => (
+              <span key={b} className="text-[10px] px-1.5 py-0.5 rounded-md font-semibold"
+                style={{ backgroundColor: selected ? colors.bg : "hsl(238 18% 11%)", color: selected ? colors.accent : dim, border: `1px solid ${selected ? colors.border : "transparent"}` }}>
+                {b}
+              </span>
+            ))}
+          </div>
+          <p className="text-[12px] mb-3" style={{ color: muted }}>{rec.tagline}</p>
+          <div className="space-y-1.5">
+            {rec.items.map((item, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <span className="text-[10px] px-2 py-0.5 rounded-md font-semibold flex-shrink-0"
+                  style={{ backgroundColor: "hsl(238 18% 11%)", color: dim }}>{item.role}</span>
+                <span className="text-[12px] font-medium" style={{ color: selected ? "hsl(240 20% 86%)" : muted }}>{item.name}</span>
+                <span className="text-[11px]" style={{ color: dim }}>· {item.note}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="flex-shrink-0 mt-0.5">
+          <div className="w-5 h-5 rounded-full flex items-center justify-center transition-all"
+            style={{
+              backgroundColor: selected ? colors.accent : "transparent",
+              border: `1.5px solid ${selected ? colors.accent : border}`,
+            }}>
+            {selected && <Check size={11} color="white" />}
+          </div>
+        </div>
+      </div>
+      {selected && rec.why && (
+        <p className="mt-3 pt-3 text-[12px] leading-relaxed"
+          style={{ color: muted, borderTop: `1px solid ${colors.border}` }}>
+          {rec.why}
+        </p>
+      )}
+    </button>
+  );
+}
+
+function PulsingDot({ delay = 0 }: { delay?: number }) {
+  return (
+    <span className="inline-block w-1.5 h-1.5 rounded-full animate-bounce"
+      style={{ backgroundColor: primary, animationDelay: `${delay}ms` }} />
+  );
+}
+
+// ─── Hardware Scan Step (Step 0) ──────────────────────────────────────────────
+function HardwareScanStep({
   onComplete,
 }: {
-  onComplete: (result: SetupResult, provider: Provider) => void;
+  onComplete: (provider: Provider, model: string) => void;
 }) {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [input, setInput] = useState("");
-  const [streaming, setStreaming] = useState(false);
-  const [streamingText, setStreamingText] = useState("");
-  const [done, setDone] = useState(false);
-  const [setupResult, setSetupResult] = useState<SetupResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const bottomRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const cancelRef = useRef<(() => void) | null>(null);
-
-  // Kick off the first wizard message automatically
-  useEffect(() => {
-    sendToWizard([]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const [phase, setPhase] = useState<"scanning" | "done" | "error">("scanning");
+  const [sysInfo, setSysInfo] = useState<SystemInfo | null>(null);
+  const [selected, setSelected] = useState<number>(0);
+  const [errMsg, setErrMsg] = useState("");
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, streamingText]);
-
-  const sendToWizard = useCallback((history: ChatMessage[]) => {
-    setStreaming(true);
-    setStreamingText("");
-    setError(null);
-    let accumulated = "";
-
-    const cancel = streamWizard(
-      history,
-      (chunk) => {
-        if (chunk.type === "chunk") {
-          accumulated += chunk.content ?? "";
-          // Strip any partial SETUP_RESULT block from display
-          const display = accumulated.replace(/<SETUP_RESULT>[\s\S]*/, "").trimEnd();
-          setStreamingText(display);
-        }
-        if (chunk.type === "setup_result" && chunk.result) {
-          setSetupResult(chunk.result as SetupResult);
-        }
-        if (chunk.type === "error") {
-          setError(chunk.content ?? "Something went wrong.");
-        }
-      },
-      () => {
-        setStreaming(false);
-        const display = accumulated.replace(/<SETUP_RESULT>[\s\S]*/, "").trimEnd();
-        if (display) {
-          setMessages(prev => [...prev, { role: "assistant", content: display }]);
-        }
-        setStreamingText("");
-        if (accumulated.includes("<SETUP_RESULT>")) setDone(true);
-      },
-    );
-    cancelRef.current = cancel;
+    const minDelay = new Promise(r => setTimeout(r, 900));
+    const infoFetch = fetchSystemInfo();
+    Promise.all([minDelay, infoFetch])
+      .then(([, info]) => {
+        setSysInfo(info as SystemInfo);
+        setPhase("done");
+      })
+      .catch(e => {
+        setErrMsg(String(e));
+        setPhase("error");
+      });
   }, []);
 
-  const handleSend = useCallback(() => {
-    const msg = input.trim();
-    if (!msg || streaming) return;
-    const newHistory: ChatMessage[] = [...messages, { role: "user", content: msg }];
-    setMessages(newHistory);
-    setInput("");
-    sendToWizard(newHistory);
-  }, [input, messages, streaming, sendToWizard]);
+  const handleAccept = useCallback(() => {
+    if (!sysInfo) return;
+    const rec = sysInfo.recommendations[selected];
+    if (!rec) return;
+    onComplete(rec.provider as Provider, rec.model);
+  }, [sysInfo, selected, onComplete]);
 
-  const handleAccept = () => {
-    if (!setupResult) return;
-    const provider = (setupResult.recommended_provider as Provider) || "openai";
-    onComplete(setupResult, provider);
-  };
+  const handleSkip = useCallback(() => {
+    onComplete("openai", "gpt-4o");
+  }, [onComplete]);
 
-  const handleSkipWizard = () => {
-    cancelRef.current?.();
-    onComplete({}, "openai");
+  const cpuShortName = (model: string) => {
+    const m = model.replace(/\(R\)|\(TM\)/gi, "").trim();
+    if (m.length > 36) return m.slice(0, 34) + "…";
+    return m || "Unknown CPU";
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
       {/* Header */}
       <div className="flex items-center gap-3">
         <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
@@ -213,129 +258,121 @@ function WizardStep({
         </div>
         <div>
           <h1 className="text-[18px] font-semibold text-foreground" style={{ letterSpacing: "-0.02em" }}>Welcome to Portiere</h1>
-          <p className="text-[12px] mt-0.5" style={{ color: muted }}>Let's get you set up in 2 minutes</p>
+          <p className="text-[12px] mt-0.5" style={{ color: muted }}>Scanning your machine to find the best AI setup</p>
         </div>
       </div>
 
-      {/* Chat area */}
-      <div
-        className="flex flex-col gap-3 overflow-y-auto feed-scroll"
-        style={{ maxHeight: "320px", minHeight: "180px" }}
-      >
-        {messages.map((m, i) => (
-          <div key={i} className={`flex gap-2.5 ${m.role === "user" ? "flex-row-reverse" : ""}`}>
-            <div
-              className="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center mt-0.5"
-              style={{
-                backgroundColor: m.role === "assistant" ? "rgba(109,95,234,0.15)" : "rgba(109,95,234,0.25)",
-                color: primary,
-              }}
-            >
-              {m.role === "assistant" ? <Bot size={12} /> : <UserIcon size={12} />}
-            </div>
-            <div
-              className="px-3.5 py-2.5 rounded-2xl text-[13.5px] leading-relaxed max-w-[85%]"
-              style={{
-                background: m.role === "user"
-                  ? "linear-gradient(135deg, hsl(248 82% 58%) 0%, hsl(264 68% 64%) 100%)"
-                  : bg2,
-                border: m.role === "assistant" ? `1px solid ${border}` : "none",
-                color: m.role === "user" ? "rgba(255,255,255,0.97)" : "hsl(240 20% 88%)",
-                borderRadius: m.role === "user" ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
-                whiteSpace: "pre-wrap",
-              }}
-            >
-              {m.content}
-            </div>
+      {/* Scanning state */}
+      {phase === "scanning" && (
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-3 px-4 py-3.5 rounded-2xl"
+            style={{ backgroundColor: bg2, border: `1px solid ${border}` }}>
+            <Loader2 size={14} className="animate-spin flex-shrink-0" style={{ color: primary }} />
+            <span className="text-[13px]" style={{ color: muted }}>
+              Detecting CPU, RAM and GPU&ensp;
+              <PulsingDot delay={0} />&thinsp;
+              <PulsingDot delay={150} />&thinsp;
+              <PulsingDot delay={300} />
+            </span>
           </div>
-        ))}
-
-        {/* Streaming assistant bubble */}
-        {streaming && (
-          <div className="flex gap-2.5">
-            <div className="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center mt-0.5"
-              style={{ backgroundColor: "rgba(109,95,234,0.15)", color: primary }}>
-              <Bot size={12} />
-            </div>
-            <div className="px-3.5 py-2.5 rounded-2xl text-[13.5px] leading-relaxed max-w-[85%]"
-              style={{ background: bg2, border: `1px solid ${border}`, color: "hsl(240 20% 88%)", borderRadius: "18px 18px 18px 4px", whiteSpace: "pre-wrap" }}>
-              {streamingText || <span className="inline-flex gap-1 items-center">
-                <span className="w-1 h-1 rounded-full animate-bounce" style={{ backgroundColor: primary, animationDelay: "0ms" }} />
-                <span className="w-1 h-1 rounded-full animate-bounce" style={{ backgroundColor: primary, animationDelay: "150ms" }} />
-                <span className="w-1 h-1 rounded-full animate-bounce" style={{ backgroundColor: primary, animationDelay: "300ms" }} />
-              </span>}
-            </div>
+          <div className="grid grid-cols-3 gap-2">
+            {["CPU", "RAM", "GPU"].map(label => (
+              <div key={label} className="h-16 rounded-xl animate-pulse"
+                style={{ backgroundColor: bg2, border: `1px solid ${border}` }}>
+                <div className="h-full flex items-center justify-center">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: dim }}>{label}</span>
+                </div>
+              </div>
+            ))}
           </div>
-        )}
-
-        {/* Error */}
-        {error && (
-          <div className="px-3.5 py-2.5 rounded-2xl text-[13px]"
-            style={{ backgroundColor: "rgba(220,53,69,0.07)", border: "1px solid rgba(220,53,69,0.2)", color: "hsl(4 86% 62%)" }}>
-            {error} — <button className="underline" onClick={() => sendToWizard(messages)}>retry</button>
+          <div className="space-y-2">
+            {[1, 2].map(i => (
+              <div key={i} className="h-24 rounded-2xl animate-pulse"
+                style={{ backgroundColor: bg2, border: `1px solid ${border}`, animationDelay: `${i * 120}ms` }} />
+            ))}
           </div>
-        )}
-
-        <div ref={bottomRef} />
-      </div>
-
-      {/* Recommendation card (when done) */}
-      {done && setupResult?.recommended_provider && (
-        <div className="p-4 rounded-2xl animate-feed-in"
-          style={{ background: "rgba(109,95,234,0.08)", border: "1px solid rgba(109,95,234,0.22)" }}>
-          <p className="text-[12px] font-semibold uppercase tracking-wider mb-1.5" style={{ color: "hsl(248 90% 70%)", letterSpacing: "0.06em" }}>
-            Recommendation
-          </p>
-          <p className="text-[14px] font-semibold text-foreground" style={{ letterSpacing: "-0.01em" }}>
-            {PROVIDER_OPTIONS.find(p => p.id === setupResult.recommended_provider)?.label ?? setupResult.recommended_provider}
-          </p>
-          {setupResult.recommendation_reason && (
-            <p className="text-[12.5px] mt-1" style={{ color: muted }}>{setupResult.recommendation_reason}</p>
-          )}
         </div>
       )}
 
-      {/* Input */}
-      {!done && (
-        <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl"
-          style={{ background: bg2, border: `1.5px solid ${border}` }}>
-          <input
-            ref={inputRef}
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-            placeholder="Reply here..."
-            disabled={streaming}
-            className="flex-1 bg-transparent text-[14px] outline-none"
-            style={{ color: "hsl(240 20% 92%)", caretColor: primary }}
-            autoFocus
-          />
-          <button
-            onClick={handleSend}
-            disabled={!input.trim() || streaming}
-            className="w-7 h-7 rounded-xl flex items-center justify-center transition-all disabled:opacity-30"
-            style={{ background: "linear-gradient(135deg, hsl(248 82% 60%) 0%, hsl(264 68% 64%) 100%)", color: "white" }}
-          >
-            <Send size={12} />
-          </button>
+      {/* Error state */}
+      {phase === "error" && (
+        <div className="flex flex-col gap-4">
+          <div className="p-4 rounded-2xl text-[13px]"
+            style={{ backgroundColor: "rgba(220,53,69,0.06)", border: "1px solid rgba(220,53,69,0.18)" }}>
+            <p className="font-semibold mb-1" style={{ color: "hsl(4 86% 66%)" }}>Couldn't scan system info</p>
+            <p style={{ color: muted }}>{errMsg || "The API server may not be running yet."}</p>
+          </div>
+          <p className="text-[13px]" style={{ color: muted }}>
+            No worries — you can choose your AI setup manually on the next step.
+          </p>
         </div>
       )}
 
-      {/* Skip / Accept */}
-      <div className="flex items-center justify-between">
-        <button onClick={handleSkipWizard} className="text-[12px] transition-colors"
+      {/* Results state */}
+      {phase === "done" && sysInfo && (
+        <div className="flex flex-col gap-4">
+          {/* Spec pills */}
+          <div className="grid grid-cols-3 gap-2">
+            <SpecPill
+              icon={<Cpu size={13} />}
+              label="CPU"
+              value={cpuShortName(sysInfo.cpu.model)}
+            />
+            <SpecPill
+              icon={<MemoryStick size={13} />}
+              label="RAM"
+              value={`${sysInfo.ram_gb} GB`}
+            />
+            <SpecPill
+              icon={<HardDrive size={13} />}
+              label="GPU"
+              value={sysInfo.gpu?.[0]
+                ? `${sysInfo.gpu[0].vram_gb}GB VRAM`
+                : "No GPU"}
+            />
+          </div>
+
+          {/* Recommendations */}
+          <div>
+            <p className="text-[11px] uppercase tracking-widest font-semibold mb-2.5 px-0.5"
+              style={{ color: dim }}>
+              Best AI combos for your setup
+            </p>
+            <div className="space-y-2.5">
+              {sysInfo.recommendations.map((rec, i) => (
+                <ComboCard
+                  key={rec.tier}
+                  rec={rec}
+                  selected={selected === i}
+                  onSelect={() => setSelected(i)}
+                  index={i}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Footer actions */}
+      <div className="flex items-center justify-between pt-1">
+        <button onClick={handleSkip} className="text-[12px] transition-colors"
           style={{ color: dim }}
           onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = muted}
           onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = dim}>
-          Skip setup →
+          Skip →
         </button>
-        {done && (
-          <button onClick={handleAccept}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-[13px] font-semibold transition-all"
-            style={{ background: "linear-gradient(135deg, hsl(248 82% 60%) 0%, hsl(264 68% 64%) 100%)", color: "white", boxShadow: "0 2px 10px rgba(109,95,234,0.38)" }}>
-            Apply & continue <ArrowRight size={13} />
-          </button>
-        )}
+        <button
+          onClick={phase === "error" ? () => onComplete("openai", "gpt-4o") : handleAccept}
+          disabled={phase === "scanning"}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-[13px] font-semibold transition-all disabled:opacity-40"
+          style={{
+            background: "linear-gradient(135deg, hsl(248 82% 60%) 0%, hsl(264 68% 64%) 100%)",
+            color: "white",
+            boxShadow: phase !== "scanning" ? "0 2px 10px rgba(109,95,234,0.38)" : "none",
+          }}>
+          {phase === "error" ? "Choose manually" : "Apply & continue"}
+          <ArrowRight size={13} />
+        </button>
       </div>
     </div>
   );
@@ -354,14 +391,17 @@ export default function OnboardingModal({ onDone }: { onDone: () => void }) {
   const [probeResult, setProbeResult] = useState<ProbeResult | null>(null);
   const [probing, setProbing] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [wizardProfile, setWizardProfile] = useState<SetupResult>({});
+  const [hwRecommendedProvider, setHwRecommendedProvider] = useState<Provider | null>(null);
 
   const totalSteps = provider === "ollama" || provider === "lmstudio" ? 4 : 3;
   const isFinalStep = (step >= 2 && provider === "anthropic" && step === 3) || (provider !== "anthropic" && step === 4);
 
-  const handleWizardComplete = (result: SetupResult, recommended: Provider) => {
-    setWizardProfile(result);
-    setProvider(recommended);
+  const handleHardwareScanComplete = (recommendedProvider: Provider, recommendedModel: string) => {
+    setProvider(recommendedProvider);
+    setHwRecommendedProvider(recommendedProvider);
+    if (recommendedProvider === "ollama") setOllamaModel(recommendedModel);
+    if (recommendedProvider === "openai") setOpenaiModel(recommendedModel);
+    if (recommendedProvider === "anthropic") setAnthropicModel(recommendedModel);
     setStep(1);
   };
 
@@ -379,11 +419,6 @@ export default function OnboardingModal({ onDone }: { onDone: () => void }) {
     if (provider === "openai")   { p.brain_provider = "openai";    p.brain_model = openaiModel;    p.brain_api_key = openaiKey; }
     if (provider === "anthropic"){ p.brain_provider = "anthropic"; p.brain_model = anthropicModel; p.brain_api_key = anthropicKey; }
     if (claudeKey) p.claude_api_key = claudeKey;
-    // Apply profile from wizard
-    if (wizardProfile.profile_name)        p.profile_name = wizardProfile.profile_name;
-    if (wizardProfile.profile_city)        p.profile_city = wizardProfile.profile_city;
-    if (wizardProfile.profile_occupation)  p.profile_occupation = wizardProfile.profile_occupation;
-    if (wizardProfile.profile_preferences) p.profile_preferences = wizardProfile.profile_preferences;
     await saveSettings(p).catch(() => {});
     setSaving(false);
     onDone();
@@ -418,27 +453,19 @@ export default function OnboardingModal({ onDone }: { onDone: () => void }) {
 
         <div className="overflow-y-auto flex-1 px-7 py-6 feed-scroll">
 
-          {/* ── Step 0: Groq Wizard ── */}
+          {/* ── Step 0: Hardware Scan ── */}
           {step === 0 && (
-            <WizardStep onComplete={handleWizardComplete} />
+            <HardwareScanStep onComplete={handleHardwareScanComplete} />
           )}
 
           {/* ── Step 1: Provider ── */}
           {step === 1 && (
             <div className="flex flex-col gap-5">
-              {wizardProfile.profile_name && (
-                <div className="px-4 py-2.5 rounded-xl text-[13px]"
-                  style={{ background: "rgba(109,95,234,0.07)", border: "1px solid rgba(109,95,234,0.18)", color: "hsl(248 90% 76%)" }}>
-                  ✓ Profile saved — welcome, {wizardProfile.profile_name.split(" ")[0]}! Now let's connect your Brain.
-                </div>
-              )}
               <div>
                 <p className="text-[11px] uppercase tracking-widest font-semibold mb-1.5" style={{ color: dim }}>Step 1 of {totalSteps}</p>
-                <h2 className="text-[18px] font-semibold text-foreground" style={{ letterSpacing: "-0.02em" }}>Choose your AI Brain</h2>
+                <h2 className="text-[18px] font-semibold text-foreground" style={{ letterSpacing: "-0.02em" }}>Confirm your AI Brain</h2>
                 <p className="text-[13px] mt-1" style={{ color: muted }}>
-                  {wizardProfile.recommendation_reason
-                    ? `Portiere suggests: ${wizardProfile.recommendation_reason}`
-                    : "The Brain routes all your requests. Local models are free; cloud APIs need a key."}
+                  Pre-selected based on your hardware. Change if you prefer.
                 </p>
               </div>
               <div className="space-y-2">
@@ -453,10 +480,10 @@ export default function OnboardingModal({ onDone }: { onDone: () => void }) {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="text-[13px] font-semibold text-foreground">{label}</span>
-                        {id === wizardProfile.recommended_provider && (
+                        {id === hwRecommendedProvider && (
                           <span className="text-[10px] px-1.5 py-0.5 rounded-md font-semibold"
                             style={{ backgroundColor: "rgba(109,95,234,0.15)", color: primary }}>
-                            AI Pick
+                            Recommended for your PC
                           </span>
                         )}
                         <span className="text-[10px] px-1.5 py-0.5 rounded-md font-semibold"
@@ -482,7 +509,6 @@ export default function OnboardingModal({ onDone }: { onDone: () => void }) {
                 <p className="text-[13px] mt-1" style={{ color: muted }}>Free, private AI on your computer — no account, no usage limits.</p>
               </div>
 
-              {/* Step 1 */}
               <div className="p-4 rounded-2xl" style={{ background: bg2, border: `1px solid ${border}` }}>
                 <div className="flex items-start gap-3">
                   <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-[10px] font-bold"
@@ -507,7 +533,6 @@ export default function OnboardingModal({ onDone }: { onDone: () => void }) {
                 </div>
               </div>
 
-              {/* Step 2 */}
               <div className="p-4 rounded-2xl" style={{ background: bg2, border: `1px solid ${border}` }}>
                 <div className="flex items-start gap-3">
                   <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-[10px] font-bold"
@@ -515,7 +540,7 @@ export default function OnboardingModal({ onDone }: { onDone: () => void }) {
                   <div className="flex-1">
                     <p className="text-[13px] font-semibold text-foreground mb-1">Open Ollama</p>
                     <p className="text-[12.5px] leading-relaxed" style={{ color: muted }}>
-                      <strong style={{ color: "hsl(240 20% 84%)" }}>macOS / Windows:</strong> Open the app like normal — look for the 🦙 icon in your menu bar or taskbar. It runs quietly in the background.
+                      <strong style={{ color: "hsl(240 20% 84%)" }}>macOS / Windows:</strong> Open the app — look for the 🦙 icon in your menu bar or taskbar.
                     </p>
                     <p className="text-[12px] mt-1.5" style={{ color: dim }}>
                       Linux: run <code className="px-1.5 py-0.5 rounded-md text-[11px]" style={{ background: "hsl(238 22% 6%)", border: `1px solid ${border}`, color: "hsl(240 20% 86%)" }}>ollama serve</code> in a terminal window.
@@ -524,7 +549,6 @@ export default function OnboardingModal({ onDone }: { onDone: () => void }) {
                 </div>
               </div>
 
-              {/* Step 3: model picker */}
               <div className="p-4 rounded-2xl" style={{ background: bg2, border: `1px solid ${border}` }}>
                 <div className="flex items-start gap-3">
                   <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-[10px] font-bold"
@@ -546,7 +570,6 @@ export default function OnboardingModal({ onDone }: { onDone: () => void }) {
                 </div>
               </div>
 
-              {/* Test */}
               <button
                 onClick={handleProbe}
                 disabled={probing}
@@ -714,9 +737,7 @@ export default function OnboardingModal({ onDone }: { onDone: () => void }) {
                   <Sparkles size={24} style={{ color: "white" }} />
                 </div>
                 <div>
-                  <h2 className="text-[20px] font-semibold text-foreground" style={{ letterSpacing: "-0.025em" }}>
-                    {wizardProfile.profile_name ? `You're all set, ${wizardProfile.profile_name.split(" ")[0]}!` : "You're all set!"}
-                  </h2>
+                  <h2 className="text-[20px] font-semibold text-foreground" style={{ letterSpacing: "-0.025em" }}>You're all set!</h2>
                   <p className="text-[14px] mt-1" style={{ color: muted }}>Portiere is ready. Tell it anything.</p>
                 </div>
               </div>

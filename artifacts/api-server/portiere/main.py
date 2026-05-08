@@ -1,6 +1,9 @@
 import json
 import os
+import platform
+import subprocess
 import httpx
+import psutil
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -131,6 +134,138 @@ async def pull_ollama_model(request: Request):
             yield {"data": json.dumps({"error": str(e)})}
 
     return EventSourceResponse(generate())
+
+
+def _detect_gpus() -> list[dict] | None:
+    gpus = []
+    try:
+        r = subprocess.run(
+            ["nvidia-smi", "--query-gpu=name,memory.total", "--format=csv,noheader,nounits"],
+            capture_output=True, text=True, timeout=4,
+        )
+        if r.returncode == 0:
+            for line in r.stdout.strip().splitlines():
+                parts = line.split(",")
+                if len(parts) >= 2:
+                    name = parts[0].strip()
+                    vram_mb = int(parts[1].strip())
+                    gpus.append({"name": name, "vram_gb": round(vram_mb / 1024, 1), "vendor": "nvidia"})
+    except Exception:
+        pass
+    if gpus:
+        return gpus
+    try:
+        r = subprocess.run(["rocm-smi", "--showmeminfo", "vram", "--json"], capture_output=True, text=True, timeout=4)
+        if r.returncode == 0:
+            data = json.loads(r.stdout)
+            for dev, info in data.items():
+                vram_bytes = int(info.get("VRAM Total Memory (B)", 0))
+                gpus.append({"name": dev, "vram_gb": round(vram_bytes / 1024**3, 1), "vendor": "amd"})
+    except Exception:
+        pass
+    return gpus if gpus else None
+
+
+def _build_recommendations(ram_gb: float, gpus: list | None) -> list[dict]:
+    recs = []
+    has_gpu = bool(gpus)
+    vram_gb = max((g["vram_gb"] for g in gpus), default=0) if gpus else 0
+    gpu_name = gpus[0]["name"] if gpus else None
+
+    if has_gpu and vram_gb >= 6:
+        if vram_gb >= 20:
+            local_model = "llama3.1:70b"
+        elif vram_gb >= 12:
+            local_model = "llama3.1:8b"
+        else:
+            local_model = "mistral"
+        recs.append({
+            "tier": "gpu",
+            "label": "Local GPU Stack",
+            "tagline": f"Your {gpu_name} ({vram_gb:.0f}GB VRAM) is perfect for local AI",
+            "provider": "ollama",
+            "model": local_model,
+            "badges": ["GPU-accelerated", "Free", "Private"],
+            "items": [
+                {"role": "Brain", "name": f"Ollama · {local_model}", "note": "Fast GPU inference"},
+                {"role": "Writing & Code", "name": "Claude worker", "note": "Optional — add API key later"},
+            ],
+            "why": "GPU acceleration makes local AI as fast as cloud, with full privacy.",
+        })
+
+    if ram_gb >= 16:
+        model = "llama3.1:8b" if ram_gb >= 16 else "llama3.2"
+        recs.append({
+            "tier": "local",
+            "label": "Local AI — Free & Private",
+            "tagline": f"Your {ram_gb:.0f}GB RAM can run solid local models",
+            "provider": "ollama",
+            "model": model,
+            "badges": ["Free", "Private", "No account"],
+            "items": [
+                {"role": "Brain", "name": f"Ollama · {model}", "note": "Runs on your machine"},
+                {"role": "Writing & Code", "name": "Claude worker", "note": "Optional — add API key later"},
+            ],
+            "why": "Best for privacy. No monthly costs, no data leaving your device.",
+        })
+    elif ram_gb >= 8:
+        recs.append({
+            "tier": "local_light",
+            "label": "Lightweight Local",
+            "tagline": f"Your {ram_gb:.0f}GB RAM suits smaller local models",
+            "provider": "ollama",
+            "model": "llama3.2",
+            "badges": ["Free", "Private"],
+            "items": [
+                {"role": "Brain", "name": "Ollama · llama3.2", "note": "Fast 3B model"},
+                {"role": "Upgrade anytime", "name": "Add a cloud API key", "note": "OpenAI or Anthropic"},
+            ],
+            "why": "A compact local model — private and free with no account required.",
+        })
+
+    recs.append({
+        "tier": "cloud",
+        "label": "Cloud AI — Maximum Quality",
+        "tagline": "Works on any machine, no local setup",
+        "provider": "openai",
+        "model": "gpt-4o",
+        "badges": ["Best quality", "No setup"],
+        "items": [
+            {"role": "Brain", "name": "OpenAI GPT-4o", "note": "Requires API key"},
+            {"role": "Writing & Code", "name": "Claude worker", "note": "Optional — add API key later"},
+        ],
+        "why": "Maximum capability. Needs an OpenAI API key — pay per use.",
+    })
+
+    return recs
+
+
+@app.get("/api/system-info")
+async def get_system_info():
+    cpu_cores = psutil.cpu_count(logical=False) or psutil.cpu_count() or 1
+    cpu_logical = psutil.cpu_count() or cpu_cores
+    freq = psutil.cpu_freq()
+    cpu_ghz = round(freq.max / 1000, 1) if freq and freq.max else None
+    cpu_model = platform.processor() or platform.machine() or "Unknown CPU"
+
+    mem = psutil.virtual_memory()
+    ram_gb = round(mem.total / 1024**3, 1)
+
+    gpus = _detect_gpus()
+
+    recommendations = _build_recommendations(ram_gb, gpus)
+
+    return {
+        "cpu": {
+            "model": cpu_model,
+            "cores": cpu_cores,
+            "logical": cpu_logical,
+            "ghz": cpu_ghz,
+        },
+        "ram_gb": ram_gb,
+        "gpu": gpus,
+        "recommendations": recommendations,
+    }
 
 
 @app.get("/api/workers")

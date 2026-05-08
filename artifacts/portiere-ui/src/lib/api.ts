@@ -29,6 +29,31 @@ export async function fetchWorkers() {
   return r.json();
 }
 
+export interface SystemGpu { name: string; vram_gb: number; vendor: string; }
+export interface SystemRecommendationItem { role: string; name: string; note: string; }
+export interface SystemRecommendation {
+  tier: string;
+  label: string;
+  tagline: string;
+  provider: string;
+  model: string;
+  badges: string[];
+  items: SystemRecommendationItem[];
+  why: string;
+}
+export interface SystemInfo {
+  cpu: { model: string; cores: number; logical: number; ghz: number | null };
+  ram_gb: number;
+  gpu: SystemGpu[] | null;
+  recommendations: SystemRecommendation[];
+}
+
+export async function fetchSystemInfo(): Promise<SystemInfo> {
+  const r = await fetch(`${API}/system-info`);
+  if (!r.ok) throw new Error("Failed to fetch system info");
+  return r.json();
+}
+
 export interface WizardChunk {
   type: "chunk" | "done" | "error" | "setup_result";
   content?: string;
