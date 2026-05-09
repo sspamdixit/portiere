@@ -25,12 +25,17 @@ A local-first orchestration platform with a Master-Worker architecture. Users se
   - `workers/` — claude, video, local, osint workers
   - `settings_store.py` — JSON-based settings vault
 - `artifacts/portiere-ui/src/` — React + Tailwind frontend
-  - `pages/ConsolePage.tsx` — Main orchestration console + execution feed
+  - `pages/ReceiverPage.tsx` — Frutiger Aero engine room (default `/`)
+  - `pages/ConsolePage.tsx` — Orchestration console + execution feed (`/console`)
   - `pages/SettingsPage.tsx` — Settings vault (Brain, Claude, Email, Video, Shell)
   - `pages/ModelsPage.tsx` — Local model manager + capabilities reference
+  - `components/VoiceOrb.tsx` — 3D CSS glass sphere with sonar animation
+  - `components/SignalMeter.tsx` — SVG curved analog meter + needle
+  - `components/VUBars.tsx` — LED-style audio level bars
   - `components/OnboardingModal.tsx` — Hardware scan + first-run setup flow
   - `components/Sidebar.tsx` — Navigation sidebar
   - `lib/api.ts` — SSE streaming + API helpers
+  - `lib/receiver.ts` — WebSocket client for /ws/receiver (auto-reconnect)
 
 ## Architecture decisions
 
@@ -42,16 +47,18 @@ A local-first orchestration platform with a Master-Worker architecture. Users se
 
 ## Product
 
-- **Console**: Real-time orchestration feed showing Brain thinking, worker routing, and streamed output. Suggestion chips in empty state and after each run.
-- **Settings**: Centralized vault for Brain provider (Groq/Ollama/LM Studio/OpenAI/Anthropic), Claude key, FAL.ai/Seedance video keys, SMTP email, and shell command allowlist.
-- **Model Manager**: Lists installed Ollama and LM Studio models with live endpoint probe. Also serves as the capabilities reference (13 workers).
+- **Receiver (default `/`)**: Frutiger Aero "PC Engine Room" — Voice Orb, Signal Meter, VU bars, LCD log, WebSocket live feed. The primary interface.
+- **Console (`/console`)**: Real-time orchestration feed showing Brain thinking, worker routing, and streamed output. Suggestion chips in empty state and after each run.
+- **Settings (`/settings`)**: Centralized vault for Brain provider (Groq/Ollama/LM Studio/OpenAI/Anthropic), Claude key, FAL.ai/Seedance video keys, SMTP email, and shell command allowlist.
+- **Capabilities (`/capabilities`)**: Lists installed Ollama and LM Studio models with live endpoint probe. Also serves as the capabilities reference (13 workers).
 - **Onboarding**: Hardware scan on first launch recommends the best local or cloud setup for the machine.
 - **13 Workers**: Web Search, Weather, Live News, Finance, Translator, Calendar, Claude (writing/coding), Email, Code Runner, OSINT, System Monitor, Image Generation, Video Generation.
 
 ## User preferences
 
-- Warm ember dark palette: `#0D0A07` bg, `#CC7722` amber primary, `#E2D0B4` foreground, `#4A3A2C` border
-- Typography: Inter (UI), Cormorant Garamond (display headings)
+- **Receiver page (default)**: Frutiger Aero light mode — white→#caf0f8 radial gradient bg, `rgba(255,255,255,0.62)` glass panels, `#32CD32` active green, `#00d4ff` electric blue, `#1c2b3a` dark text
+- **Console/Sidebar**: Warm ember dark palette retained — `#0D0A07` bg, `#CC7722` amber, `#E2D0B4` foreground
+- Typography: Inter (UI), Cormorant Garamond (display headings), JetBrains Mono (LCD logs)
 - Clean readable feed: user messages right-aligned, brain trace stays dim, worker outputs in clean cards (not raw pre blocks)
 - No "AI" in any user-facing copy. No em dashes anywhere in UI text.
 - Suggestion chips after each completed run; disclaimer below input bar

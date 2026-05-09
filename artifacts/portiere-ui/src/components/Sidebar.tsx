@@ -1,20 +1,20 @@
 import { useEffect, useState, useRef } from "react";
 import { Link, useLocation } from "wouter";
-import { MessageSquare, Cpu, Settings, Plus, Trash2, Search, Pin, PinOff, Sun, Moon } from "lucide-react";
+import { MessageSquare, Cpu, Settings, Plus, Trash2, Search, Pin, PinOff, Radio } from "lucide-react";
 import { getSessions, deleteSession, togglePin, relativeTime, searchSessions, type Session } from "@/lib/sessions";
 import { useSession } from "@/lib/SessionContext";
 
-const B = "#141414";          // background
-const SURFACE = "#0F0E0C";    // sidebar (slightly deeper)
-const BORDER = "#242018";     // border
-const AMBER = "#CC7722";      // burnt amber
-const ACTIVE_AMBER = "#B8831C"; // active nav accent — burnished brass
-const TEXT = "#E2D0B4";       // primary text
-const MUTED = "#7A6A54";      // muted text
-const DIM = "#4A3A28";        // dim text
+const SURFACE = "#0F0E0C";    // sidebar
+const BORDER  = "#242018";    // border
+const AMBER   = "#CC7722";    // burnt amber
+const ACTIVE_AMBER = "#B8831C";
+const TEXT    = "#E2D0B4";
+const MUTED   = "#7A6A54";
+const DIM     = "#4A3A28";
 
 const nav = [
-  { href: "/",             icon: MessageSquare, label: "Chat"         },
+  { href: "/",             icon: Radio,         label: "Receiver"     },
+  { href: "/console",      icon: MessageSquare, label: "Console"      },
   { href: "/capabilities", icon: Cpu,           label: "Capabilities" },
   { href: "/settings",     icon: Settings,      label: "Settings"     },
 ];
@@ -26,19 +26,6 @@ export default function Sidebar() {
   const [search, setSearch] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
-
-  const [isDark, setIsDark] = useState(() => localStorage.getItem("portiere_theme") !== "light");
-
-  const toggleTheme = () => {
-    const next = !isDark;
-    setIsDark(next);
-    localStorage.setItem("portiere_theme", next ? "dark" : "light");
-    document.body.classList.toggle("light-mode", !next);
-  };
-
-  useEffect(() => {
-    document.body.classList.toggle("light-mode", !isDark);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     setSessions(getSessions());
@@ -298,16 +285,6 @@ export default function Sidebar() {
           <span className="text-[11px]" style={{ color: DIM, letterSpacing: "-0.005em" }}>
             13 capabilities ready
           </span>
-          <button
-            onClick={toggleTheme}
-            title={isDark ? "Switch to light mode" : "Switch to dark mode"}
-            className="ml-auto p-1.5 transition-all"
-            style={{ color: DIM, borderRadius: "2px" }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = MUTED; (e.currentTarget as HTMLElement).style.backgroundColor = "rgba(255,255,255,0.03)"; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = DIM; (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"; }}
-          >
-            {isDark ? <Sun size={11} /> : <Moon size={11} />}
-          </button>
         </div>
       </div>
     </aside>

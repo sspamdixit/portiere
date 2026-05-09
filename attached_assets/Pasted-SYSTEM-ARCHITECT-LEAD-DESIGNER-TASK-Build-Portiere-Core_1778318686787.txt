@@ -1,0 +1,42 @@
+SYSTEM ARCHITECT & LEAD DESIGNER TASK: Build 'Portiere Core'—A WebSockets-Driven Remote Receiver with a Light-Mode Frutiger Aero UI.
+
+CONTEXT:
+This app is the 'PC Engine Room'. It must act as a local server that processes AI and OSINT tasks, while also acting as a visual 'Analog Receiver' that listens for commands from a future mobile app.
+
+PART 1: THE ARCHITECTURE (BACKEND & NETWORKING)
+
+Framework: Use Python with Flask and Flask-SocketIO (or FastAPI with WebSockets) to create a real-time, event-driven backend.
+
+Authentication Bridge: Implement Google OAuth Login. This is required so the server can verify the identity of incoming remote commands.
+
+The Listener: Create a WebSocket route named /receiver. It must passively listen for incoming JSON payloads (e.g., {"command": "osint_scan", "target": "username"}).
+
+State Management: When a WebSocket connection is active, the backend must emit a status: connected heartbeat every 5 seconds to the frontend UI.
+
+PART 2: THE UI AESTHETIC (LIGHT-MODE FRUTIGER AERO)
+
+Materiality: The theme is 'Clear Spring Water and Glass'. Default to Light Mode.
+
+Background: A bright, airy radial gradient starting from a pure white center fading into a very soft, pale sky-blue (#e0f7fa) at the edges.
+
+Glassmorphism: All containers must look like physical glass panes. Use background: rgba(255, 255, 255, 0.6);, backdrop-filter: blur(25px);, a 1px solid white top-border (for a specular highlight), and a soft drop shadow.
+
+Color Palette: Pure White, 'Vibrant Grass Green' (#32CD32) for active states, and 'Electric Blue' (#00d4ff) for secondary accents.
+
+PART 3: ANALOG HARDWARE COMPONENTS (FRONTEND)
+
+The 'Voice Orb' (Central Focus): Create a 3D glass sphere (min-width: 140px). It must have a sharp white specular highlight on the top-left, and an inner radial gradient of soft lime green. When the WebSocket receives a command, this orb must ripple with a CSS 'sonar' animation.
+
+The Signal Meter: Build an analog curved 'Signal Strength' meter with a needle at the top of the UI. If the WebSocket heartbeat is active, the needle moves to 100% (Green). If disconnected, it drops to 0% (Red).
+
+VU Level Bars: Add vertical 'LED' audio bars on the sides. Bind these to a dummy function for now: when a button is clicked or a signal is received, the green/yellow/red LED blocks should bounce up and down to simulate processing.
+
+Typography: Use a clean, sans-serif font (like Segoe UI or Inter) for general text. For system logs or server stats, use Geist Mono or a similar monospaced font, colored in a dark LCD-green.
+
+PART 4: EXECUTION RULES
+
+Do NOT delete my existing Python logic for Bakery, OSINT, or LLMs. Move them into modular files if necessary, but keep the logic intact.
+
+Hide the complex tools inside 'Glass Drawers' (collapsible sidebars) so the main interface remains clean and focused solely on the Orb and the Meters.
+
+Ensure the style.css is separated from the HTML so the CSS gradient and animation logic doesn't clutter the structural code."

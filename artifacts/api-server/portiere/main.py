@@ -5,7 +5,7 @@ import platform
 import subprocess
 import httpx
 import psutil
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sse_starlette.sse import EventSourceResponse
@@ -13,6 +13,7 @@ from portiere.models import OrchestrateRequest
 from portiere.orchestrator import Orchestrator
 from portiere.settings_store import SettingsStore
 from portiere.setup_wizard import stream_wizard, parse_setup_result
+from portiere.receiver import receiver_manager
 
 app = FastAPI(title="Portiere", version="0.1.0", docs_url="/api/docs", openapi_url="/api/openapi.json")
 
@@ -375,6 +376,37 @@ async def start_ollama():
         return {"ok": False, "message": "ollama not found — install it first"}
     except Exception as e:
         return {"ok": False, "message": str(e)}
+
+
+@app.websocket("/ws/receiver")
+async def ws_receiver(websocket: WebSocket):
+    await receiver_manager.connect(websocket)
+    try:
+        while True:
+            raw = await websocket.receive_text()
+            try:
+                payload = json.loads(raw)
+                command = payload.get("command", "")
+                target = payload.get("target", "")
+                await receiver_manager.broadcast({
+                    "type": "command_received",
+                    "command": command,
+                    "target": target,
+                    "source": "remote",
+                })
+            except (json.JSONDecodeError, KeyError):
+                pass
+    except WebSocketDisconnect:
+        receiver_manager.disconnect(websocket)
+
+
+@app.get("/api/receiver/status")
+async def receiver_status():
+    return {
+        "connected_clients": len(receiver_manager.active),
+        "listening": True,
+        "endpoint": "/ws/receiver",
+    }
 
 
 @app.get("/api/workers")

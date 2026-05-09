@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import ConsolePage from "@/pages/ConsolePage";
 import SettingsPage from "@/pages/SettingsPage";
 import ModelsPage from "@/pages/ModelsPage";
+import ReceiverPage from "@/pages/ReceiverPage";
 import Sidebar from "@/components/Sidebar";
 import OnboardingModal from "@/components/OnboardingModal";
 import { SessionProvider } from "@/lib/SessionContext";
@@ -27,7 +28,8 @@ function AppShell() {
       <Sidebar />
       <main className="flex-1 flex flex-col overflow-hidden">
         <Switch>
-          <Route path="/" component={ConsolePage} />
+          <Route path="/" component={ReceiverPage} />
+          <Route path="/console" component={ConsolePage} />
           <Route path="/settings" component={SettingsPage} />
           <Route path="/capabilities" component={ModelsPage} />
           <Route path="/models" component={ModelsPage} />
