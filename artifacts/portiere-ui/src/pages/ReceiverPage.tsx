@@ -8,52 +8,58 @@ import SignalMeter from "@/components/SignalMeter";
 import VUBars from "@/components/VUBars";
 import { connectReceiver, type ReceiverEvent } from "@/lib/receiver";
 
+// ─── Design tokens ────────────────────────────────────────────
 const GLASS: React.CSSProperties = {
-  background: "rgba(255,255,255,0.62)",
-  backdropFilter: "blur(28px) saturate(1.9)",
-  WebkitBackdropFilter: "blur(28px) saturate(1.9)",
-  border: "1px solid rgba(255,255,255,0.88)",
-  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.95), 0 4px 20px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.05)",
+  background: "rgba(255,255,255,0.58)",
+  backdropFilter: "blur(28px) saturate(1.8)",
+  WebkitBackdropFilter: "blur(28px) saturate(1.8)",
+  border: "1px solid rgba(255,255,255,0.85)",
+  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.92), 0 4px 20px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.04)",
+};
+
+const PANEL: React.CSSProperties = {
+  background: "rgba(240,230,215,0.5)",
+  backdropFilter: "blur(22px) saturate(1.6)",
+  WebkitBackdropFilter: "blur(22px) saturate(1.6)",
+  border: "1px solid rgba(210,185,145,0.4)",
+  boxShadow: "inset 0 1px 0 rgba(255,245,225,0.8), 0 4px 20px rgba(80,50,10,0.08)",
 };
 
 const GLASS_DARK: React.CSSProperties = {
-  background: "rgba(8,16,24,0.84)",
+  background: "rgba(8,14,20,0.86)",
   backdropFilter: "blur(20px) saturate(1.5)",
   WebkitBackdropFilter: "blur(20px) saturate(1.5)",
-  border: "1px solid rgba(255,255,255,0.09)",
-  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 24px rgba(0,0,0,0.22)",
+  border: "1px solid rgba(255,255,255,0.08)",
+  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04), 0 4px 24px rgba(0,0,0,0.24)",
 };
 
-const GREEN = "#32CD32";
-const BLUE  = "#00d4ff";
-const TEXT  = "#1c2b3a";
-const MUTED = "#5a7488";
-const LCD   = "#00b341";
+const SERIF = "'Cormorant Garamond', Georgia, serif";
 
+const AMBER  = "#E8A020";        // warm analog amber — primary accent
+const AMBER2 = "#D4821A";        // deeper amber — active/pressed
+const GREEN  = "#32CD32";        // power LED green — LIVE status only
+const BLUE   = "#00d4ff";        // terminal blue — command input
+const TEXT   = "#1c2018";        // dark warm text
+const MUTED  = "#7a6a50";        // warm muted
+const LCD    = "#00b341";        // LCD green — intentionally digital
+
+// ─── Types ────────────────────────────────────────────────────
 type LogType = "info" | "command" | "heartbeat" | "connect" | "disconnect" | "error";
-
-interface LogEntry {
-  id: number;
-  ts: string;
-  type: LogType;
-  text: string;
-}
-
-let _logId = 0;
-
-function nowTime() {
-  return new Date().toLocaleTimeString("en-US", { hour12: false });
-}
+interface LogEntry { id: number; ts: string; type: LogType; text: string; }
 
 const LOG_COLOR: Record<LogType, string> = {
   info:       LCD,
-  command:    "#39ff14",
-  heartbeat:  "rgba(0,212,255,0.45)",
-  connect:    BLUE,
+  command:    "#E8A020",
+  heartbeat:  "rgba(232,160,32,0.45)",
+  connect:    "#00d4ff",
   disconnect: "#FF6644",
   error:      "#FF4444",
 };
 
+let _logId = 0;
+function nowTime() { return new Date().toLocaleTimeString("en-US", { hour12: false }); }
+
+// ─── Component ────────────────────────────────────────────────
 export default function ReceiverPage() {
   const [connected, setConnected]   = useState(false);
   const [signal, setSignal]         = useState(0);
@@ -67,7 +73,7 @@ export default function ReceiverPage() {
     { id: ++_logId, ts: nowTime(), type: "info",    text: "WAITING FOR CONNECTION ON /ws/receiver ..." },
   ]);
 
-  const logRef = useRef<HTMLDivElement>(null);
+  const logRef   = useRef<HTMLDivElement>(null);
   const heartRef = useRef(0);
 
   const push = useCallback((type: LogType, text: string) => {
@@ -75,9 +81,7 @@ export default function ReceiverPage() {
   }, []);
 
   useEffect(() => {
-    if (logRef.current) {
-      logRef.current.scrollTop = logRef.current.scrollHeight;
-    }
+    if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
   }, [log]);
 
   const triggerActive = useCallback(() => {
@@ -94,9 +98,7 @@ export default function ReceiverPage() {
           setConnected(true);
           setSignal(100);
           heartRef.current += 1;
-          if (heartRef.current % 6 === 1) {
-            push("heartbeat", `HEARTBEAT OK  ·  clients: ${evt.clients ?? 1}`);
-          }
+          if (heartRef.current % 6 === 1) push("heartbeat", `HEARTBEAT OK  ·  clients: ${evt.clients ?? 1}`);
         } else if (evt.type === "connected") {
           push("connect", "RECEIVER CONNECTED  ·  LISTENING");
         } else if (evt.type === "disconnected") {
@@ -110,10 +112,7 @@ export default function ReceiverPage() {
           triggerActive();
         }
       },
-      (ok: boolean) => {
-        setConnected(ok);
-        setSignal(ok ? 100 : 0);
-      },
+      (ok: boolean) => { setConnected(ok); setSignal(ok ? 100 : 0); },
     );
     return stop;
   }, [push, triggerActive]);
@@ -129,54 +128,65 @@ export default function ReceiverPage() {
   return (
     <div className="relative flex flex-col h-full overflow-hidden" style={{ color: TEXT }}>
 
-      {/* Background gradient */}
+      {/* Background — warm sky, slightly tinted amber */}
       <div className="absolute inset-0 pointer-events-none" style={{
-        background: "radial-gradient(ellipse at 50% 28%, #ffffff 0%, #edfcff 42%, #d9f6fc 72%, #caf0f8 100%)",
+        background: "radial-gradient(ellipse at 50% 28%, #fffdf8 0%, #faf4e8 38%, #f0e8d2 68%, #e8dcc0 100%)",
       }} />
-
-      {/* Dot grid overlay */}
+      {/* Subtle grid */}
       <div className="absolute inset-0 pointer-events-none" style={{
-        backgroundImage: "radial-gradient(circle, rgba(0,160,220,0.07) 1px, transparent 1px)",
+        backgroundImage: "radial-gradient(circle, rgba(160,120,40,0.07) 1px, transparent 1px)",
         backgroundSize: "26px 26px",
       }} />
 
       {/* Main layout */}
       <div className="relative z-10 flex flex-col h-full overflow-y-auto feed-scroll" style={{ padding: "18px 22px 16px" }}>
 
-        {/* ─── TOP BAR ──────────────────────────────── */}
+        {/* ─── TOP BAR ─────────────────────────────── */}
         <div className="flex items-center gap-4 flex-shrink-0 mb-4">
 
-          {/* Identity */}
-          <div className="flex flex-col gap-0.5 flex-shrink-0 w-36">
+          {/* Identity — serif display */}
+          <div className="flex flex-col gap-0.5 flex-shrink-0 w-40">
             <div className="flex items-center gap-2">
-              <Radio size={15} style={{ color: connected ? GREEN : MUTED, transition: "color 0.4s" }} />
-              <span className="text-[14px] font-semibold tracking-tight" style={{ color: TEXT }}>Receiver</span>
+              <Radio size={14} style={{ color: connected ? AMBER : MUTED, transition: "color 0.4s" }} />
+              <span style={{
+                fontFamily: SERIF,
+                fontSize: "22px",
+                fontWeight: 500,
+                fontStyle: "italic",
+                color: TEXT,
+                letterSpacing: "-0.01em",
+                lineHeight: 1,
+              }}>
+                Receiver
+              </span>
             </div>
-            <span className="text-[10px] font-mono tracking-widest" style={{ color: MUTED }}>PC ENGINE ROOM</span>
+            <span className="font-mono text-[9.5px] tracking-[0.18em]" style={{ color: MUTED }}>
+              PC ENGINE ROOM
+            </span>
           </div>
 
-          {/* Signal Meter — centrepiece of top bar */}
+          {/* Signal Meter — centrepiece */}
           <div className="flex-1 flex justify-center">
             <div className="rounded-2xl px-6 py-1.5" style={GLASS}>
               <SignalMeter value={signal} connected={connected} label="RECEIVER" />
             </div>
           </div>
 
-          {/* Status + endpoint */}
-          <div className="flex flex-col items-end gap-1.5 flex-shrink-0 w-36">
+          {/* Status pill + endpoint */}
+          <div className="flex flex-col items-end gap-1.5 flex-shrink-0 w-40">
             <div
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11.5px] font-mono font-semibold transition-all"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full font-mono text-[11px] font-semibold transition-all"
               style={{
                 ...GLASS,
                 color: connected ? GREEN : "#FF6644",
                 border: `1px solid ${connected ? "rgba(50,205,50,0.4)" : "rgba(255,100,68,0.4)"}`,
-                boxShadow: connected ? "0 0 12px rgba(50,205,50,0.18)" : "none",
+                boxShadow: connected ? "0 0 14px rgba(50,205,50,0.2)" : "none",
               }}
             >
               {connected ? <Wifi size={11} /> : <WifiOff size={11} />}
               {connected ? "LIVE" : "OFFLINE"}
             </div>
-            <div className="text-[9.5px] font-mono text-right leading-relaxed" style={{ color: MUTED }}>
+            <div className="font-mono text-[9px] text-right leading-relaxed" style={{ color: MUTED }}>
               ws://…/ws/receiver<br />port 8080
             </div>
           </div>
@@ -186,15 +196,24 @@ export default function ReceiverPage() {
         <div className="flex items-center justify-center gap-6 flex-shrink-0 mb-4">
 
           {/* Left VU panel */}
-          <div className="flex flex-col items-center gap-2.5 px-5 py-4 rounded-2xl" style={GLASS}>
-            <span className="text-[8px] font-mono font-bold tracking-[0.2em]" style={{ color: MUTED }}>INPUT</span>
+          <div className="flex flex-col items-center gap-2.5 px-5 py-4 rounded-2xl" style={PANEL}>
+            <span style={{
+              fontFamily: SERIF,
+              fontSize: "12px",
+              fontWeight: 400,
+              letterSpacing: "0.12em",
+              color: MUTED,
+              textTransform: "uppercase" as const,
+            }}>
+              Input
+            </span>
             <VUBars active={active} count={7} height={104} />
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
               <div className="w-1.5 h-1.5 rounded-full transition-all" style={{
-                background: active ? GREEN : "rgba(50,205,50,0.2)",
-                boxShadow: active ? `0 0 6px ${GREEN}` : "none",
+                background: active ? AMBER : "rgba(232,160,32,0.2)",
+                boxShadow: active ? `0 0 7px ${AMBER}` : "none",
               }} />
-              <span className="text-[8.5px] font-mono" style={{ color: active ? GREEN : MUTED }}>L</span>
+              <span className="font-mono text-[8.5px]" style={{ color: active ? AMBER : MUTED }}>L</span>
             </div>
           </div>
 
@@ -204,52 +223,72 @@ export default function ReceiverPage() {
 
             {/* Controls beneath orb */}
             <div className="flex items-center gap-2.5">
+              {/* Standby / Listening button — serif label */}
               <button
                 onClick={() => setListening(l => !l)}
-                className="flex items-center gap-2 px-5 py-2 rounded-full text-[12.5px] font-semibold transition-all"
+                className="flex items-center gap-2 px-5 py-2 rounded-full transition-all"
                 style={{
                   background: listening
-                    ? "linear-gradient(135deg, rgba(50,205,50,0.22) 0%, rgba(0,212,255,0.14) 100%)"
+                    ? `linear-gradient(135deg, rgba(232,160,32,0.22) 0%, rgba(212,130,26,0.14) 100%)`
                     : "rgba(255,255,255,0.72)",
-                  border: `1px solid ${listening ? "rgba(50,205,50,0.45)" : "rgba(255,255,255,0.88)"}`,
+                  border: `1px solid ${listening ? "rgba(232,160,32,0.45)" : "rgba(255,255,255,0.85)"}`,
                   backdropFilter: "blur(16px)",
                   WebkitBackdropFilter: "blur(16px)",
-                  color: listening ? GREEN : MUTED,
-                  boxShadow: listening ? `0 0 16px rgba(50,205,50,0.22)` : "0 2px 8px rgba(0,0,0,0.06)",
+                  color: listening ? AMBER2 : MUTED,
+                  boxShadow: listening ? `0 0 18px rgba(232,160,32,0.22)` : "0 2px 8px rgba(0,0,0,0.06)",
                   transition: "all 0.25s ease",
+                  fontFamily: SERIF,
+                  fontSize: "15px",
+                  fontWeight: 500,
+                  fontStyle: "italic",
+                  letterSpacing: "0.01em",
                 }}
               >
                 <Activity size={12} />
                 {listening ? "Listening" : "Standby"}
               </button>
 
+              {/* Ready / Processing status */}
               <div
-                className="flex items-center gap-1.5 px-3 py-2 rounded-full text-[10.5px] font-mono"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-full"
                 style={{
-                  background: "rgba(255,255,255,0.55)",
-                  border: "1px solid rgba(255,255,255,0.8)",
+                  background: "rgba(255,248,235,0.65)",
+                  border: `1px solid ${active ? "rgba(232,160,32,0.4)" : "rgba(210,185,145,0.35)"}`,
                   backdropFilter: "blur(12px)",
-                  color: active ? BLUE : MUTED,
-                  boxShadow: active ? `0 0 10px rgba(0,212,255,0.18)` : "none",
+                  color: active ? AMBER2 : MUTED,
+                  boxShadow: active ? `0 0 12px rgba(232,160,32,0.2)` : "none",
                   transition: "all 0.3s ease",
+                  fontFamily: SERIF,
+                  fontSize: "13px",
+                  fontWeight: 400,
+                  fontStyle: "italic",
                 }}
               >
-                <Zap size={9} style={{ color: active ? BLUE : MUTED }} />
-                {active ? "PROCESSING" : "READY"}
+                <Zap size={9} style={{ color: active ? AMBER : MUTED }} />
+                {active ? "Processing" : "Ready"}
               </div>
             </div>
           </div>
 
           {/* Right VU panel */}
-          <div className="flex flex-col items-center gap-2.5 px-5 py-4 rounded-2xl" style={GLASS}>
-            <span className="text-[8px] font-mono font-bold tracking-[0.2em]" style={{ color: MUTED }}>OUTPUT</span>
+          <div className="flex flex-col items-center gap-2.5 px-5 py-4 rounded-2xl" style={PANEL}>
+            <span style={{
+              fontFamily: SERIF,
+              fontSize: "12px",
+              fontWeight: 400,
+              letterSpacing: "0.12em",
+              color: MUTED,
+              textTransform: "uppercase" as const,
+            }}>
+              Output
+            </span>
             <VUBars active={active} count={7} height={104} />
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
               <div className="w-1.5 h-1.5 rounded-full transition-all" style={{
-                background: active ? GREEN : "rgba(50,205,50,0.2)",
-                boxShadow: active ? `0 0 6px ${GREEN}` : "none",
+                background: active ? AMBER : "rgba(232,160,32,0.2)",
+                boxShadow: active ? `0 0 7px ${AMBER}` : "none",
               }} />
-              <span className="text-[8.5px] font-mono" style={{ color: active ? GREEN : MUTED }}>R</span>
+              <span className="font-mono text-[8.5px]" style={{ color: active ? AMBER : MUTED }}>R</span>
             </div>
           </div>
         </div>
@@ -257,7 +296,7 @@ export default function ReceiverPage() {
         {/* ─── BOTTOM — Log + Command ──────────────── */}
         <div className="flex flex-col gap-2.5 flex-shrink-0">
 
-          {/* Log toggle */}
+          {/* Log toggle bar */}
           <button
             className="flex items-center justify-between px-4 py-2.5 rounded-xl text-left transition-all"
             style={{ ...GLASS_DARK, color: LCD }}
@@ -265,17 +304,17 @@ export default function ReceiverPage() {
           >
             <div className="flex items-center gap-2.5">
               <Terminal size={12} style={{ color: LCD }} />
-              <span className="text-[11.5px] font-mono font-bold tracking-[0.15em]">RECEIVER LOG</span>
+              <span className="font-mono text-[11px] font-bold tracking-[0.18em]">RECEIVER LOG</span>
               <span
-                className="text-[9.5px] font-mono px-1.5 py-0.5 rounded"
+                className="font-mono text-[9px] px-1.5 py-0.5 rounded"
                 style={{ background: "rgba(0,179,65,0.14)", color: LCD, border: "1px solid rgba(0,179,65,0.28)" }}
               >
                 {log.length}
               </span>
               {connected && (
                 <span
-                  className="text-[9px] font-mono px-1.5 py-0.5 rounded flex items-center gap-1"
-                  style={{ background: "rgba(0,212,255,0.1)", color: BLUE, border: "1px solid rgba(0,212,255,0.25)" }}
+                  className="font-mono text-[9px] px-1.5 py-0.5 rounded flex items-center gap-1"
+                  style={{ background: "rgba(50,205,50,0.1)", color: GREEN, border: "1px solid rgba(50,205,50,0.25)" }}
                 >
                   <Power size={7} /> LIVE
                 </span>
@@ -302,10 +341,10 @@ export default function ReceiverPage() {
             >
               {log.map(entry => (
                 <div key={entry.id} className="flex gap-2.5">
-                  <span style={{ color: "rgba(0,179,65,0.38)", whiteSpace: "nowrap", flexShrink: 0 }}>
+                  <span style={{ color: "rgba(0,179,65,0.36)", whiteSpace: "nowrap", flexShrink: 0 }}>
                     {entry.ts}
                   </span>
-                  <span style={{ color: "rgba(0,179,65,0.22)", flexShrink: 0 }}>::</span>
+                  <span style={{ color: "rgba(0,179,65,0.2)", flexShrink: 0 }}>::</span>
                   <span style={{ color: LOG_COLOR[entry.type] }}>{entry.text}</span>
                 </div>
               ))}
@@ -318,32 +357,32 @@ export default function ReceiverPage() {
               className="flex-1 flex items-center gap-3 px-4 py-2.5 rounded-xl"
               style={{
                 ...GLASS_DARK,
-                border: `1px solid ${cmdInput.trim() ? "rgba(0,212,255,0.3)" : "rgba(255,255,255,0.08)"}`,
+                border: `1px solid ${cmdInput.trim() ? "rgba(232,160,32,0.35)" : "rgba(255,255,255,0.08)"}`,
                 transition: "border-color 0.2s ease",
               }}
             >
-              <span className="font-mono text-[12px] flex-shrink-0" style={{ color: "rgba(0,212,255,0.4)" }}>$</span>
+              <span className="font-mono text-[12px] flex-shrink-0" style={{ color: "rgba(232,160,32,0.45)" }}>$</span>
               <input
                 value={cmdInput}
                 onChange={e => setCmdInput(e.target.value)}
                 onKeyDown={e => { if (e.key === "Enter") sendCommand(); }}
                 placeholder="send a command..."
-                className="flex-1 bg-transparent outline-none text-[13px] font-mono"
-              style={{ color: BLUE, caretColor: BLUE }}
+                className="flex-1 bg-transparent outline-none font-mono text-[13px]"
+                style={{ color: "#F0C060", caretColor: AMBER }}
               />
-              <span className="text-[10px] font-mono flex-shrink-0" style={{ color: "rgba(0,212,255,0.25)" }}>↵</span>
+              <span className="font-mono text-[10px] flex-shrink-0" style={{ color: "rgba(232,160,32,0.3)" }}>↵</span>
             </div>
             <button
               onClick={sendCommand}
               className="flex items-center justify-center w-11 rounded-xl transition-all flex-shrink-0"
               style={{
                 background: cmdInput.trim()
-                  ? "linear-gradient(135deg, rgba(0,212,255,0.22) 0%, rgba(50,205,50,0.16) 100%)"
-                  : "rgba(20,35,50,0.6)",
-                border: `1px solid ${cmdInput.trim() ? "rgba(0,212,255,0.4)" : "rgba(255,255,255,0.08)"}`,
+                  ? "linear-gradient(135deg, rgba(232,160,32,0.25) 0%, rgba(212,130,26,0.18) 100%)"
+                  : "rgba(18,28,40,0.6)",
+                border: `1px solid ${cmdInput.trim() ? "rgba(232,160,32,0.45)" : "rgba(255,255,255,0.08)"}`,
                 backdropFilter: "blur(16px)",
-                color: cmdInput.trim() ? BLUE : MUTED,
-                boxShadow: cmdInput.trim() ? `0 0 14px rgba(0,212,255,0.22)` : "none",
+                color: cmdInput.trim() ? AMBER : MUTED,
+                boxShadow: cmdInput.trim() ? `0 0 16px rgba(232,160,32,0.25)` : "none",
               }}
             >
               <Send size={14} />
